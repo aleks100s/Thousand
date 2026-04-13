@@ -1,15 +1,7 @@
 package com.alextos.thousand.domain.models
 
-enum class Die {
-    ONE,
-    TWO,
-    THREE,
-    FOUR,
-    FIVE,
-    SIX;
-
-    val value: Int
-        get() {
-            return ordinal + 1
-        }
-}
+data class Die(
+    val id: Int,
+    val order: Int,
+    val value: DieValue
+)
