@@ -4,5 +4,6 @@ data class Player(
     val id: Int,
     val userID: Int,
     val gameID: Int,
-    val currentScore: Int
+    val currentScore: Int,
+    val isWinner: Boolean
 )
