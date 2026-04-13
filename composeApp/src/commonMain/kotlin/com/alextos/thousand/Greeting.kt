@@ -1,0 +1,9 @@
+package com.alextos.thousand
+
+class Greeting {
+    private val platform = getPlatform()
+
+    fun greet(): String {
+        return "Hello, ${platform.name}!"
+    }
+}
