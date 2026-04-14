@@ -1,9 +1,9 @@
 package com.alextos.thousand.common
 
 import androidx.compose.animation.AnimatedContentScope
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
@@ -17,10 +17,10 @@ inline fun <reified Route: Any> NavGraphBuilder.horizontalTransition(
     noinline content: @Composable AnimatedContentScope.(NavBackStackEntry) -> Unit
 ) {
     composable<Route>(
-        enterTransition = { slideInHorizontally(animationSpec = tween(500)) { it } },
-        exitTransition = { fadeOut(animationSpec = tween(500)) },
-        popEnterTransition = { fadeIn(animationSpec = tween(500)) },
-        popExitTransition = { slideOutHorizontally(animationSpec = tween(500)) { it } } ,
+        enterTransition = { slideInHorizontally { it } + fadeIn() },
+        exitTransition = { slideOutHorizontally { -it } + fadeOut() + scaleOut() },
+        popEnterTransition = { slideInHorizontally { -it } + fadeIn() },
+        popExitTransition = { slideOutHorizontally { it } + fadeOut() + scaleOut() } ,
         deepLinks = deepLinks,
         content = content
     )
