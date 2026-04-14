@@ -2,8 +2,8 @@ package com.alextos.thousand.presentation.game
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.alextos.thousand.common.horizontalTransition
 
 @Composable
 fun GameTabNavHost() {
@@ -11,18 +11,18 @@ fun GameTabNavHost() {
 
     NavHost(
         navController = navController,
-        startDestination = GameRoute.GAMES_LIST.value,
+        startDestination = GameRoute.GamesList,
     ) {
-        composable(GameRoute.GAMES_LIST.value) {
+        horizontalTransition<GameRoute.GamesList> { _ ->
             GamesListScreen()
         }
-        composable(GameRoute.CREATE_GAME.value) {
+        horizontalTransition<GameRoute.CreateGame> { _ ->
             CreateGameScreen()
         }
-        composable(GameRoute.GAME.value) {
+        horizontalTransition<GameRoute.Game> { _ ->
             GameScreen()
         }
-        composable(GameRoute.GAME_SCORE.value) {
+        horizontalTransition<GameRoute.GameScore> { _ ->
             GameScoreScreen()
         }
     }

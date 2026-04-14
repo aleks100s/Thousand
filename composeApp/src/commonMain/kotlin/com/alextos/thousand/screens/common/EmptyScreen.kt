@@ -1,20 +1,19 @@
 package com.alextos.thousand.screens.common
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.alextos.thousand.common.Screen
 
 @Composable
 fun EmptyScreen(title: String) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+    Screen(
+        modifier = Modifier,
+        title = title,
     ) {
-        Text(title)
+        Box(
+            modifier = it.fillMaxSize(),
+        )
     }
 }
