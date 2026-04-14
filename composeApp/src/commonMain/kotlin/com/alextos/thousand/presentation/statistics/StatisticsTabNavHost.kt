@@ -8,7 +8,7 @@ import androidx.navigation.compose.rememberNavController
 private const val STATISTICS_ROUTE = "statistics"
 
 @Composable
-fun StatisticsTabNavHost() {
+fun StatisticsTabRoot() {
     val navController = rememberNavController()
 
     NavHost(

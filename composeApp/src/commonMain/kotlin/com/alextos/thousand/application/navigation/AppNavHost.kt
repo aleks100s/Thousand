@@ -9,8 +9,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.alextos.thousand.presentation.game.GameTabNavHost
-import com.alextos.thousand.presentation.statistics.StatisticsTabNavHost
+import com.alextos.thousand.presentation.game.GameTabRoot
+import com.alextos.thousand.presentation.statistics.StatisticsTabRoot
 
 @Composable
 fun AppNavHost(
@@ -30,7 +30,7 @@ fun AppNavHost(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = contentAlignment,
             ) {
-                GameTabNavHost()
+                GameTabRoot()
             }
         }
         composable(BottomTab.Statistics.route) {
@@ -38,7 +38,7 @@ fun AppNavHost(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = contentAlignment,
             ) {
-                StatisticsTabNavHost()
+                StatisticsTabRoot()
             }
         }
     }

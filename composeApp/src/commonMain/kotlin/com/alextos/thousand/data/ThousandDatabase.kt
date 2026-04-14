@@ -5,6 +5,13 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import com.alextos.thousand.data.dao.DiceRollDao
+import com.alextos.thousand.data.dao.DieDao
+import com.alextos.thousand.data.dao.GameDao
+import com.alextos.thousand.data.dao.PlayerDao
+import com.alextos.thousand.data.dao.TurnDao
+import com.alextos.thousand.data.dao.TurnEffectDao
+import com.alextos.thousand.data.dao.UserDao
 import com.alextos.thousand.data.models.DiceRollEntity
 import com.alextos.thousand.data.models.DieEntity
 import com.alextos.thousand.data.models.GameEntity
@@ -30,7 +37,13 @@ internal const val THOUSAND_DATABASE_FILE_NAME = "thousand.db"
 )
 @ConstructedBy(ThousandDatabaseConstructor::class)
 abstract class ThousandDatabase : RoomDatabase() {
-    abstract fun thousandDao(): ThousandDao
+    abstract fun userDao(): UserDao
+    abstract fun gameDao(): GameDao
+    abstract fun playerDao(): PlayerDao
+    abstract fun turnDao(): TurnDao
+    abstract fun diceRollDao(): DiceRollDao
+    abstract fun dieDao(): DieDao
+    abstract fun turnEffectDao(): TurnEffectDao
 }
 
 @Suppress("KotlinNoActualForExpect")

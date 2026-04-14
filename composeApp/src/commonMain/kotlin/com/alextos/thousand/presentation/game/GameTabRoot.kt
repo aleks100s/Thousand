@@ -6,7 +6,7 @@ import androidx.navigation.compose.rememberNavController
 import com.alextos.thousand.common.horizontalTransition
 
 @Composable
-fun GameTabNavHost() {
+fun GameTabRoot() {
     val navController = rememberNavController()
 
     NavHost(
