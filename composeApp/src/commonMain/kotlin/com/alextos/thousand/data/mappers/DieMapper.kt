@@ -5,11 +5,11 @@ import com.alextos.thousand.domain.models.Die
 import com.alextos.thousand.domain.models.DieValue
 
 fun Die.toEntity(
-    playerId: Int,
+    userId: Int,
     rollId: Int,
 ): DieEntity = DieEntity(
     id = id,
-    playerId = playerId,
+    userId = userId,
     rollId = rollId,
     order = order,
     value = value.value,

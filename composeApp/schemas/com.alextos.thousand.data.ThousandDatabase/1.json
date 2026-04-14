@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "caeff6ed40260cd530ad2b02a72a57ac",
+    "identityHash": "e0d01c24a70af7d21add863c532df609",
     "entities": [
       {
         "tableName": "users",
@@ -145,7 +145,7 @@
       },
       {
         "tableName": "turns",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `playerId` INTEGER NOT NULL, `gameId` INTEGER NOT NULL, `order` INTEGER NOT NULL, `total` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`playerId`) REFERENCES `players`(`id`) ON UPDATE CASCADE ON DELETE CASCADE , FOREIGN KEY(`gameId`) REFERENCES `games`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `userId` INTEGER NOT NULL, `gameId` INTEGER NOT NULL, `order` INTEGER NOT NULL, `total` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`userId`) REFERENCES `players`(`id`) ON UPDATE CASCADE ON DELETE CASCADE , FOREIGN KEY(`gameId`) REFERENCES `games`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -154,8 +154,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "playerId",
-            "columnName": "playerId",
+            "fieldPath": "userId",
+            "columnName": "userId",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -186,13 +186,13 @@
         },
         "indices": [
           {
-            "name": "index_turns_playerId",
+            "name": "index_turns_userId",
             "unique": false,
             "columnNames": [
-              "playerId"
+              "userId"
             ],
             "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_turns_playerId` ON `${TABLE_NAME}` (`playerId`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_turns_userId` ON `${TABLE_NAME}` (`userId`)"
           },
           {
             "name": "index_turns_gameId",
@@ -210,7 +210,7 @@
             "onDelete": "CASCADE",
             "onUpdate": "CASCADE",
             "columns": [
-              "playerId"
+              "userId"
             ],
             "referencedColumns": [
               "id"
@@ -231,7 +231,7 @@
       },
       {
         "tableName": "dice_rolls",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `playerId` INTEGER NOT NULL, `turnId` INTEGER NOT NULL, `order` INTEGER NOT NULL, `total` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`playerId`) REFERENCES `players`(`id`) ON UPDATE CASCADE ON DELETE CASCADE , FOREIGN KEY(`turnId`) REFERENCES `turns`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `userId` INTEGER NOT NULL, `turnId` INTEGER NOT NULL, `order` INTEGER NOT NULL, `total` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`userId`) REFERENCES `users`(`id`) ON UPDATE CASCADE ON DELETE CASCADE , FOREIGN KEY(`turnId`) REFERENCES `turns`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -240,8 +240,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "playerId",
-            "columnName": "playerId",
+            "fieldPath": "userId",
+            "columnName": "userId",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -272,13 +272,13 @@
         },
         "indices": [
           {
-            "name": "index_dice_rolls_playerId",
+            "name": "index_dice_rolls_userId",
             "unique": false,
             "columnNames": [
-              "playerId"
+              "userId"
             ],
             "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_dice_rolls_playerId` ON `${TABLE_NAME}` (`playerId`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_dice_rolls_userId` ON `${TABLE_NAME}` (`userId`)"
           },
           {
             "name": "index_dice_rolls_turnId",
@@ -292,11 +292,11 @@
         ],
         "foreignKeys": [
           {
-            "table": "players",
+            "table": "users",
             "onDelete": "CASCADE",
             "onUpdate": "CASCADE",
             "columns": [
-              "playerId"
+              "userId"
             ],
             "referencedColumns": [
               "id"
@@ -317,7 +317,7 @@
       },
       {
         "tableName": "dice",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `playerId` INTEGER NOT NULL, `rollId` INTEGER NOT NULL, `order` INTEGER NOT NULL, `value` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`playerId`) REFERENCES `players`(`id`) ON UPDATE CASCADE ON DELETE CASCADE , FOREIGN KEY(`rollId`) REFERENCES `dice_rolls`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `userId` INTEGER NOT NULL, `rollId` INTEGER NOT NULL, `order` INTEGER NOT NULL, `value` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`userId`) REFERENCES `users`(`id`) ON UPDATE CASCADE ON DELETE CASCADE , FOREIGN KEY(`rollId`) REFERENCES `dice_rolls`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -326,8 +326,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "playerId",
-            "columnName": "playerId",
+            "fieldPath": "userId",
+            "columnName": "userId",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -358,13 +358,13 @@
         },
         "indices": [
           {
-            "name": "index_dice_playerId",
+            "name": "index_dice_userId",
             "unique": false,
             "columnNames": [
-              "playerId"
+              "userId"
             ],
             "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_dice_playerId` ON `${TABLE_NAME}` (`playerId`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_dice_userId` ON `${TABLE_NAME}` (`userId`)"
           },
           {
             "name": "index_dice_rollId",
@@ -378,11 +378,11 @@
         ],
         "foreignKeys": [
           {
-            "table": "players",
+            "table": "users",
             "onDelete": "CASCADE",
             "onUpdate": "CASCADE",
             "columns": [
-              "playerId"
+              "userId"
             ],
             "referencedColumns": [
               "id"
@@ -483,7 +483,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'caeff6ed40260cd530ad2b02a72a57ac')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e0d01c24a70af7d21add863c532df609')"
     ]
   }
 }

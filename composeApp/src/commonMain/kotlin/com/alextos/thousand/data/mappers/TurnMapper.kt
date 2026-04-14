@@ -1,28 +1,25 @@
 package com.alextos.thousand.data.mappers
 
 import com.alextos.thousand.data.models.TurnEntity
-import com.alextos.thousand.domain.models.DiceRoll
-import com.alextos.thousand.domain.models.Effect
+import com.alextos.thousand.data.models.combined.TurnWithRelations
 import com.alextos.thousand.domain.models.Turn
 
 fun Turn.toEntity(
-    playerId: Int,
+    userId: Int,
     gameId: Int,
 ): TurnEntity = TurnEntity(
     id = id,
-    playerId = playerId,
+    userId = userId,
     gameId = gameId,
     order = order,
     total = total,
 )
 
-fun TurnEntity.toDomain(
-    rolls: List<DiceRoll> = emptyList(),
-    effects: List<Effect> = emptyList(),
-): Turn = Turn(
-    id = id,
-    order = order,
-    rolls = rolls,
-    total = total,
-    effects = effects,
+fun TurnWithRelations.toDomain(): Turn = Turn(
+    id = turn.id,
+    order = turn.order,
+    user = user,
+    rolls = rolls.map { it.toDomain() },
+    total = turn.total,
+    effects = effects.map { it.turnEffect.effectType.toDomainEffect() },
 )

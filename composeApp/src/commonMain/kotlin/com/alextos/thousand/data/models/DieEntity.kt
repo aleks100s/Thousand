@@ -9,9 +9,9 @@ import androidx.room.PrimaryKey
     tableName = "dice",
     foreignKeys = [
         ForeignKey(
-            entity = PlayerEntity::class,
+            entity = UserEntity::class,
             parentColumns = ["id"],
-            childColumns = ["playerId"],
+            childColumns = ["userId"],
             onDelete = ForeignKey.CASCADE,
             onUpdate = ForeignKey.CASCADE,
         ),
@@ -24,13 +24,13 @@ import androidx.room.PrimaryKey
         ),
     ],
     indices = [
-        Index(value = ["playerId"]),
+        Index(value = ["userId"]),
         Index(value = ["rollId"]),
     ],
 )
 data class DieEntity(
     @PrimaryKey val id: Int,
-    val playerId: Int,
+    val userId: Int,
     val rollId: Int,
     val order: Int,
     val value: Int,

@@ -1,8 +1,8 @@
 package com.alextos.thousand.data.mappers
 
 import com.alextos.thousand.data.models.GameEntity
+import com.alextos.thousand.data.models.combined.GameWithRelations
 import com.alextos.thousand.domain.models.Game
-import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.Turn
 
 fun Game.toEntity(): GameEntity = GameEntity(
@@ -11,13 +11,10 @@ fun Game.toEntity(): GameEntity = GameEntity(
     finishedAt = finishedAt,
 )
 
-fun GameEntity.toDomain(
-    players: List<Player> = emptyList(),
-    turns: List<Turn> = emptyList(),
-): Game = Game(
-    id = id,
-    startedAt = startedAt,
-    finishedAt = finishedAt,
-    players = players,
-    turns = turns,
+fun GameWithRelations.toDomain(turns: List<Turn> = emptyList()): Game = Game(
+    id = game.id,
+    startedAt = game.startedAt,
+    finishedAt = game.finishedAt,
+    players = players.map { it.toDomain() },
+    turns = turns
 )
