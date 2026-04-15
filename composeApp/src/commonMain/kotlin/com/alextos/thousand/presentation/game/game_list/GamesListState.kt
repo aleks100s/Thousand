@@ -1,8 +1,8 @@
 package com.alextos.thousand.presentation.game.game_list
 
-import com.alextos.thousand.domain.models.Game
+import com.alextos.thousand.presentation.models.GameUi
 
 data class GamesListState(
     val isLoading: Boolean = true,
-    val games: List<Game> = emptyList(),
+    val games: List<GameUi> = emptyList(),
 )

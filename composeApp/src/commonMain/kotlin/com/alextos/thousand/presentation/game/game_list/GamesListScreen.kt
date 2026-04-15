@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,12 +20,14 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
@@ -35,15 +36,16 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
-import com.alextos.thousand.domain.models.Game
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
+import com.alextos.thousand.presentation.models.GameUi
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
+import thousand.composeapp.generated.resources.Res
+import thousand.composeapp.generated.resources.trophy_24px
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun GamesListScreen(
-    onGameClick: (Game) -> Unit,
+    onGameClick: (GameUi) -> Unit,
 ) {
     val viewModel: GamesListViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -71,9 +73,7 @@ fun GamesListScreen(
                     items = state.games,
                     key = { game -> game.id },
                 ) { game ->
-                    GameItem(game) {
-                        onGameClick(game)
-                    }
+                    GameItem(game = game, onGameClick = { onGameClick(game) })
                 }
             }
         }
@@ -81,7 +81,7 @@ fun GamesListScreen(
 }
 
 @Composable
-private fun GameItem(game: Game, onGameClick: () -> Unit) {
+private fun GameItem(game: GameUi, onGameClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         onClick = onGameClick
@@ -93,10 +93,10 @@ private fun GameItem(game: Game, onGameClick: () -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Column {
-                Text(text = "Игра №${game.id}")
+                Text(text = game.title)
 
                 Text(
-                    text = game.players.joinToString(separator = " vs "),
+                    text = game.opponents,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -107,19 +107,24 @@ private fun GameItem(game: Game, onGameClick: () -> Unit) {
 }
 
 @Composable
-private fun RowScope.GameStatus(game: Game) {
-    if (game.isFinished()) {
-        val winner = game.players.firstOrNull { it.isWinner }?.user?.name ?: "-"
-        val finishedAt = game.finishedAt?.formatForUi().orEmpty()
+private fun RowScope.GameStatus(game: GameUi) {
+    if (game.isFinished && game.winnerName != null) {
+        val finishedAt = game.finishedAt.orEmpty()
 
-        Column {
-            Text(
-                text = "Победитель: $winner",
-                style = MaterialTheme.typography.bodyMedium,
-            )
+        Column(horizontalAlignment = Alignment.End) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = game.winnerName)
+
+                Icon(
+                    painter = painterResource(Res.drawable.trophy_24px),
+                    contentDescription = "Победитель",
+                    tint = Color.Yellow
+                )
+            }
+
             Text(
                 text = finishedAt,
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
@@ -155,20 +160,4 @@ private fun RowScope.GameStatus(game: Game) {
             .clip(CircleShape)
             .background(Color.Red),
     )
-}
-
-private fun kotlin.time.Instant.formatForUi(): String {
-    val dateTime = toLocalDateTime(TimeZone.currentSystemDefault())
-
-    return buildString {
-        append(dateTime.day.toString().padStart(2, '0'))
-        append('.')
-        append((dateTime.month.ordinal + 1).toString().padStart(2, '0'))
-        append('.')
-        append(dateTime.year)
-        append(' ')
-        append(dateTime.hour.toString().padStart(2, '0'))
-        append(':')
-        append(dateTime.minute.toString().padStart(2, '0'))
-    }
 }

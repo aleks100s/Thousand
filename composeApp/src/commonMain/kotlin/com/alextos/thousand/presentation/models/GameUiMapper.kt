@@ -1,0 +1,36 @@
+package com.alextos.thousand.presentation.models
+
+import com.alextos.thousand.domain.models.Game
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format.char
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Instant
+
+fun Game.toUi(): GameUi {
+    return GameUi(
+        id = id,
+        title = "Игра #$id",
+        opponents = players.joinToString(separator = " vs ") { it.user.name },
+        finishedAt = finishedAt?.formatForUi(),
+        winnerName = players.firstOrNull { it.isWinner }?.user?.name,
+        isFinished = isFinished(),
+    )
+}
+
+private fun Instant.formatForUi(): String {
+    val dateTime = toLocalDateTime(TimeZone.currentSystemDefault())
+    return DateFormatter.format(dateTime)
+}
+
+private val DateFormatter = LocalDateTime.Format {
+    day()
+    char('.')
+    monthNumber()
+    char('.')
+    year()
+    char(' ')
+    hour()
+    char(':')
+    minute()
+}

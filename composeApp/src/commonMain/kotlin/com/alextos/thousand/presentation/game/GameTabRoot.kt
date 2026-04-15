@@ -19,7 +19,7 @@ fun GameTabRoot() {
     ) {
         horizontalTransition<GameRoute.GamesList> { _ ->
             GamesListScreen { game ->
-                if (game.isFinished()) {
+                if (game.isFinished) {
                     navController.navigate(GameRoute.GameScore(game.id))
                 } else {
                     navController.navigate(GameRoute.PlayGame(game.id))

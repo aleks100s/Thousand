@@ -3,6 +3,7 @@ package com.alextos.thousand.presentation.game.game_list
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alextos.thousand.domain.usecase.GetAllGamesUseCase
+import com.alextos.thousand.presentation.models.toUi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,7 +28,7 @@ class GamesListViewModel(
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        games = games,
+                        games = games.map { game -> game.toUi() },
                     )
                 }
             }
