@@ -12,7 +12,10 @@ import com.alextos.thousand.data.repository.GameRepositoryImpl
 import com.alextos.thousand.data.seed.DatabaseSeeder
 import com.alextos.thousand.domain.repository.GameRepository
 import com.alextos.thousand.domain.usecase.GetAllGamesUseCase
+import com.alextos.thousand.domain.usecase.LoadGameUseCase
 import com.alextos.thousand.presentation.game.game_list.GamesListViewModel
+import com.alextos.thousand.presentation.game.game_score.GameScoreViewModel
+import com.alextos.thousand.presentation.game.play_game.PlayGameViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
@@ -31,6 +34,9 @@ val appModule = module {
     single<TurnEffectDao> { get<ThousandDatabase>().turnEffectDao() }
     single<GameRepository> { GameRepositoryImpl(get(), get(), get(), get(), get(), get()) }
     factory { GetAllGamesUseCase(get()) }
+    factory { LoadGameUseCase(get()) }
     viewModelOf(::GamesListViewModel)
+    viewModelOf(::PlayGameViewModel)
+    viewModelOf(::GameScoreViewModel)
     single { DatabaseSeeder(get()) }
 }

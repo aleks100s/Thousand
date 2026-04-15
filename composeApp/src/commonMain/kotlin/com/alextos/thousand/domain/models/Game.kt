@@ -7,4 +7,6 @@ data class Game(
     val startedAt: Instant,
     val finishedAt: Instant?,
     val players: List<Player>
-)
+) {
+    fun isFinished(): Boolean = finishedAt != null
+}

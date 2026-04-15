@@ -1,0 +1,41 @@
+package com.alextos.thousand.presentation.game.game_score
+
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
+import com.alextos.thousand.domain.usecase.LoadGameUseCase
+import com.alextos.thousand.presentation.game.GameRoute
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+
+class GameScoreViewModel(
+    savedStateHandle: SavedStateHandle,
+    private val loadGameUseCase: LoadGameUseCase,
+) : ViewModel() {
+    private val route = savedStateHandle.toRoute<GameRoute.GameScore>()
+
+    private val _state = MutableStateFlow(GameScoreState())
+    val state: StateFlow<GameScoreState> = _state.asStateFlow()
+
+    fun onAction(action: GameScoreAction) {
+        when (action) {
+            GameScoreAction.LoadGame -> loadGame()
+        }
+    }
+
+    private fun loadGame() {
+        viewModelScope.launch {
+            val game = loadGameUseCase(route.gameId)
+            _state.update {
+                it.copy(
+                    isLoading = false,
+                    game = game,
+                )
+            }
+        }
+    }
+}

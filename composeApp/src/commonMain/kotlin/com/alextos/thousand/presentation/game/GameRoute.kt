@@ -8,7 +8,7 @@ sealed interface GameRoute {
     @Serializable
     data object CreateGame: GameRoute
     @Serializable
-    data object Game: GameRoute
+    data class PlayGame(val gameId: Long): GameRoute
     @Serializable
-    data object GameScore: GameRoute
+    data class GameScore(val gameId: Long): GameRoute
 }

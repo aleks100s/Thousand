@@ -1,4 +1,4 @@
-package com.alextos.thousand.presentation.game.game_score
+package com.alextos.thousand.presentation.game.play_game
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,14 +11,14 @@ import com.alextos.thousand.common.Screen
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun GameScoreScreen(
+fun PlayGameScreen(
     onGoBack: () -> Unit,
 ) {
-    val viewModel: GameScoreViewModel = koinViewModel()
+    val viewModel: PlayGameViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        viewModel.onAction(GameScoreAction.LoadGame)
+        viewModel.onAction(PlayGameAction.LoadGame)
     }
 
     Screen(

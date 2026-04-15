@@ -20,11 +20,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
+import com.alextos.thousand.domain.models.Game
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun GamesListScreen() {
+fun GamesListScreen(
+    onGameClick: (Game) -> Unit,
+) {
     val viewModel: GamesListViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -53,6 +56,7 @@ fun GamesListScreen() {
                 ) { game ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
+                        onClick = { onGameClick(game) },
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(text = "Игра №${game.id}")
