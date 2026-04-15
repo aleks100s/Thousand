@@ -14,6 +14,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.hours
 
 class DatabaseSeeder(
     private val gameRepository: GameRepository,
@@ -31,6 +32,7 @@ class DatabaseSeeder(
         val hasUsers = gameRepository.getAllUsers().first().isNotEmpty()
         if (hasGames || hasUsers) return
 
+        val now = Clock.System.now()
         val alice = User(
             id = 1L,
             name = "Алиса",
@@ -41,9 +43,9 @@ class DatabaseSeeder(
         )
         gameRepository.saveUsers(listOf(alice, bob))
 
-        val game = Game(
+        val activeGame = Game(
             id = 0L,
-            startedAt = Clock.System.now(),
+            startedAt = now,
             finishedAt = null,
             players = listOf(
                 Player(
@@ -61,8 +63,8 @@ class DatabaseSeeder(
             ),
         )
 
-        val savedGameId = gameRepository.saveGame(game)
-        val savedGame = game.copy(id = savedGameId)
+        val savedActiveGameId = gameRepository.saveGame(activeGame)
+        val savedActiveGame = activeGame.copy(id = savedActiveGameId)
 
         gameRepository.saveTurn(
             turn = Turn(
@@ -83,7 +85,7 @@ class DatabaseSeeder(
                 total = 200,
                 effects = emptyList(),
             ),
-            game = savedGame,
+            game = savedActiveGame,
         )
 
         gameRepository.saveTurn(
@@ -105,7 +107,74 @@ class DatabaseSeeder(
                 total = 250,
                 effects = emptyList(),
             ),
-            game = savedGame,
+            game = savedActiveGame,
+        )
+
+        val finishedGame = Game(
+            id = 0L,
+            startedAt = now - 3.hours,
+            finishedAt = now - 1.hours,
+            players = listOf(
+                Player(
+                    id = 3L,
+                    user = alice,
+                    currentScore = 1000,
+                    isWinner = true,
+                ),
+                Player(
+                    id = 4L,
+                    user = bob,
+                    currentScore = 780,
+                    isWinner = false,
+                ),
+            ),
+        )
+
+        val savedFinishedGameId = gameRepository.saveGame(finishedGame)
+        val savedFinishedGame = finishedGame.copy(id = savedFinishedGameId)
+
+        gameRepository.saveTurn(
+            turn = Turn(
+                id = 0L,
+                order = 1,
+                user = alice,
+                rolls = listOf(
+                    createRoll(
+                        values = listOf(
+                            DieValue.ONE,
+                            DieValue.ONE,
+                            DieValue.ONE,
+                            DieValue.FIVE,
+                            DieValue.FIVE,
+                        ),
+                    ),
+                ),
+                total = 350,
+                effects = emptyList(),
+            ),
+            game = savedFinishedGame,
+        )
+
+        gameRepository.saveTurn(
+            turn = Turn(
+                id = 0L,
+                order = 2,
+                user = bob,
+                rolls = listOf(
+                    createRoll(
+                        values = listOf(
+                            DieValue.SIX,
+                            DieValue.SIX,
+                            DieValue.SIX,
+                            DieValue.THREE,
+                            DieValue.TWO,
+                        ),
+                    ),
+                ),
+                total = 600,
+                effects = emptyList(),
+            ),
+            game = savedFinishedGame,
         )
     }
 
