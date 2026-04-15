@@ -1,4 +1,4 @@
-package com.alextos.thousand.presentation.game
+package com.alextos.thousand.presentation.game.create_game
 
 import androidx.compose.runtime.Composable
 import com.alextos.thousand.screens.common.EmptyScreen

@@ -11,7 +11,10 @@ import com.alextos.thousand.data.dao.UserDao
 import com.alextos.thousand.data.repository.GameRepositoryImpl
 import com.alextos.thousand.data.seed.DatabaseSeeder
 import com.alextos.thousand.domain.repository.GameRepository
+import com.alextos.thousand.domain.usecase.GetAllGamesUseCase
+import com.alextos.thousand.presentation.game.game_list.GamesListViewModel
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 expect val platformModule: Module
@@ -27,5 +30,7 @@ val appModule = module {
     single<DieDao> { get<ThousandDatabase>().dieDao() }
     single<TurnEffectDao> { get<ThousandDatabase>().turnEffectDao() }
     single<GameRepository> { GameRepositoryImpl(get(), get(), get(), get(), get(), get()) }
+    factory { GetAllGamesUseCase(get()) }
+    viewModelOf(::GamesListViewModel)
     single { DatabaseSeeder(get()) }
 }
