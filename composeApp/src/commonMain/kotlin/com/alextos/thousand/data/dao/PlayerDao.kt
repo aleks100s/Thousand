@@ -7,5 +7,5 @@ import com.alextos.thousand.data.models.PlayerEntity
 @Dao
 interface PlayerDao {
     @Upsert
-    suspend fun insert(player: PlayerEntity)
+    suspend fun insert(players: List<PlayerEntity>)
 }

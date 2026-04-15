@@ -29,9 +29,9 @@ import androidx.room.PrimaryKey
     ],
 )
 data class DiceRollEntity(
-    @PrimaryKey val id: Int,
-    val userId: Int,
-    val turnId: Int,
+    @PrimaryKey(autoGenerate = true) val id: Long,
+    val userId: Long,
+    val turnId: Long,
     val order: Int,
     val total: Int,
 )

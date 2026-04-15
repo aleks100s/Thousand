@@ -5,7 +5,7 @@ import com.alextos.thousand.data.models.combined.PlayerWithUser
 import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.User
 
-fun Player.toEntity(gameId: Int): PlayerEntity = PlayerEntity(
+fun Player.toEntity(gameId: Long): PlayerEntity = PlayerEntity(
     id = id,
     userId = user.id,
     gameId = gameId,

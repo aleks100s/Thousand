@@ -1,7 +1,7 @@
 package com.alextos.thousand.domain.models
 
 data class Turn(
-    val id: Int,
+    val id: Long,
     val order: Int,
     val user: User,
     val rolls: List<DiceRoll>,

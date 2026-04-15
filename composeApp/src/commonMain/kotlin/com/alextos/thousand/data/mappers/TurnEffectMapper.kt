@@ -4,7 +4,7 @@ import com.alextos.thousand.data.models.TurnEffectEntity
 import com.alextos.thousand.data.models.combined.TurnEffectWithPlayer
 import com.alextos.thousand.domain.models.TurnEffect
 
-fun TurnEffect.toEntity(turnId: Int): TurnEffectEntity = TurnEffectEntity(
+fun TurnEffect.toEntity(turnId: Long): TurnEffectEntity = TurnEffectEntity(
     id = id,
     turnId = turnId,
     effectType = effect.toStorageValue(),

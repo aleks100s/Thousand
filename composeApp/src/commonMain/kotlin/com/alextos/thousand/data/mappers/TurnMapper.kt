@@ -5,11 +5,10 @@ import com.alextos.thousand.data.models.combined.TurnWithRelations
 import com.alextos.thousand.domain.models.Turn
 
 fun Turn.toEntity(
-    userId: Int,
-    gameId: Int,
+    gameId: Long,
 ): TurnEntity = TurnEntity(
     id = id,
-    userId = userId,
+    userId = user.id,
     gameId = gameId,
     order = order,
     total = total,

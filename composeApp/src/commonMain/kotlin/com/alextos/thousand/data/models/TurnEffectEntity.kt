@@ -29,8 +29,8 @@ import androidx.room.PrimaryKey
     ],
 )
 data class TurnEffectEntity(
-    @PrimaryKey val id: Int,
-    val turnId: Int,
+    @PrimaryKey(autoGenerate = true) val id: Long,
+    val turnId: Long,
     val effectType: String,
-    val affectedPlayerId: Int?,
+    val affectedPlayerId: Long
 )

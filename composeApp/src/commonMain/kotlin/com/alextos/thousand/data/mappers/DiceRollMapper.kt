@@ -5,8 +5,8 @@ import com.alextos.thousand.data.models.combined.DiceRollWithDice
 import com.alextos.thousand.domain.models.DiceRoll
 
 fun DiceRoll.toEntity(
-    userId: Int,
-    turnId: Int,
+    userId: Long,
+    turnId: Long,
 ): DiceRollEntity = DiceRollEntity(
     id = id,
     userId = userId,

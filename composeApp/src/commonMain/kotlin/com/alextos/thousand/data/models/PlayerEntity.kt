@@ -29,9 +29,9 @@ import androidx.room.PrimaryKey
     ],
 )
 data class PlayerEntity(
-    @PrimaryKey val id: Int,
-    val userId: Int,
-    val gameId: Int,
+    @PrimaryKey(autoGenerate = true) val id: Long,
+    val userId: Long,
+    val gameId: Long,
     val currentScore: Int,
     val isWinner: Boolean,
 )

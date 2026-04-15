@@ -29,9 +29,9 @@ import androidx.room.PrimaryKey
     ],
 )
 data class DieEntity(
-    @PrimaryKey val id: Int,
-    val userId: Int,
-    val rollId: Int,
+    @PrimaryKey(autoGenerate = true) val id: Long,
+    val userId: Long,
+    val rollId: Long,
     val order: Int,
     val value: Int,
 )
