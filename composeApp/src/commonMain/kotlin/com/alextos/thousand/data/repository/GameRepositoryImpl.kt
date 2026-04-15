@@ -35,6 +35,10 @@ class GameRepositoryImpl(
         }
     }
 
+    override suspend fun saveUsers(users: List<User>) {
+        userDao.insert(users.map { it.toEntity() })
+    }
+
     override suspend fun saveGame(game: Game): Long {
         val gameID = gameDao.insert(game.toEntity())
         playerDao.insert(game.players.map { it.toEntity(gameId = gameID) })
