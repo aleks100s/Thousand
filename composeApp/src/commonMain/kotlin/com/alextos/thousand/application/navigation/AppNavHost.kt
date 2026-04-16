@@ -23,7 +23,7 @@ fun AppNavHost(
         startDestination = BottomTab.Game.route,
         modifier = Modifier
             .fillMaxSize()
-            .padding(contentPadding),
+            .padding(bottom = contentPadding.calculateBottomPadding()),
     ) {
         composable(BottomTab.Game.route) {
             Box(
