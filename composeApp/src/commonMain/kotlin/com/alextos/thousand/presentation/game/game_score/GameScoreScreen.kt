@@ -30,9 +30,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.Die
+import com.alextos.thousand.domain.models.Effect
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.Turn
+import com.alextos.thousand.domain.models.TurnEffect
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
@@ -58,7 +60,7 @@ fun GameScoreScreen(
     ) { modifier ->
         val game = state.game
         if (game == null) {
-            Box(modifier = modifier.fillMaxSize()) {
+            Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 LoadingIndicator()
             }
         } else {
@@ -68,7 +70,7 @@ fun GameScoreScreen(
                 }
 
                 items(state.turns) { turn ->
-                    TurnHeaderView(player = game.players.first { it.user == turn.user })
+                    TurnHeaderView(player = game.players.first { it == turn.player })
                     TurnView(turn)
                 }
             }
@@ -92,9 +94,10 @@ private fun GameHeaderView(game: Game) {
                 Text(
                     modifier = Modifier
                         .clip(CircleShape)
-                        .background(Color.Red)
+                        .background(MaterialTheme.colorScheme.errorContainer)
                         .padding(horizontal = 8.dp, vertical = 4.dp),
-                    text = "vs"
+                    text = "vs",
+                    color = MaterialTheme.colorScheme.error
                 )
             }
         }
@@ -158,10 +161,14 @@ private fun TurnView(turn: Turn) {
 
                 ResultCell(
                     result = turn.total,
-                    tint = MaterialTheme.colorScheme.primaryContainer,
-                    textColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    tint = MaterialTheme.colorScheme.primary,
+                    textColor = MaterialTheme.colorScheme.onPrimary
                 )
             }
+        }
+
+        turn.effects.forEach {
+            TurnEffectView(it, currentPlayer = turn.player)
         }
     }
 }
@@ -179,8 +186,8 @@ private fun DiceRollView(roll: DiceRoll) {
 
         ResultCell(
             result = roll.result,
-            tint = MaterialTheme.colorScheme.primary,
-            textColor = MaterialTheme.colorScheme.onPrimary
+            tint = MaterialTheme.colorScheme.primaryContainer,
+            textColor = MaterialTheme.colorScheme.onPrimaryContainer
         )
     }
 }
@@ -209,4 +216,25 @@ private fun RowScope.ResultCell(result: Int, tint: Color, textColor: Color) {
         text = result.toString(),
         color = textColor
     )
+}
+
+@Composable
+private fun TurnEffectView(effect: TurnEffect, currentPlayer: Player) {
+    Row(modifier = Modifier
+        .background(MaterialTheme.colorScheme.secondaryContainer)
+        .padding(vertical = 8.dp, horizontal = 16.dp)
+        .fillMaxWidth()
+    ) {
+        val text = when (effect.effect) {
+            Effect.OVERTAKE -> "Игрок $currentPlayer обогнал игрока ${effect.affectedPlayer}: -100 очков у игрока ${effect.affectedPlayer}"
+            Effect.SKI_FALL -> "Игрок ${effect.affectedPlayer} упал с лыж: -50 очков"
+            Effect.PIT_FALL -> "Игрок ${effect.affectedPlayer} обнулился: его счет 0"
+            Effect.BARREL_LIMIT -> "Игрок ${effect.affectedPlayer} не прошел бочку: ход не засчитан"
+        }
+        Text(
+            text = text,
+            color = MaterialTheme.colorScheme.secondary,
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
 }

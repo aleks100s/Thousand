@@ -8,7 +8,7 @@ fun Turn.toEntity(
     gameId: Long,
 ): TurnEntity = TurnEntity(
     id = id,
-    userId = user.id,
+    playerId = player.id,
     gameId = gameId,
     order = order,
     total = total,
@@ -17,8 +17,12 @@ fun Turn.toEntity(
 fun TurnWithRelations.toDomain(): Turn = Turn(
     id = turn.id,
     order = turn.order,
-    user = user,
-    rolls = rolls.map { it.toDomain() },
+    player = player.toDomain(),
+    rolls = rolls
+        .sortedBy { it.diceRoll.order }
+        .map { it.toDomain() },
     total = turn.total,
-    effects = effects.map { it.turnEffect.effectType.toDomainEffect() },
+    effects = effects
+        .sortedBy { it.turnEffect.order }
+        .map { it.toDomain() },
 )

@@ -3,8 +3,8 @@ package com.alextos.thousand.domain.models
 data class Turn(
     val id: Long,
     val order: Int,
-    val user: User,
+    val player: Player,
     val rolls: List<DiceRoll>,
     val total: Int,
-    val effects: List<Effect>
+    val effects: List<TurnEffect>
 )

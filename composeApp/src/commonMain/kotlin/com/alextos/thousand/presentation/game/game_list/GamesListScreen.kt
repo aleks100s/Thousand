@@ -59,7 +59,7 @@ fun GamesListScreen(
         title = "Список игр",
     ) { modifier ->
         if (state.isLoading) {
-            Box(modifier.fillMaxSize()) {
+            Box(modifier.fillMaxSize(), Alignment.Center) {
                 LoadingIndicator()
             }
         } else {

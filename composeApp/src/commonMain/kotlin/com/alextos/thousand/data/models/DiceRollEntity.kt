@@ -9,9 +9,9 @@ import androidx.room.PrimaryKey
     tableName = "dice_rolls",
     foreignKeys = [
         ForeignKey(
-            entity = UserEntity::class,
+            entity = PlayerEntity::class,
             parentColumns = ["id"],
-            childColumns = ["userId"],
+            childColumns = ["playerId"],
             onDelete = ForeignKey.CASCADE,
             onUpdate = ForeignKey.CASCADE,
         ),
@@ -24,13 +24,13 @@ import androidx.room.PrimaryKey
         ),
     ],
     indices = [
-        Index(value = ["userId"]),
+        Index(value = ["playerId"]),
         Index(value = ["turnId"]),
     ],
 )
 data class DiceRollEntity(
     @PrimaryKey(autoGenerate = true) val id: Long,
-    val userId: Long,
+    val playerId: Long,
     val turnId: Long,
     val order: Int,
     val total: Int,

@@ -33,7 +33,7 @@ val appModule = module {
     single<DiceRollDao> { get<ThousandDatabase>().diceRollDao() }
     single<DieDao> { get<ThousandDatabase>().dieDao() }
     single<TurnEffectDao> { get<ThousandDatabase>().turnEffectDao() }
-    single<GameRepository> { GameRepositoryImpl(get(), get(), get(), get(), get(), get()) }
+    single<GameRepository> { GameRepositoryImpl(get(), get(), get(), get(), get(), get(), get()) }
     factory { GetAllGamesUseCase(get()) }
     factory { LoadGameUseCase(get()) }
     factory { LoadGameTurnsUseCase(get()) }

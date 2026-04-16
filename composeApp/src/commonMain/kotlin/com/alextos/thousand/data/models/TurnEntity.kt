@@ -11,7 +11,7 @@ import androidx.room.PrimaryKey
         ForeignKey(
             entity = PlayerEntity::class,
             parentColumns = ["id"],
-            childColumns = ["userId"],
+            childColumns = ["playerId"],
             onDelete = ForeignKey.CASCADE,
             onUpdate = ForeignKey.CASCADE,
         ),
@@ -24,13 +24,13 @@ import androidx.room.PrimaryKey
         ),
     ],
     indices = [
-        Index(value = ["userId"]),
+        Index(value = ["playerId"]),
         Index(value = ["gameId"]),
     ],
 )
 data class TurnEntity(
     @PrimaryKey(autoGenerate = true) val id: Long,
-    val userId: Long,
+    val playerId: Long,
     val gameId: Long,
     val order: Int,
     val total: Int,

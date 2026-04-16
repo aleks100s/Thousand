@@ -6,17 +6,16 @@ import com.alextos.thousand.data.models.DiceRollEntity
 import com.alextos.thousand.data.models.PlayerEntity
 import com.alextos.thousand.data.models.TurnEffectEntity
 import com.alextos.thousand.data.models.TurnEntity
-import com.alextos.thousand.data.models.UserEntity
-import com.alextos.thousand.domain.models.User
+import com.alextos.thousand.domain.models.Player
 
 data class TurnWithRelations(
     @Embedded val turn: TurnEntity,
     @Relation(
-        entity = UserEntity::class,
-        parentColumn = "userId",
+        entity = PlayerEntity::class,
+        parentColumn = "playerId",
         entityColumn = "id"
     )
-    val user: User,
+    val player: PlayerWithUser,
     @Relation(
         entity = DiceRollEntity::class,
         parentColumn = "id",

@@ -5,6 +5,7 @@ import com.alextos.thousand.data.dao.DieDao
 import com.alextos.thousand.data.dao.GameDao
 import com.alextos.thousand.data.dao.PlayerDao
 import com.alextos.thousand.data.dao.TurnDao
+import com.alextos.thousand.data.dao.TurnEffectDao
 import com.alextos.thousand.data.dao.UserDao
 import com.alextos.thousand.data.mappers.toEntity
 import com.alextos.thousand.data.mappers.toDomain
@@ -22,6 +23,7 @@ class GameRepositoryImpl(
     private val turnDao: TurnDao,
     private val diceRollDao: DiceRollDao,
     private val dieDao: DieDao,
+    private val turnEffectDao: TurnEffectDao,
 ) : GameRepository {
     override fun getAllGames(): Flow<List<Game>> {
         return gameDao.getAllGames().map { games ->
@@ -60,22 +62,33 @@ class GameRepositoryImpl(
             turn.toEntity(gameId = game.id)
         )
 
-        turn.rolls.forEach { roll ->
+        turn.rolls.forEachIndexed { index, roll ->
             val rollID = diceRollDao.insert(
                 roll.toEntity(
-                    userId = turn.user.id,
-                    turnId = turnID
+                    playerId = turn.player.id,
+                    turnId = turnID,
+                    order = index
                 )
             )
 
-            roll.dice.forEach { die ->
+            roll.dice.forEachIndexed { index, die ->
                 dieDao.insert(
                     die.toEntity(
-                        userId = turn.user.id,
-                        rollId = rollID
+                        playerId = turn.player.id,
+                        rollId = rollID,
+                        order = index
                     )
                 )
             }
+        }
+
+        turn.effects.forEachIndexed { index, effect ->
+            turnEffectDao.insert(
+                effect.toEntity(
+                    turnId = turnID,
+                    order = index + 1,
+                )
+            )
         }
 
         return turnID
