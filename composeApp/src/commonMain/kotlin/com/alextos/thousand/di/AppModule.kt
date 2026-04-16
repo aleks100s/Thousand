@@ -13,6 +13,7 @@ import com.alextos.thousand.data.seed.DatabaseSeeder
 import com.alextos.thousand.domain.repository.GameRepository
 import com.alextos.thousand.domain.usecase.GetAllGamesUseCase
 import com.alextos.thousand.domain.usecase.LoadGameUseCase
+import com.alextos.thousand.domain.usecase.LoadGameTurnsUseCase
 import com.alextos.thousand.presentation.game.game_list.GamesListViewModel
 import com.alextos.thousand.presentation.game.game_score.GameScoreViewModel
 import com.alextos.thousand.presentation.game.play_game.PlayGameViewModel
@@ -35,6 +36,7 @@ val appModule = module {
     single<GameRepository> { GameRepositoryImpl(get(), get(), get(), get(), get(), get()) }
     factory { GetAllGamesUseCase(get()) }
     factory { LoadGameUseCase(get()) }
+    factory { LoadGameTurnsUseCase(get()) }
     viewModelOf(::GamesListViewModel)
     viewModelOf(::PlayGameViewModel)
     viewModelOf(::GameScoreViewModel)

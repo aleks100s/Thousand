@@ -66,14 +66,15 @@ class DatabaseSeeder(
         val savedActiveGameId = gameRepository.saveGame(activeGame)
         val savedActiveGame = activeGame.copy(id = savedActiveGameId)
 
-        gameRepository.saveTurn(
-            turn = Turn(
-                id = 0L,
-                order = 1,
-                user = alice,
-                rolls = listOf(
-                    createRoll(
-                        values = listOf(
+        saveTurns(
+            game = savedActiveGame,
+            turns = listOf(
+                createTurn(
+                    order = 1,
+                    user = alice,
+                    total = 200,
+                    rollValues = listOf(
+                        listOf(
                             DieValue.ONE,
                             DieValue.FIVE,
                             DieValue.FIVE,
@@ -82,20 +83,12 @@ class DatabaseSeeder(
                         ),
                     ),
                 ),
-                total = 200,
-                effects = emptyList(),
-            ),
-            game = savedActiveGame,
-        )
-
-        gameRepository.saveTurn(
-            turn = Turn(
-                id = 0L,
-                order = 2,
-                user = bob,
-                rolls = listOf(
-                    createRoll(
-                        values = listOf(
+                createTurn(
+                    order = 2,
+                    user = bob,
+                    total = 250,
+                    rollValues = listOf(
+                        listOf(
                             DieValue.SIX,
                             DieValue.SIX,
                             DieValue.FIVE,
@@ -104,10 +97,58 @@ class DatabaseSeeder(
                         ),
                     ),
                 ),
-                total = 250,
-                effects = emptyList(),
+                createTurn(
+                    order = 3,
+                    user = alice,
+                    total = 180,
+                    rollValues = listOf(
+                        listOf(
+                            DieValue.ONE,
+                            DieValue.ONE,
+                            DieValue.FOUR,
+                            DieValue.THREE,
+                        ),
+                        listOf(
+                            DieValue.FIVE,
+                            DieValue.FIVE,
+                            DieValue.TWO,
+                        ),
+                    ),
+                ),
+                createTurn(
+                    order = 4,
+                    user = bob,
+                    total = 170,
+                    rollValues = listOf(
+                        listOf(
+                            DieValue.SIX,
+                            DieValue.TWO,
+                            DieValue.THREE,
+                            DieValue.FIVE,
+                        ),
+                        listOf(
+                            DieValue.ONE,
+                            DieValue.FIVE,
+                        ),
+                    ),
+                ),
+                createTurn(
+                    order = 5,
+                    user = alice,
+                    total = 140,
+                    rollValues = listOf(
+                        listOf(
+                            DieValue.ONE,
+                            DieValue.THREE,
+                            DieValue.FIVE,
+                        ),
+                        listOf(
+                            DieValue.FIVE,
+                            DieValue.SIX,
+                        ),
+                    ),
+                ),
             ),
-            game = savedActiveGame,
         )
 
         val finishedGame = Game(
@@ -133,14 +174,15 @@ class DatabaseSeeder(
         val savedFinishedGameId = gameRepository.saveGame(finishedGame)
         val savedFinishedGame = finishedGame.copy(id = savedFinishedGameId)
 
-        gameRepository.saveTurn(
-            turn = Turn(
-                id = 0L,
-                order = 1,
-                user = alice,
-                rolls = listOf(
-                    createRoll(
-                        values = listOf(
+        saveTurns(
+            game = savedFinishedGame,
+            turns = listOf(
+                createTurn(
+                    order = 1,
+                    user = alice,
+                    total = 350,
+                    rollValues = listOf(
+                        listOf(
                             DieValue.ONE,
                             DieValue.ONE,
                             DieValue.ONE,
@@ -149,20 +191,12 @@ class DatabaseSeeder(
                         ),
                     ),
                 ),
-                total = 350,
-                effects = emptyList(),
-            ),
-            game = savedFinishedGame,
-        )
-
-        gameRepository.saveTurn(
-            turn = Turn(
-                id = 0L,
-                order = 2,
-                user = bob,
-                rolls = listOf(
-                    createRoll(
-                        values = listOf(
+                createTurn(
+                    order = 2,
+                    user = bob,
+                    total = 600,
+                    rollValues = listOf(
+                        listOf(
                             DieValue.SIX,
                             DieValue.SIX,
                             DieValue.SIX,
@@ -171,17 +205,114 @@ class DatabaseSeeder(
                         ),
                     ),
                 ),
-                total = 600,
-                effects = emptyList(),
+                createTurn(
+                    order = 3,
+                    user = alice,
+                    total = 220,
+                    rollValues = listOf(
+                        listOf(
+                            DieValue.ONE,
+                            DieValue.FIVE,
+                            DieValue.FIVE,
+                            DieValue.FOUR,
+                        ),
+                        listOf(
+                            DieValue.ONE,
+                            DieValue.ONE,
+                            DieValue.THREE,
+                        ),
+                    ),
+                ),
+                createTurn(
+                    order = 4,
+                    user = bob,
+                    total = 90,
+                    rollValues = listOf(
+                        listOf(
+                            DieValue.FIVE,
+                            DieValue.TWO,
+                        ),
+                        listOf(
+                            DieValue.THREE,
+                            DieValue.FOUR,
+                            DieValue.SIX,
+                        ),
+                    ),
+                ),
+                createTurn(
+                    order = 5,
+                    user = alice,
+                    total = 430,
+                    rollValues = listOf(
+                        listOf(
+                            DieValue.ONE,
+                            DieValue.ONE,
+                            DieValue.ONE,
+                            DieValue.ONE,
+                            DieValue.FIVE,
+                        ),
+                        listOf(
+                            DieValue.FIVE,
+                            DieValue.FIVE,
+                            DieValue.TWO,
+                            DieValue.THREE,
+                        ),
+                    ),
+                ),
+                createTurn(
+                    order = 6,
+                    user = bob,
+                    total = 90,
+                    rollValues = listOf(
+                        listOf(
+                            DieValue.ONE,
+                            DieValue.TWO,
+                            DieValue.THREE,
+                        ),
+                        listOf(
+                            DieValue.FIVE,
+                            DieValue.FOUR,
+                        ),
+                    ),
+                ),
             ),
-            game = savedFinishedGame,
         )
     }
 
-    private fun createRoll(values: List<DieValue>): DiceRoll {
+    private suspend fun saveTurns(game: Game, turns: List<Turn>) {
+        turns.forEach { turn ->
+            gameRepository.saveTurn(
+                turn = turn,
+                game = game,
+            )
+        }
+    }
+
+    private fun createTurn(
+        order: Int,
+        user: User,
+        total: Int,
+        rollValues: List<List<DieValue>>,
+    ): Turn {
+        return Turn(
+            id = 0L,
+            order = order,
+            user = user,
+            rolls = rollValues.mapIndexed { index, values ->
+                createRoll(
+                    order = index + 1,
+                    values = values,
+                )
+            },
+            total = total,
+            effects = emptyList(),
+        )
+    }
+
+    private fun createRoll(order: Int, values: List<DieValue>): DiceRoll {
         return DiceRoll(
             id = 0L,
-            order = 1,
+            order = order,
             dice = values.mapIndexed { index, value ->
                 Die(
                     id = 0L,
