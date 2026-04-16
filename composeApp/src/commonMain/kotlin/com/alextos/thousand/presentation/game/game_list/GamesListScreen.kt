@@ -109,10 +109,8 @@ private fun GameItem(game: GameUi, onGameClick: () -> Unit) {
 @Composable
 private fun RowScope.GameStatus(game: GameUi) {
     if (game.isFinished && game.winnerName != null) {
-        val finishedAt = game.finishedAt.orEmpty()
-
         Column(horizontalAlignment = Alignment.End) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.Bottom) {
                 Text(text = game.winnerName)
 
                 Icon(
@@ -123,7 +121,7 @@ private fun RowScope.GameStatus(game: GameUi) {
             }
 
             Text(
-                text = finishedAt,
+                text = game.finishedAt.orEmpty(),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
