@@ -46,14 +46,26 @@ class DatabaseSeeder(
             name = "Боб",
         )
         gameRepository.saveUsers(listOf(alice, bob))
-        val playerAlice = Player(
+        val activePlayerAlice = Player(
             id = 3L,
+            user = alice,
+            currentScore = 350,
+            isWinner = false,
+        )
+        val activePlayerBob = Player(
+            id = 4L,
+            user = bob,
+            currentScore = 420,
+            isWinner = false,
+        )
+        val finishedPlayerAlice = Player(
+            id = 5L,
             user = alice,
             currentScore = 1000,
             isWinner = true,
         )
-        val playerBob = Player(
-            id = 4L,
+        val finishedPlayerBob = Player(
+            id = 6L,
             user = bob,
             currentScore = 780,
             isWinner = false,
@@ -64,7 +76,7 @@ class DatabaseSeeder(
             id = 0L,
             startedAt = now,
             finishedAt = null,
-            players = listOf(playerAlice, playerBob),
+            players = listOf(activePlayerAlice, activePlayerBob),
         )
 
         val savedActiveGameId = gameRepository.saveGame(activeGame)
@@ -75,11 +87,11 @@ class DatabaseSeeder(
             turns = listOf(
                 createTurn(
                     order = 1,
-                    player = playerAlice,
+                    player = activePlayerAlice,
                     total = 200,
                     effects = randomEffects(
                         random = random,
-                        affectedPlayer = activeGame.players[1],
+                        affectedPlayer = activePlayerBob,
                     ),
                     rollValues = listOf(
                         listOf(
@@ -93,7 +105,7 @@ class DatabaseSeeder(
                 ),
                 createTurn(
                     order = 2,
-                    player = playerBob,
+                    player = activePlayerBob,
                     total = 250,
                     effects = emptyList(),
                     rollValues = listOf(
@@ -108,11 +120,11 @@ class DatabaseSeeder(
                 ),
                 createTurn(
                     order = 3,
-                    player = playerAlice,
+                    player = activePlayerAlice,
                     total = 180,
                     effects = randomEffects(
                         random = random,
-                        affectedPlayer = activeGame.players[1],
+                        affectedPlayer = activePlayerBob,
                     ),
                     rollValues = listOf(
                         listOf(
@@ -130,7 +142,7 @@ class DatabaseSeeder(
                 ),
                 createTurn(
                     order = 4,
-                    player = playerBob,
+                    player = activePlayerBob,
                     total = 170,
                     effects = emptyList(),
                     rollValues = listOf(
@@ -148,11 +160,11 @@ class DatabaseSeeder(
                 ),
                 createTurn(
                     order = 5,
-                    player = playerAlice,
+                    player = activePlayerAlice,
                     total = 140,
                     effects = randomEffects(
                         random = random,
-                        affectedPlayer = activeGame.players[1],
+                        affectedPlayer = activePlayerBob,
                     ),
                     rollValues = listOf(
                         listOf(
@@ -173,7 +185,7 @@ class DatabaseSeeder(
             id = 0L,
             startedAt = now - 3.hours,
             finishedAt = now - 1.hours,
-            players = listOf(playerAlice, playerBob),
+            players = listOf(finishedPlayerAlice, finishedPlayerBob),
         )
 
         val savedFinishedGameId = gameRepository.saveGame(finishedGame)
@@ -184,7 +196,7 @@ class DatabaseSeeder(
             turns = listOf(
                 createTurn(
                     order = 1,
-                    player = playerAlice,
+                    player = finishedPlayerAlice,
                     total = 350,
                     effects = emptyList(),
                     rollValues = listOf(
@@ -199,11 +211,11 @@ class DatabaseSeeder(
                 ),
                 createTurn(
                     order = 2,
-                    player = playerBob,
+                    player = finishedPlayerBob,
                     total = 600,
                     effects = randomEffects(
                         random = random,
-                        affectedPlayer = finishedGame.players[0],
+                        affectedPlayer = finishedPlayerAlice,
                     ),
                     rollValues = listOf(
                         listOf(
@@ -217,11 +229,11 @@ class DatabaseSeeder(
                 ),
                 createTurn(
                     order = 3,
-                    player = playerAlice,
+                    player = finishedPlayerAlice,
                     total = 220,
                     effects = randomEffects(
                         random = random,
-                        affectedPlayer = finishedGame.players[1],
+                        affectedPlayer = finishedPlayerBob,
                     ),
                     rollValues = listOf(
                         listOf(
@@ -239,7 +251,7 @@ class DatabaseSeeder(
                 ),
                 createTurn(
                     order = 4,
-                    player = playerBob,
+                    player = finishedPlayerBob,
                     total = 90,
                     effects = emptyList(),
                     rollValues = listOf(
@@ -256,11 +268,11 @@ class DatabaseSeeder(
                 ),
                 createTurn(
                     order = 5,
-                    player = playerAlice,
+                    player = finishedPlayerAlice,
                     total = 430,
                     effects = randomEffects(
                         random = random,
-                        affectedPlayer = finishedGame.players[1],
+                        affectedPlayer = finishedPlayerBob,
                     ),
                     rollValues = listOf(
                         listOf(
@@ -280,11 +292,11 @@ class DatabaseSeeder(
                 ),
                 createTurn(
                     order = 6,
-                    player = playerBob,
+                    player = finishedPlayerBob,
                     total = 90,
                     effects = randomEffects(
                         random = random,
-                        affectedPlayer = finishedGame.players[0],
+                        affectedPlayer = finishedPlayerAlice,
                     ),
                     rollValues = listOf(
                         listOf(
