@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
@@ -35,6 +36,7 @@ import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.models.TurnEffect
+import com.alextos.thousand.domain.models.TurnResult
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
@@ -107,10 +109,14 @@ private fun GameHeaderView(game: Game) {
 @Composable
 private fun TurnHeaderView(player: Player) {
     Column(
-        modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainer).fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .padding(vertical = 8.dp)
+            .fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text(text = "Ходит $player")
+        Text(text = "Ходит $player", style = MaterialTheme.typography.titleMedium)
 
         Row(modifier = Modifier.fillMaxWidth()) {
             (1..5).forEach {
@@ -161,8 +167,8 @@ private fun TurnView(turn: Turn) {
 
                 ResultCell(
                     result = turn.total,
-                    tint = MaterialTheme.colorScheme.primary,
-                    textColor = MaterialTheme.colorScheme.onPrimary
+                    tint = MaterialTheme.colorScheme.tertiary,
+                    textColor = MaterialTheme.colorScheme.onTertiary
                 )
             }
         }
@@ -170,6 +176,8 @@ private fun TurnView(turn: Turn) {
         turn.effects.forEach {
             TurnEffectView(it, currentPlayer = turn.player)
         }
+
+        TurnResultView(turn.results)
     }
 }
 
@@ -186,8 +194,8 @@ private fun DiceRollView(roll: DiceRoll) {
 
         ResultCell(
             result = roll.result,
-            tint = MaterialTheme.colorScheme.primaryContainer,
-            textColor = MaterialTheme.colorScheme.onPrimaryContainer
+            tint = MaterialTheme.colorScheme.tertiaryContainer,
+            textColor = MaterialTheme.colorScheme.onTertiaryContainer
         )
     }
 }
@@ -236,5 +244,49 @@ private fun TurnEffectView(effect: TurnEffect, currentPlayer: Player) {
             color = MaterialTheme.colorScheme.secondary,
             style = MaterialTheme.typography.bodyMedium
         )
+    }
+}
+
+@Composable
+private fun TurnResultView(results: List<TurnResult>) {
+    Row(
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .padding(vertical = 8.dp, horizontal = 16.dp)
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceAround,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        results.forEach {
+            PlayerScoreView(it)
+        }
+    }
+}
+
+@Composable
+private fun RowScope.PlayerScoreView(result: TurnResult) {
+    Column(
+        modifier = Modifier.weight(1f),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = result.player.toString(),
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+
+        Box(contentAlignment = Alignment.TopEnd) {
+            Text(
+                text = result.newScore.toString(),
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+
+            Text(
+                modifier = Modifier.offset(24.dp, (-6).dp),
+                text = "${if (result.scoreChange < 0) "-" else "+"}${result.scoreChange}",
+                color = if (result.scoreChange > 0) Color.Green else if (result.scoreChange < 0) Color.Red else Color.Gray,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
     }
 }

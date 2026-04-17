@@ -25,4 +25,7 @@ fun TurnWithRelations.toDomain(): Turn = Turn(
     effects = effects
         .sortedBy { it.turnEffect.order }
         .map { it.toDomain() },
+    results = results
+        .sortedBy { it.turnResult.id }
+        .map { it.toDomain() },
 )

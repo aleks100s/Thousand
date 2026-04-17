@@ -1,7 +1,7 @@
 package com.alextos.thousand.domain.models
 
 data class Player(
-    val id: Long,
+    val id: Long = 0,
     val user: User,
     val currentScore: Int,
     val isWinner: Boolean

@@ -8,6 +8,7 @@ import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.models.TurnEffect
+import com.alextos.thousand.domain.models.TurnResult
 import com.alextos.thousand.domain.models.User
 import com.alextos.thousand.domain.repository.GameRepository
 import kotlinx.coroutines.CoroutineScope
@@ -172,20 +173,7 @@ class DatabaseSeeder(
             id = 0L,
             startedAt = now - 3.hours,
             finishedAt = now - 1.hours,
-            players = listOf(
-                Player(
-                    id = 3L,
-                    user = alice,
-                    currentScore = 1000,
-                    isWinner = true,
-                ),
-                Player(
-                    id = 4L,
-                    user = bob,
-                    currentScore = 780,
-                    isWinner = false,
-                ),
-            ),
+            players = listOf(playerAlice, playerBob),
         )
 
         val savedFinishedGameId = gameRepository.saveGame(finishedGame)
@@ -342,6 +330,20 @@ class DatabaseSeeder(
             },
             total = total,
             effects = effects,
+            results = listOf(
+                TurnResult(
+                    id = 0,
+                    player = player,
+                    scoreChange = total,
+                    newScore = player.currentScore + total,
+                ),
+                TurnResult(
+                    id = 0,
+                    player = player,
+                    scoreChange = total,
+                    newScore = player.currentScore + total,
+                )
+            ),
         )
     }
 

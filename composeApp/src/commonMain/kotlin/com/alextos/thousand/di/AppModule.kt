@@ -7,6 +7,7 @@ import com.alextos.thousand.data.dao.GameDao
 import com.alextos.thousand.data.dao.PlayerDao
 import com.alextos.thousand.data.dao.TurnDao
 import com.alextos.thousand.data.dao.TurnEffectDao
+import com.alextos.thousand.data.dao.TurnResultDao
 import com.alextos.thousand.data.dao.UserDao
 import com.alextos.thousand.data.repository.GameRepositoryImpl
 import com.alextos.thousand.data.seed.DatabaseSeeder
@@ -33,7 +34,8 @@ val appModule = module {
     single<DiceRollDao> { get<ThousandDatabase>().diceRollDao() }
     single<DieDao> { get<ThousandDatabase>().dieDao() }
     single<TurnEffectDao> { get<ThousandDatabase>().turnEffectDao() }
-    single<GameRepository> { GameRepositoryImpl(get(), get(), get(), get(), get(), get(), get()) }
+    single<TurnResultDao> { get<ThousandDatabase>().turnResultDao() }
+    single<GameRepository> { GameRepositoryImpl(get(), get(), get(), get(), get(), get(), get(), get()) }
     factory { GetAllGamesUseCase(get()) }
     factory { LoadGameUseCase(get()) }
     factory { LoadGameTurnsUseCase(get()) }

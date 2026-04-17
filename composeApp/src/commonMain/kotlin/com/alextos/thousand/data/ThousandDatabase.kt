@@ -11,6 +11,7 @@ import com.alextos.thousand.data.dao.GameDao
 import com.alextos.thousand.data.dao.PlayerDao
 import com.alextos.thousand.data.dao.TurnDao
 import com.alextos.thousand.data.dao.TurnEffectDao
+import com.alextos.thousand.data.dao.TurnResultDao
 import com.alextos.thousand.data.dao.UserDao
 import com.alextos.thousand.data.models.DiceRollEntity
 import com.alextos.thousand.data.models.DieEntity
@@ -18,6 +19,7 @@ import com.alextos.thousand.data.models.GameEntity
 import com.alextos.thousand.data.models.PlayerEntity
 import com.alextos.thousand.data.models.TurnEffectEntity
 import com.alextos.thousand.data.models.TurnEntity
+import com.alextos.thousand.data.models.TurnResultEntity
 import com.alextos.thousand.data.models.UserEntity
 
 internal const val THOUSAND_DATABASE_FILE_NAME = "thousand.db"
@@ -31,6 +33,7 @@ internal const val THOUSAND_DATABASE_FILE_NAME = "thousand.db"
         DiceRollEntity::class,
         DieEntity::class,
         TurnEffectEntity::class,
+        TurnResultEntity::class,
     ],
     version = 1,
     exportSchema = true,
@@ -44,6 +47,7 @@ abstract class ThousandDatabase : RoomDatabase() {
     abstract fun diceRollDao(): DiceRollDao
     abstract fun dieDao(): DieDao
     abstract fun turnEffectDao(): TurnEffectDao
+    abstract fun turnResultDao(): TurnResultDao
 }
 
 @Suppress("KotlinNoActualForExpect")
