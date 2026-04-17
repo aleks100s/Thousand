@@ -18,16 +18,21 @@ fun GameTabRoot() {
         startDestination = GameRoute.GamesList,
     ) {
         horizontalTransition<GameRoute.GamesList> { _ ->
-            GamesListScreen { game ->
-                if (game.isFinished) {
-                    navController.navigate(GameRoute.GameScore(game.id))
-                } else {
-                    navController.navigate(GameRoute.PlayGame(game.id))
+            GamesListScreen(
+                onGameClick = { game ->
+                    if (game.isFinished) {
+                        navController.navigate(GameRoute.GameScore(game.id))
+                    } else {
+                        navController.navigate(GameRoute.PlayGame(game.id))
+                    }
+                },
+                onCreateGame = {
+                    navController.navigate(GameRoute.CreateGame)
                 }
-            }
+            )
         }
         horizontalTransition<GameRoute.CreateGame> { _ ->
-            CreateGameScreen()
+            CreateGameScreen(goBack = navController::popBackStack)
         }
         horizontalTransition<GameRoute.PlayGame> { _ ->
             PlayGameScreen(

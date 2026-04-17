@@ -20,6 +20,8 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
@@ -40,12 +42,14 @@ import com.alextos.thousand.presentation.models.GameUi
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
+import thousand.composeapp.generated.resources.add_24px
 import thousand.composeapp.generated.resources.trophy_24px
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun GamesListScreen(
     onGameClick: (GameUi) -> Unit,
+    onCreateGame: () -> Unit
 ) {
     val viewModel: GamesListViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -57,6 +61,20 @@ fun GamesListScreen(
     Screen(
         modifier = Modifier,
         title = "Список игр",
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                text = {
+                    Text("Новая игра")
+                },
+                icon = {
+                    Icon(
+                        painterResource(Res.drawable.add_24px),
+                        contentDescription = null
+                    )
+                },
+                onClick = onCreateGame
+            )
+        }
     ) { modifier ->
         if (state.isLoading) {
             Box(modifier.fillMaxSize(), Alignment.Center) {
