@@ -39,8 +39,8 @@ class GameRepositoryImpl(
         }
     }
 
-    override suspend fun saveUsers(users: List<User>) {
-        userDao.insert(users.map { it.toEntity() })
+    override suspend fun saveUser(user: User) {
+        userDao.insert(user.toEntity())
     }
 
     override suspend fun saveGame(game: Game): Long {

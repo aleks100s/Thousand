@@ -46,7 +46,8 @@ class DatabaseSeeder(
             id = 2L,
             name = "Боб",
         )
-        gameRepository.saveUsers(listOf(alice, bob))
+        gameRepository.saveUser(alice)
+        gameRepository.saveUser(bob)
         val activePlayerAlice = Player(
             id = 3L,
             user = alice,

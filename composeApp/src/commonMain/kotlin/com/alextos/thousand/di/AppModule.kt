@@ -14,8 +14,11 @@ import com.alextos.thousand.data.seed.DatabaseSeeder
 import com.alextos.thousand.domain.repository.GameRepository
 import com.alextos.thousand.domain.usecase.CalculateDiceRollScoreUseCase
 import com.alextos.thousand.domain.usecase.GetAllGamesUseCase
+import com.alextos.thousand.domain.usecase.GetAllUsersUseCase
 import com.alextos.thousand.domain.usecase.LoadGameUseCase
 import com.alextos.thousand.domain.usecase.LoadGameTurnsUseCase
+import com.alextos.thousand.domain.usecase.SaveUserUseCase
+import com.alextos.thousand.presentation.game.create_game.CreateGameViewModel
 import com.alextos.thousand.presentation.game.game_list.GamesListViewModel
 import com.alextos.thousand.presentation.game.game_score.GameScoreViewModel
 import com.alextos.thousand.presentation.game.play_game.PlayGameViewModel
@@ -38,8 +41,11 @@ val appModule = module {
     single<TurnResultDao> { get<ThousandDatabase>().turnResultDao() }
     single<GameRepository> { GameRepositoryImpl(get(), get(), get(), get(), get(), get(), get(), get()) }
     factory { GetAllGamesUseCase(get()) }
+    factory { GetAllUsersUseCase(get()) }
     factory { LoadGameUseCase(get()) }
     factory { LoadGameTurnsUseCase(get()) }
+    factory { SaveUserUseCase(get()) }
+    viewModelOf(::CreateGameViewModel)
     viewModelOf(::GamesListViewModel)
     viewModelOf(::PlayGameViewModel)
     viewModelOf(::GameScoreViewModel)

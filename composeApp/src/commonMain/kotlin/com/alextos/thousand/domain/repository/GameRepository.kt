@@ -10,7 +10,7 @@ interface GameRepository {
 
     fun getAllUsers(): Flow<List<User>>
 
-    suspend fun saveUsers(users: List<User>)
+    suspend fun saveUser(user: User)
 
     suspend fun saveGame(game: Game): Long
 
