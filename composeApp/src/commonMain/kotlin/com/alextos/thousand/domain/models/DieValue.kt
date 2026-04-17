@@ -10,6 +10,9 @@ enum class DieValue {
 
     val value: Int
         get() {
-            return ordinal + 1
+            return when (this) {
+                DieValue.ONE -> 10
+                else -> ordinal + 1
+            }
         }
 }

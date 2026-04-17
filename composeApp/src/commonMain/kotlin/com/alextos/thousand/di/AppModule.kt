@@ -12,6 +12,7 @@ import com.alextos.thousand.data.dao.UserDao
 import com.alextos.thousand.data.repository.GameRepositoryImpl
 import com.alextos.thousand.data.seed.DatabaseSeeder
 import com.alextos.thousand.domain.repository.GameRepository
+import com.alextos.thousand.domain.usecase.CalculateDiceRollScoreUseCase
 import com.alextos.thousand.domain.usecase.GetAllGamesUseCase
 import com.alextos.thousand.domain.usecase.LoadGameUseCase
 import com.alextos.thousand.domain.usecase.LoadGameTurnsUseCase
@@ -43,4 +44,5 @@ val appModule = module {
     viewModelOf(::PlayGameViewModel)
     viewModelOf(::GameScoreViewModel)
     single { DatabaseSeeder(get()) }
+    factory { CalculateDiceRollScoreUseCase() }
 }
