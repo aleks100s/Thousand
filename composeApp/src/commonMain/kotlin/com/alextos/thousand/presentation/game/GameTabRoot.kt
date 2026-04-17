@@ -37,6 +37,9 @@ fun GameTabRoot() {
         horizontalTransition<GameRoute.PlayGame> { _ ->
             PlayGameScreen(
                 onGoBack = navController::popBackStack,
+                onScoreClick = {
+                    navController.navigate(GameRoute.GameScore(it.id))
+                }
             )
         }
         horizontalTransition<GameRoute.GameScore> { _ ->

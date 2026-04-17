@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 import kotlin.random.Random
 
 class DatabaseSeeder(
@@ -68,6 +69,18 @@ class DatabaseSeeder(
             id = 6L,
             user = bob,
             currentScore = 780,
+            isWinner = false,
+        )
+        val freshPlayerAlice = Player(
+            id = 7L,
+            user = alice,
+            currentScore = 0,
+            isWinner = false,
+        )
+        val freshPlayerBob = Player(
+            id = 8L,
+            user = bob,
+            currentScore = 0,
             isWinner = false,
         )
         val random = Random(20260416)
@@ -312,6 +325,15 @@ class DatabaseSeeder(
                 ),
             ),
         )
+
+        val emptyGame = Game(
+            id = 0L,
+            startedAt = now - 30.minutes,
+            finishedAt = null,
+            players = listOf(freshPlayerAlice, freshPlayerBob),
+        )
+
+        gameRepository.saveGame(emptyGame)
     }
 
     private suspend fun saveTurns(game: Game, turns: List<Turn>) {

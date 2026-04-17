@@ -13,18 +13,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -32,16 +29,12 @@ import com.alextos.thousand.common.Screen
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.Die
 import com.alextos.thousand.domain.models.Effect
-import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.models.TurnEffect
 import com.alextos.thousand.domain.models.TurnResult
-import org.jetbrains.compose.resources.painterResource
+import com.alextos.thousand.presentation.game.components.GameHeaderView
 import org.koin.compose.viewmodel.koinViewModel
-import thousand.composeapp.generated.resources.Res
-import thousand.composeapp.generated.resources.person_24px
-import thousand.composeapp.generated.resources.trophy_24px
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -81,32 +74,6 @@ fun GameScoreScreen(
 }
 
 @Composable
-private fun GameHeaderView(game: Game) {
-    Row(
-        modifier = Modifier
-            .padding(vertical = 8.dp)
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceAround,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        game.players.forEach { player ->
-            PlayerView(player)
-
-            if (game.players.firstOrNull() == player) {
-                Text(
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.errorContainer)
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                    text = "vs",
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-        }
-    }
-}
-
-@Composable
 private fun TurnHeaderView(player: Player) {
     Column(
         modifier = Modifier
@@ -133,19 +100,6 @@ private fun TurnHeaderView(player: Player) {
                 style = MaterialTheme.typography.bodySmall
             )
         }
-    }
-}
-
-@Composable
-private fun PlayerView(player: Player) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Icon(
-            painter = painterResource(if (player.isWinner) Res.drawable.trophy_24px else Res.drawable.person_24px),
-            contentDescription = null,
-            tint = if (player.isWinner) Color.Yellow else MaterialTheme.colorScheme.onBackground
-        )
-
-        Text(text = player.toString())
     }
 }
 

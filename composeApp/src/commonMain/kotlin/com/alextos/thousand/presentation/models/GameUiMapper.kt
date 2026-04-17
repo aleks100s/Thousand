@@ -11,7 +11,11 @@ fun Game.toUi(): GameUi {
     return GameUi(
         id = id,
         title = "Игра #$id",
-        opponents = players.joinToString(separator = " vs ") { it.user.name },
+        opponents = if (isFinished()) {
+            players.joinToString(separator = " vs ") { it.user.name }
+        } else {
+            players.joinToString(separator = " vs ") { "${it.user.name}: ${it.currentScore}" }
+        },
         finishedAt = finishedAt?.formatForUi(),
         winnerName = players.firstOrNull { it.isWinner }?.user?.name,
         isFinished = isFinished(),
