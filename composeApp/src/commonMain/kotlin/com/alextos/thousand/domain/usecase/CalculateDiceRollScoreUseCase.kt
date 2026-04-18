@@ -1,14 +1,11 @@
 package com.alextos.thousand.domain.usecase
 
 import com.alextos.thousand.domain.models.DiceRoll
+import com.alextos.thousand.domain.models.DiceRollResult
 import com.alextos.thousand.domain.models.DieValue
 
-data class DiceRollScore(
-    val score: Int,
-    val rerollDiceCount: Int
-)
 class CalculateDiceRollScoreUseCase {
-    operator fun invoke(roll: DiceRoll): DiceRollScore {
+    operator fun invoke(roll: DiceRoll): DiceRollResult {
         var rerollDiceCount = 6
         var result = 0
         for (die in DieValue.entries) {
@@ -19,7 +16,7 @@ class CalculateDiceRollScoreUseCase {
                 result += score
             }
         }
-        return DiceRollScore(score = result, rerollDiceCount = if (result == 0) 0 else rerollDiceCount)
+        return DiceRollResult(score = result, rerollDiceCount = if (result == 0) 0 else rerollDiceCount)
     }
 
     private fun calculateDieScore(die: DieValue, count: Int): Int {

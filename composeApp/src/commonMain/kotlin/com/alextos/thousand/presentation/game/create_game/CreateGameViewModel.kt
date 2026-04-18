@@ -2,6 +2,7 @@ package com.alextos.thousand.presentation.game.create_game
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alextos.thousand.domain.models.User
 import com.alextos.thousand.domain.usecase.GetAllUsersUseCase
 import com.alextos.thousand.domain.usecase.SaveUserUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +26,8 @@ class CreateGameViewModel(
             CreateGameAction.SaveNewUser -> saveNewUser()
             CreateGameAction.ShowAddUserSheet -> showAddUserSheet()
             is CreateGameAction.UpdateNewUserName -> updateNewUserName(action.value)
+            is CreateGameAction.ToggleUserSelection -> toggleUserSelection(action.user)
+            CreateGameAction.CreateGame -> createGame()
         }
     }
 
@@ -34,8 +37,14 @@ class CreateGameViewModel(
 
         viewModelScope.launch {
             getAllUsersUseCase().collect { users ->
+                val usersById = users.associateBy { user -> user.id }
                 _state.update {
-                    it.copy(users = users)
+                    it.copy(
+                        users = users,
+                        selectedUsers = it.selectedUsers.mapNotNull { selectedUser ->
+                            usersById[selectedUser.id]
+                        },
+                    )
                 }
             }
         }
@@ -65,6 +74,21 @@ class CreateGameViewModel(
         }
     }
 
+    private fun toggleUserSelection(user: User) {
+        _state.update { state ->
+            val selectedUsers = state.selectedUsers.toMutableList()
+            val existingIndex = selectedUsers.indexOfFirst { selectedUser ->
+                selectedUser.id == user.id
+            }
+            if (existingIndex >= 0) {
+                selectedUsers.removeAt(existingIndex)
+            } else {
+                selectedUsers.add(user)
+            }
+            state.copy(selectedUsers = selectedUsers)
+        }
+    }
+
     private fun saveNewUser() {
         val userName = state.value.newUserName.trim()
         if (userName.isBlank()) return
@@ -79,5 +103,9 @@ class CreateGameViewModel(
                 )
             }
         }
+    }
+
+    private fun createGame() {
+
     }
 }

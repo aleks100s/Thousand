@@ -8,10 +8,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
@@ -20,7 +24,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
+import thousand.composeapp.generated.resources.Res
+import thousand.composeapp.generated.resources.casino_24px
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,7 +42,25 @@ fun CreateGameScreen(goBack: () -> Unit) {
     Screen(
         modifier = Modifier,
         title = state.title,
-        goBack = goBack
+        goBack = goBack,
+        floatingActionButton = {
+            if (state.selectedUsers.isNotEmpty()) {
+                ExtendedFloatingActionButton(
+                    onClick = {
+                        viewModel.onAction(CreateGameAction.CreateGame)
+                    },
+                    text = {
+                        Text("Начать игру")
+                    },
+                    icon = {
+                        Icon(
+                            painter = painterResource(Res.drawable.casino_24px),
+                            contentDescription = "Начать игру"
+                        )
+                    }
+                )
+            }
+        }
     ) { modifier ->
         Column(
             modifier = modifier
@@ -67,12 +92,24 @@ fun CreateGameScreen(goBack: () -> Unit) {
                     items = state.users,
                     key = { user -> user.id },
                 ) { user ->
-                    Text(
-                        text = user.name,
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
+                    ListItem(
+                        headlineContent = {
+                            Text(
+                                text = user.name,
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                        },
+                        trailingContent = {
+                            Checkbox(
+                                checked = state.selectedUsers.any { selectedUser ->
+                                    selectedUser.id == user.id
+                                },
+                                onCheckedChange = {
+                                    viewModel.onAction(CreateGameAction.ToggleUserSelection(user))
+                                }
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }
