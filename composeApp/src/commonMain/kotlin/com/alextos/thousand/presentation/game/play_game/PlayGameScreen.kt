@@ -1,14 +1,19 @@
 package com.alextos.thousand.presentation.game.play_game
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -17,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.domain.models.DiceRoll
@@ -58,7 +64,7 @@ fun PlayGameScreen(
             }
         },
         floatingActionButton = {
-            Row {
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 AnimatedVisibility(state.rollAbility != RollAbility.REQUIRED) {
                     ExtendedFloatingActionButton(
                         onClick = {
@@ -72,7 +78,10 @@ fun PlayGameScreen(
                                 painter = painterResource(Res.drawable.back_hand_24px),
                                 contentDescription = "Закончить ход"
                             )
-                        }
+                        },
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        shape = FloatingActionButtonDefaults.smallExtendedFabShape
                     )
                 }
 
@@ -82,14 +91,20 @@ fun PlayGameScreen(
                             viewModel.onAction(PlayGameAction.RollTheDice)
                         },
                         text = {
-                            Text("Бросить кубики")
+                            val text = when (state.rollAbility) {
+                                RollAbility.UNAVAILABLE -> ""
+                                RollAbility.REQUIRED -> "Бросить кубики"
+                                else -> "Перебросить (${state.rollAbility.count})"
+                            }
+                            Text(text)
                         },
                         icon = {
                             Icon(
                                 painter = painterResource(Res.drawable.casino_24px),
                                 contentDescription = "Бросить кубики"
                             )
-                        }
+                        },
+                        shape = FloatingActionButtonDefaults.smallExtendedFabShape
                     )
                 }
             }
@@ -114,7 +129,9 @@ fun PlayGameScreen(
                     }
 
                     TurnHistoryView(
-                        modifier = Modifier.align(Alignment.TopStart),
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .align(Alignment.TopStart),
                         turn = state.currentTurn
                     )
                 }
@@ -141,12 +158,18 @@ private fun TurnHistoryView(
     modifier: Modifier,
     turn: List<DiceRoll>
 ) {
-    val rolls = remember { turn.dropLast(1) }
+    val rolls = remember(turn) {
+        turn.dropLast(1)
+    }
 
     Column(modifier) {
         rolls.forEach { roll ->
             RollHistoryView(roll)
         }
+
+        HorizontalDivider()
+
+        Text(rolls.sumOf { it.result }.toString())
     }
 }
 

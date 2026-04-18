@@ -91,7 +91,11 @@ class PlayGameViewModel(
                 effects = emptyList(),
                 results = emptyList()
             )
-            val turnId = saveTurnUseCase(turn = turn, game = game)
+            val turnId = saveTurnUseCase(
+                player = player,
+                rolls = rolls,
+                game = game
+            )
             val turns = state.value.turns.toMutableList()
             turns.add(turn.copy(id = turnId))
             _state.update {

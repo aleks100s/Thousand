@@ -18,7 +18,7 @@ class CalculateDiceRollScoreUseCase {
             }
         }
         if (rerollDiceCount == 0) {
-            rerollDiceCount = dice.count()
+            rerollDiceCount = 5
         } else if (result == 0) {
             rerollDiceCount = 0
         }
