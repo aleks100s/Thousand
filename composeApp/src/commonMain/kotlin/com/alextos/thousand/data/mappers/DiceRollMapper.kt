@@ -18,7 +18,6 @@ fun DiceRoll.toEntity(
 
 fun DiceRollWithDice.toDomain(): DiceRoll = DiceRoll(
     id = diceRoll.id,
-    order = diceRoll.order,
     dice = dice
         .sortedBy { it.order }
         .map { it.toDomain() },

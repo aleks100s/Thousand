@@ -4,19 +4,15 @@ import com.alextos.thousand.data.models.TurnEntity
 import com.alextos.thousand.data.models.combined.TurnWithRelations
 import com.alextos.thousand.domain.models.Turn
 
-fun Turn.toEntity(
-    gameId: Long,
-): TurnEntity = TurnEntity(
+fun Turn.toEntity(gameId: Long): TurnEntity = TurnEntity(
     id = id,
     playerId = player.id,
     gameId = gameId,
-    order = order,
     total = total,
 )
 
 fun TurnWithRelations.toDomain(): Turn = Turn(
     id = turn.id,
-    order = turn.order,
     player = player.toDomain(),
     rolls = rolls
         .sortedBy { it.diceRoll.order }
@@ -25,7 +21,5 @@ fun TurnWithRelations.toDomain(): Turn = Turn(
     effects = effects
         .sortedBy { it.turnEffect.order }
         .map { it.toDomain() },
-    results = results
-        .sortedBy { it.turnResult.id }
-        .map { it.toDomain() },
+    results = results.map { it.toDomain() },
 )

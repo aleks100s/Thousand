@@ -32,6 +32,5 @@ data class TurnEntity(
     @PrimaryKey(autoGenerate = true) val id: Long,
     val playerId: Long,
     val gameId: Long,
-    val order: Int,
     val total: Int,
 )

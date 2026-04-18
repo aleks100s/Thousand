@@ -355,13 +355,9 @@ class DatabaseSeeder(
     ): Turn {
         return Turn(
             id = 0L,
-            order = order,
             player = player,
-            rolls = rollValues.mapIndexed { index, values ->
-                createRoll(
-                    order = index + 1,
-                    values = values,
-                )
+            rolls = rollValues.map { values ->
+                createRoll(values = values)
             },
             total = total,
             effects = effects,
@@ -397,14 +393,12 @@ class DatabaseSeeder(
         }
     }
 
-    private fun createRoll(order: Int, values: List<DieValue>): DiceRoll {
+    private fun createRoll(values: List<DieValue>): DiceRoll {
         return DiceRoll(
             id = 0L,
-            order = order,
-            dice = values.mapIndexed { index, value ->
+            dice = values.map { value ->
                 Die(
                     id = 0L,
-                    order = index + 1,
                     value = value,
                 )
             },

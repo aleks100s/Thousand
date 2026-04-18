@@ -18,7 +18,6 @@ fun Die.toEntity(
 
 fun DieEntity.toDomain(): Die = Die(
     id = id,
-    order = order,
     value = value.toDomainDieValue(),
 )
 

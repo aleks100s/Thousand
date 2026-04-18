@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "1674ee67bf36f606fcf1f660faeb3a5e",
+    "identityHash": "cd9bd64eac67a258053ddb9f01c366f9",
     "entities": [
       {
         "tableName": "users",
@@ -145,7 +145,7 @@
       },
       {
         "tableName": "turns",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `playerId` INTEGER NOT NULL, `gameId` INTEGER NOT NULL, `order` INTEGER NOT NULL, `total` INTEGER NOT NULL, FOREIGN KEY(`playerId`) REFERENCES `players`(`id`) ON UPDATE CASCADE ON DELETE CASCADE , FOREIGN KEY(`gameId`) REFERENCES `games`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `playerId` INTEGER NOT NULL, `gameId` INTEGER NOT NULL, `total` INTEGER NOT NULL, FOREIGN KEY(`playerId`) REFERENCES `players`(`id`) ON UPDATE CASCADE ON DELETE CASCADE , FOREIGN KEY(`gameId`) REFERENCES `games`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -162,12 +162,6 @@
           {
             "fieldPath": "gameId",
             "columnName": "gameId",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "order",
-            "columnName": "order",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -576,7 +570,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '1674ee67bf36f606fcf1f660faeb3a5e')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'cd9bd64eac67a258053ddb9f01c366f9')"
     ]
   }
 }
