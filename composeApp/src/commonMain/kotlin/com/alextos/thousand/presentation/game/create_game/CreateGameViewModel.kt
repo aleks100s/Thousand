@@ -3,6 +3,7 @@ package com.alextos.thousand.presentation.game.create_game
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alextos.thousand.domain.models.User
+import com.alextos.thousand.domain.usecase.CreateGameUseCase
 import com.alextos.thousand.domain.usecase.GetAllUsersUseCase
 import com.alextos.thousand.domain.usecase.SaveUserUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,6 +15,7 @@ import kotlinx.coroutines.launch
 class CreateGameViewModel(
     private val getAllUsersUseCase: GetAllUsersUseCase,
     private val saveUserUseCase: SaveUserUseCase,
+    private val createGameUseCase: CreateGameUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(CreateGameState())
     val state: StateFlow<CreateGameState> = _state.asStateFlow()
@@ -23,6 +25,7 @@ class CreateGameViewModel(
         when (action) {
             CreateGameAction.Initialize -> initialize()
             CreateGameAction.HideAddUserSheet -> hideAddUserSheet()
+            CreateGameAction.ConsumeCreatedGame -> consumeCreatedGame()
             CreateGameAction.SaveNewUser -> saveNewUser()
             CreateGameAction.ShowAddUserSheet -> showAddUserSheet()
             is CreateGameAction.UpdateNewUserName -> updateNewUserName(action.value)
@@ -37,14 +40,8 @@ class CreateGameViewModel(
 
         viewModelScope.launch {
             getAllUsersUseCase().collect { users ->
-                val usersById = users.associateBy { user -> user.id }
                 _state.update {
-                    it.copy(
-                        users = users,
-                        selectedUsers = it.selectedUsers.mapNotNull { selectedUser ->
-                            usersById[selectedUser.id]
-                        },
-                    )
+                    it.copy(users = users)
                 }
             }
         }
@@ -76,16 +73,13 @@ class CreateGameViewModel(
 
     private fun toggleUserSelection(user: User) {
         _state.update { state ->
-            val selectedUsers = state.selectedUsers.toMutableList()
-            val existingIndex = selectedUsers.indexOfFirst { selectedUser ->
-                selectedUser.id == user.id
-            }
-            if (existingIndex >= 0) {
-                selectedUsers.removeAt(existingIndex)
+            val set = state.selectedUsers.toMutableSet()
+            if (set.contains(user)) {
+                set.remove(user)
             } else {
-                selectedUsers.add(user)
+                set.add(user)
             }
-            state.copy(selectedUsers = selectedUsers)
+            state.copy(selectedUsers = set)
         }
     }
 
@@ -106,6 +100,17 @@ class CreateGameViewModel(
     }
 
     private fun createGame() {
+        viewModelScope.launch {
+            val gameID = createGameUseCase(state.value.selectedUsers)
+            _state.update {
+                it.copy(createdGameId = gameID)
+            }
+        }
+    }
 
+    private fun consumeCreatedGame() {
+        _state.update {
+            it.copy(createdGameId = null)
+        }
     }
 }

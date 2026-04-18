@@ -32,7 +32,14 @@ fun GameTabRoot() {
             )
         }
         horizontalTransition<GameRoute.CreateGame> { _ ->
-            CreateGameScreen(goBack = navController::popBackStack)
+            CreateGameScreen(
+                goBack = navController::popBackStack,
+                openGame = {
+                    navController.navigate(GameRoute.PlayGame(it)) {
+                        popUpTo(GameRoute.GamesList)
+                    }
+                }
+            )
         }
         horizontalTransition<GameRoute.PlayGame> { _ ->
             PlayGameScreen(

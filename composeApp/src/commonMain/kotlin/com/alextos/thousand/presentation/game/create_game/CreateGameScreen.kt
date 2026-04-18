@@ -1,5 +1,7 @@
 package com.alextos.thousand.presentation.game.create_game
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,7 +33,10 @@ import thousand.composeapp.generated.resources.casino_24px
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateGameScreen(goBack: () -> Unit) {
+fun CreateGameScreen(
+    openGame: (Long) -> Unit,
+    goBack: () -> Unit
+) {
     val viewModel: CreateGameViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -39,12 +44,18 @@ fun CreateGameScreen(goBack: () -> Unit) {
         viewModel.onAction(CreateGameAction.Initialize)
     }
 
+    LaunchedEffect(state.createdGameId) {
+        val createdGameId = state.createdGameId ?: return@LaunchedEffect
+        openGame(createdGameId)
+        viewModel.onAction(CreateGameAction.ConsumeCreatedGame)
+    }
+
     Screen(
         modifier = Modifier,
         title = state.title,
         goBack = goBack,
         floatingActionButton = {
-            if (state.selectedUsers.isNotEmpty()) {
+            AnimatedVisibility(state.selectedUsers.isNotEmpty()) {
                 ExtendedFloatingActionButton(
                     onClick = {
                         viewModel.onAction(CreateGameAction.CreateGame)
@@ -63,12 +74,11 @@ fun CreateGameScreen(goBack: () -> Unit) {
         }
     ) { modifier ->
         Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
+            modifier = modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
+                modifier = Modifier.padding(horizontal = 16.dp),
                 text = "Выберите игроков",
                 style = MaterialTheme.typography.titleMedium,
             )
@@ -82,7 +92,9 @@ fun CreateGameScreen(goBack: () -> Unit) {
                         onClick = {
                             viewModel.onAction(CreateGameAction.ShowAddUserSheet)
                         },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .fillMaxWidth(),
                     ) {
                         Text("Добавить нового")
                     }
@@ -101,15 +113,18 @@ fun CreateGameScreen(goBack: () -> Unit) {
                         },
                         trailingContent = {
                             Checkbox(
-                                checked = state.selectedUsers.any { selectedUser ->
-                                    selectedUser.id == user.id
-                                },
+                                checked = state.selectedUsers.contains(user),
                                 onCheckedChange = {
                                     viewModel.onAction(CreateGameAction.ToggleUserSelection(user))
                                 }
                             )
                         },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .clickable(onClick = {
+                                viewModel.onAction(CreateGameAction.ToggleUserSelection(user))
+                            })
+                            .padding(horizontal = 16.dp)
+                            .fillMaxWidth(),
                     )
                 }
             }

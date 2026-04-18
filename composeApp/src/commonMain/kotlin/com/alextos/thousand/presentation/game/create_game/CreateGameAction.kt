@@ -6,6 +6,7 @@ sealed interface CreateGameAction {
     data object Initialize : CreateGameAction
     data object ShowAddUserSheet : CreateGameAction
     data object HideAddUserSheet : CreateGameAction
+    data object ConsumeCreatedGame : CreateGameAction
     data class UpdateNewUserName(val value: String) : CreateGameAction
     data class ToggleUserSelection(val user: User) : CreateGameAction
     data object SaveNewUser : CreateGameAction

@@ -13,6 +13,7 @@ import com.alextos.thousand.data.repository.GameRepositoryImpl
 import com.alextos.thousand.data.seed.DatabaseSeeder
 import com.alextos.thousand.domain.repository.GameRepository
 import com.alextos.thousand.domain.usecase.CalculateDiceRollScoreUseCase
+import com.alextos.thousand.domain.usecase.CreateGameUseCase
 import com.alextos.thousand.domain.usecase.GetAllGamesUseCase
 import com.alextos.thousand.domain.usecase.GetAllUsersUseCase
 import com.alextos.thousand.domain.usecase.LoadGameUseCase
@@ -51,4 +52,5 @@ val appModule = module {
     viewModelOf(::GameScoreViewModel)
     single { DatabaseSeeder(get()) }
     factory { CalculateDiceRollScoreUseCase() }
+    factory { CreateGameUseCase(get()) }
 }
