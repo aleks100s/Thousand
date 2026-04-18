@@ -17,10 +17,12 @@ class SaveTurnUseCase(
         val turn = Turn(
             player = player,
             rolls = rolls,
-            total = 0,
+            total = rolls.sumOf { it.result },
             effects = emptyList(),
             results = emptyList()
         )
+        player.currentScore += turn.total
+        repository.saveGame(game)
         return repository.saveTurn(turn, game)
     }
 }
