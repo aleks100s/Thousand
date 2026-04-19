@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -34,6 +35,7 @@ import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.models.TurnEffect
 import com.alextos.thousand.domain.models.TurnResult
 import com.alextos.thousand.presentation.game.components.GameHeaderView
+import com.alextos.thousand.presentation.game.components.SingleDieView
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -137,7 +139,10 @@ private fun TurnView(turn: Turn) {
 
 @Composable
 private fun DiceRollView(roll: DiceRoll) {
-    Row(modifier = Modifier.fillMaxWidth()) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         roll.dice.forEach {
             DieView(modifier = Modifier.weight(1f).wrapContentWidth(Alignment.CenterHorizontally), die = it)
         }
@@ -156,10 +161,7 @@ private fun DiceRollView(roll: DiceRoll) {
 
 @Composable
 private fun DieView(modifier: Modifier, die: Die) {
-    Text(
-        text = die.value.value.toString(),
-        modifier = modifier.padding(vertical = 12.dp)
-    )
+    SingleDieView(modifier.size(32.dp), dieValue = die.value)
 }
 
 @Composable

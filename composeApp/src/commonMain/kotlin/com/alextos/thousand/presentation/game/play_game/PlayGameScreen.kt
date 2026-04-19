@@ -1,6 +1,7 @@
 package com.alextos.thousand.presentation.game.play_game
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -24,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
@@ -156,12 +159,14 @@ fun PlayGameScreen(
                         CurrentRollView(roll)
                     }
 
-                    TurnHistoryView(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .align(Alignment.TopStart),
-                        turn = state.currentTurn
-                    )
+                    if (state.currentTurn.isNotEmpty()) {
+                        TurnHistoryView(
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .align(Alignment.TopStart),
+                            turn = state.currentTurn
+                        )
+                    }
                 }
             }
         }
@@ -172,15 +177,19 @@ fun PlayGameScreen(
 private fun CurrentRollView(roll: DiceRoll) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.background.copy(alpha = 0.3f))
+            .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
-        Row {
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             roll.dice.forEach { die ->
                 SingleDieView(dieValue = die.value)
             }
         }
 
-        HorizontalDivider(Modifier.width(160.dp))
+        HorizontalDivider(Modifier.width(180.dp))
 
         Text(roll.result.toString())
     }
@@ -200,7 +209,7 @@ private fun TurnHistoryView(
             RollHistoryView(roll)
         }
 
-        HorizontalDivider()
+        HorizontalDivider(Modifier.width(80.dp))
 
         Text(rolls.sumOf { it.result }.toString())
     }
