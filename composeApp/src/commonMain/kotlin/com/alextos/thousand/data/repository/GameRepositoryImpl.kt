@@ -64,8 +64,8 @@ class GameRepositoryImpl(
         }
     }
 
-    override suspend fun saveTurn(turn: Turn, game: Game): Long {
-        val turnID = turnDao.insert(
+    override suspend fun saveTurn(turn: Turn, game: Game): Turn {
+        val turnId = turnDao.insert(
             turn.toEntity(gameId = game.id)
         )
 
@@ -73,7 +73,7 @@ class GameRepositoryImpl(
             val rollID = diceRollDao.insert(
                 roll.toEntity(
                     playerId = turn.player.id,
-                    turnId = turnID,
+                    turnId = turnId,
                     order = index
                 )
             )
@@ -92,7 +92,7 @@ class GameRepositoryImpl(
         turnEffectDao.insert(
             turn.effects.mapIndexed { index, effect ->
                 effect.toEntity(
-                    turnId = turnID,
+                    turnId = turnId,
                     order = index + 1,
                 )
             }
@@ -100,10 +100,10 @@ class GameRepositoryImpl(
 
         turnResultDao.insert(
             turn.results.map { result ->
-                result.toEntity(turnId = turnID)
+                result.toEntity(turnId = turnId)
             }
         )
 
-        return turnID
+        return turn.copy(id = turnId)
     }
 }

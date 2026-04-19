@@ -22,6 +22,19 @@ class SaveTurnUseCase(
         game: Game
     ): Turn {
         val turnTotal = calculateTurnResult(rolls)
+        currentPlayer.currentScore += turnTotal
+        val pair = checkEffects(currentPlayer)
+        if (pair != null) {
+            val turn = Turn(
+                player = currentPlayer,
+                rolls = rolls,
+                total = turnTotal,
+                effects = listOf(pair.first),
+                results = listOf(pair.second)
+            )
+            return repository.saveTurn(turn, game)
+        }
+
         val results = calculateResults(game, currentPlayer, turnTotal)
         val turn = Turn(
             player = currentPlayer,
@@ -30,8 +43,7 @@ class SaveTurnUseCase(
             effects = emptyList(),
             results = results
         )
-        val turnId = repository.saveTurn(turn, game)
-        return turn.copy(id = turnId)
+        return repository.saveTurn(turn, game)
     }
 
     private fun calculateTurnResult(
@@ -44,14 +56,15 @@ class SaveTurnUseCase(
     }
 
     private fun checkEffects(
-        currentPlayer: Player,
-        turnTotal: Int
-    ): List<TurnEffect> {
-        if (currentPlayer.currentScore + turnTotal == PIT_SCORE) {
-            currentPlayer.currentScore = 0
-            return listOf(TurnEffect(affectedPlayer = currentPlayer, effect = Effect.PIT_FALL))
+        player: Player
+    ): Pair<TurnEffect, TurnResult>? {
+        if (player.currentScore == PIT_SCORE) {
+            player.currentScore = 0
+            val effect = TurnEffect(affectedPlayer = player, effect = Effect.PIT_FALL)
+            val result = TurnResult(player = player, scoreChange = -PIT_SCORE, newScore = 0)
+            return effect to result
         }
-        return emptyList()
+        return null
     }
 
     private fun calculateResults(

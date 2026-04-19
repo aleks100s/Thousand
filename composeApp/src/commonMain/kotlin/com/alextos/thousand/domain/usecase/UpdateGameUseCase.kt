@@ -21,7 +21,6 @@ class UpdateGameUseCase(
         game.players.forEach { player ->
             val turnResult = currentTurn.results.firstOrNull { it.player == player }
             if (turnResult != null) {
-                player.currentScore = turnResult.newScore
                 player.isWinner = turnResult.newScore >= GAME_GOAL
                 status = if (player.isWinner) {
                     GameStatus.FINISHED

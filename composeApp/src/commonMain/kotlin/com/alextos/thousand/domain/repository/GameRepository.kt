@@ -19,5 +19,5 @@ interface GameRepository {
 
     suspend fun getAllTurns(gameID: Long): List<Turn>
 
-    suspend fun saveTurn(turn: Turn, game: Game): Long
+    suspend fun saveTurn(turn: Turn, game: Game): Turn
 }
