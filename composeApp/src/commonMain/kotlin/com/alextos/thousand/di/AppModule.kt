@@ -14,6 +14,7 @@ import com.alextos.thousand.data.seed.DatabaseSeeder
 import com.alextos.thousand.domain.repository.GameRepository
 import com.alextos.thousand.domain.usecase.CalculateDiceRollScoreUseCase
 import com.alextos.thousand.domain.usecase.CreateGameUseCase
+import com.alextos.thousand.domain.usecase.DeleteGameUseCase
 import com.alextos.thousand.domain.usecase.FindCurrentPlayerUseCase
 import com.alextos.thousand.domain.usecase.GetAllGamesUseCase
 import com.alextos.thousand.domain.usecase.GetAllUsersUseCase
@@ -61,4 +62,5 @@ val appModule = module {
     factory { RollTheDiceUseCase() }
     factory { SaveTurnUseCase(get()) }
     factory { UpdateGameUseCase(get()) }
+    factory { DeleteGameUseCase(get()) }
 }

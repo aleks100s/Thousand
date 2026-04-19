@@ -1,10 +1,16 @@
 package com.alextos.thousand.presentation.game.game_list
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,21 +19,22 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -90,41 +97,80 @@ fun GamesListScreen(
                     items = state.games,
                     key = { game -> game.id },
                 ) { game ->
-                    GameItem(game = game, onGameClick = { onGameClick(game) })
+                    GameItem(
+                        game = game,
+                        onGameClick = { onGameClick(game) },
+                        onDeleteGame = {
+                            viewModel.onAction(GamesListAction.DeleteGame(game.id))
+                        },
+                    )
                 }
             }
         }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun GameItem(game: GameUi, onGameClick: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onGameClick
-    ) {
-        Row(
+private fun GameItem(
+    game: GameUi,
+    onGameClick: () -> Unit,
+    onDeleteGame: () -> Unit,
+) {
+    var isMenuExpanded by remember { mutableStateOf(false) }
+
+    Box {
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .combinedClickable(
+                    onClick = onGameClick,
+                    onLongClick = {
+                        isMenuExpanded = true
+                    },
+                ),
         ) {
-            Column {
-                Text(text = game.title)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Column {
+                    Text(text = game.title)
 
-                Text(
-                    text = game.opponents,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                    Text(
+                        text = game.opponents,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                GameStatus(game = game)
             }
+        }
 
-            GameStatus(game = game)
+        DropdownMenu(
+            expanded = isMenuExpanded,
+            onDismissRequest = {
+                isMenuExpanded = false
+            },
+        ) {
+            DropdownMenuItem(
+                text = {
+                    Text("Удалить игру")
+                },
+                onClick = {
+                    isMenuExpanded = false
+                    onDeleteGame()
+                },
+                colors = MenuDefaults.itemColors(textColor = MaterialTheme.colorScheme.error)
+            )
         }
     }
 }
 
 @Composable
-private fun RowScope.GameStatus(game: GameUi) {
+private fun GameStatus(game: GameUi) {
     if (game.isFinished && game.winnerName != null) {
         Column(horizontalAlignment = Alignment.End) {
             Row(verticalAlignment = Alignment.Bottom) {

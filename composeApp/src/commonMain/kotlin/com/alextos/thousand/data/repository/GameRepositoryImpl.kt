@@ -106,4 +106,8 @@ class GameRepositoryImpl(
 
         return turn.copy(id = turnId)
     }
+
+    override suspend fun deleteGame(gameId: Long) {
+        gameDao.delete(gameId)
+    }
 }
