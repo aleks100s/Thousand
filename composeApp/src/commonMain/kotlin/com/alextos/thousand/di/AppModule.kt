@@ -22,6 +22,7 @@ import com.alextos.thousand.domain.usecase.LoadGameTurnsUseCase
 import com.alextos.thousand.domain.usecase.RollTheDiceUseCase
 import com.alextos.thousand.domain.usecase.SaveTurnUseCase
 import com.alextos.thousand.domain.usecase.SaveUserUseCase
+import com.alextos.thousand.domain.usecase.UpdateGameUseCase
 import com.alextos.thousand.presentation.game.create_game.CreateGameViewModel
 import com.alextos.thousand.presentation.game.game_list.GamesListViewModel
 import com.alextos.thousand.presentation.game.game_score.GameScoreViewModel
@@ -59,4 +60,5 @@ val appModule = module {
     factory { FindCurrentPlayerUseCase() }
     factory { RollTheDiceUseCase() }
     factory { SaveTurnUseCase(get()) }
+    factory { UpdateGameUseCase(get()) }
 }

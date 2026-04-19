@@ -6,7 +6,6 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import androidx.room.Upsert
 import com.alextos.thousand.data.models.GameEntity
 import com.alextos.thousand.data.models.combined.GameWithRelations
 import kotlinx.coroutines.flow.Flow

@@ -1,6 +1,5 @@
 package com.alextos.thousand.di
 
-import com.alextos.thousand.data.seed.DatabaseSeeder
 import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level

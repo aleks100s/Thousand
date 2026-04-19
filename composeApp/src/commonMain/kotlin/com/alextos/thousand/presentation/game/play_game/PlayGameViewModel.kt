@@ -7,13 +7,13 @@ import androidx.navigation.toRoute
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.GameStatus
 import com.alextos.thousand.domain.models.RollAbility
-import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.usecase.CalculateDiceRollScoreUseCase
 import com.alextos.thousand.domain.usecase.FindCurrentPlayerUseCase
 import com.alextos.thousand.domain.usecase.LoadGameTurnsUseCase
 import com.alextos.thousand.domain.usecase.LoadGameUseCase
 import com.alextos.thousand.domain.usecase.RollTheDiceUseCase
 import com.alextos.thousand.domain.usecase.SaveTurnUseCase
+import com.alextos.thousand.domain.usecase.UpdateGameUseCase
 import com.alextos.thousand.presentation.game.GameRoute
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,7 +28,8 @@ class PlayGameViewModel(
     private val findCurrentPlayerUseCase: FindCurrentPlayerUseCase,
     private val rollTheDiceUseCase: RollTheDiceUseCase,
     private val calculateDiceRollScoreUseCase: CalculateDiceRollScoreUseCase,
-    private val saveTurnUseCase: SaveTurnUseCase
+    private val saveTurnUseCase: SaveTurnUseCase,
+    private val updateGameUseCase: UpdateGameUseCase
 ) : ViewModel() {
     private val route = savedStateHandle.toRoute<GameRoute.PlayGame>()
 
@@ -85,13 +86,14 @@ class PlayGameViewModel(
             }
 
             val rolls = state.value.currentTurn
-            val (status, turn) = saveTurnUseCase(
-                player = player,
+            val turn = saveTurnUseCase(
+                currentPlayer = player,
                 rolls = rolls,
                 game = game
             )
             val turns = state.value.turns.toMutableList()
             turns.add(turn)
+            val status = updateGameUseCase(game, turn)
             _state.update {
                 when (status) {
                     GameStatus.ONGOING -> {
