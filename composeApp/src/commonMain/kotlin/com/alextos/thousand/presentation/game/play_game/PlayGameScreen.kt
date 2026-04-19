@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -29,6 +31,7 @@ import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.RollAbility
 import com.alextos.thousand.presentation.game.components.GameHeaderView
+import com.alextos.thousand.presentation.game.components.SingleDieView
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
@@ -167,12 +170,17 @@ fun PlayGameScreen(
 
 @Composable
 private fun CurrentRollView(roll: DiceRoll) {
-    Column {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
         Row {
             roll.dice.forEach { die ->
-                Text(text = die.value.value.toString())
+                SingleDieView(dieValue = die.value)
             }
         }
+
+        HorizontalDivider(Modifier.width(160.dp))
 
         Text(roll.result.toString())
     }
@@ -202,7 +210,7 @@ private fun TurnHistoryView(
 private fun RollHistoryView(roll: DiceRoll) {
     Row {
         roll.dice.forEach { die ->
-            Text(die.toString())
+            SingleDieView(Modifier.size(16.dp), die.value)
         }
     }
 }
