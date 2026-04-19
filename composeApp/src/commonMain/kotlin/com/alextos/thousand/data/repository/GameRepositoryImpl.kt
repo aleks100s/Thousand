@@ -47,6 +47,7 @@ class GameRepositoryImpl(
         val gameId = if (game.id == 0L) {
             gameDao.insert(game.toEntity())
         } else {
+            gameDao.upsert(game.toEntity())
             game.id
         }
         playerDao.upsert(game.players.map { it.toEntity(gameId = gameId) })

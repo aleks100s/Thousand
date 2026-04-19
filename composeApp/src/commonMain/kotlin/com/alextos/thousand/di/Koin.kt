@@ -16,7 +16,7 @@ fun initKoin(
     }
 
     if (isDebugBuild) {
-        koinApplication.koin.get<DatabaseSeeder>().seedInBackground()
+        // koinApplication.koin.get<DatabaseSeeder>().seedInBackground()
     }
 
     return koinApplication

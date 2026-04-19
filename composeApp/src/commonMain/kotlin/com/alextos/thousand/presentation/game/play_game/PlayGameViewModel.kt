@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.alextos.thousand.domain.models.DiceRoll
+import com.alextos.thousand.domain.models.GameStatus
 import com.alextos.thousand.domain.models.RollAbility
 import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.usecase.CalculateDiceRollScoreUseCase
@@ -84,28 +85,34 @@ class PlayGameViewModel(
             }
 
             val rolls = state.value.currentTurn
-            val turn = Turn(
-                player = player,
-                rolls = rolls,
-                total = 0,
-                effects = emptyList(),
-                results = emptyList()
-            )
-            val turnId = saveTurnUseCase(
+            val (status, turn) = saveTurnUseCase(
                 player = player,
                 rolls = rolls,
                 game = game
             )
             val turns = state.value.turns.toMutableList()
-            turns.add(turn.copy(id = turnId))
+            turns.add(turn)
             _state.update {
-                it.copy(
-                    rollAbility = RollAbility.REQUIRED,
-                    currentRoll = null,
-                    currentTurn = emptyList(),
-                    turns = turns,
-                    currentPlayer = findCurrentPlayerUseCase(game, turns)
-                )
+                when (status) {
+                    GameStatus.ONGOING -> {
+                        it.copy(
+                            rollAbility = RollAbility.REQUIRED,
+                            currentRoll = null,
+                            currentTurn = emptyList(),
+                            turns = turns,
+                            currentPlayer = findCurrentPlayerUseCase(game, turns)
+                        )
+                    }
+                    GameStatus.FINISHED -> {
+                        it.copy(
+                            rollAbility = RollAbility.UNAVAILABLE,
+                            currentRoll = null,
+                            currentTurn = emptyList(),
+                            turns = turns,
+                            currentPlayer = null
+                        )
+                    }
+                }
             }
         }
     }

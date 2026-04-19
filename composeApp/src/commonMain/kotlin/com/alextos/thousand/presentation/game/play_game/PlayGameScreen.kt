@@ -39,7 +39,8 @@ import thousand.composeapp.generated.resources.casino_24px
 @Composable
 fun PlayGameScreen(
     onGoBack: () -> Unit,
-    onScoreClick: (Game) -> Unit
+    onScoreClick: (Game) -> Unit,
+    onFinishGame: (Game) -> Unit
 ) {
     val viewModel: PlayGameViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -64,48 +65,72 @@ fun PlayGameScreen(
             }
         },
         floatingActionButton = {
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            if (state.game?.isFinished() == true) {
                 AnimatedVisibility(state.rollAbility != RollAbility.REQUIRED) {
                     ExtendedFloatingActionButton(
                         onClick = {
-                            viewModel.onAction(PlayGameAction.FinishTurn)
+                            state.game?.let {
+                                onFinishGame(it)
+                            }
                         },
                         text = {
-                            Text("Закончить ход")
+                            Text("Закончить игру")
                         },
                         icon = {
                             Icon(
                                 painter = painterResource(Res.drawable.back_hand_24px),
-                                contentDescription = "Закончить ход"
+                                contentDescription = "Закончить игру"
                             )
                         },
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                         shape = FloatingActionButtonDefaults.smallExtendedFabShape
                     )
                 }
+            } else {
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    AnimatedVisibility(state.rollAbility != RollAbility.REQUIRED) {
+                        ExtendedFloatingActionButton(
+                            onClick = {
+                                viewModel.onAction(PlayGameAction.FinishTurn)
+                            },
+                            text = {
+                                Text("Закончить")
+                            },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(Res.drawable.back_hand_24px),
+                                    contentDescription = "Закончить"
+                                )
+                            },
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            shape = FloatingActionButtonDefaults.smallExtendedFabShape
+                        )
+                    }
 
-                AnimatedVisibility(state.rollAbility != RollAbility.UNAVAILABLE) {
-                    ExtendedFloatingActionButton(
-                        onClick = {
-                            viewModel.onAction(PlayGameAction.RollTheDice)
-                        },
-                        text = {
-                            val text = when (state.rollAbility) {
-                                RollAbility.UNAVAILABLE -> ""
-                                RollAbility.REQUIRED -> "Бросить кубики"
-                                else -> "Перебросить (${state.rollAbility.count})"
-                            }
-                            Text(text)
-                        },
-                        icon = {
-                            Icon(
-                                painter = painterResource(Res.drawable.casino_24px),
-                                contentDescription = "Бросить кубики"
-                            )
-                        },
-                        shape = FloatingActionButtonDefaults.smallExtendedFabShape
-                    )
+                    AnimatedVisibility(state.rollAbility != RollAbility.UNAVAILABLE) {
+                        ExtendedFloatingActionButton(
+                            onClick = {
+                                viewModel.onAction(PlayGameAction.RollTheDice)
+                            },
+                            text = {
+                                val text = when (state.rollAbility) {
+                                    RollAbility.UNAVAILABLE -> ""
+                                    RollAbility.REQUIRED -> "Бросить кубики"
+                                    else -> "Еще раз (${state.rollAbility.count})"
+                                }
+                                Text(text)
+                            },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(Res.drawable.casino_24px),
+                                    contentDescription = "Бросить кубики"
+                                )
+                            },
+                            shape = FloatingActionButtonDefaults.smallExtendedFabShape
+                        )
+                    }
                 }
             }
         }

@@ -25,6 +25,6 @@ interface GameDao {
     suspend fun getGame(id: Long): GameWithRelations?
 
     @Update
-    suspend fun update(game: GameEntity)
+    suspend fun upsert(game: GameEntity)
 
 }

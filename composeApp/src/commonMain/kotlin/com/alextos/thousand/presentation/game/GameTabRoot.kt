@@ -46,6 +46,11 @@ fun GameTabRoot() {
                 onGoBack = navController::popBackStack,
                 onScoreClick = {
                     navController.navigate(GameRoute.GameScore(it.id))
+                },
+                onFinishGame = {
+                    navController.navigate(GameRoute.GameScore(it.id)) {
+                        popUpTo(GameRoute.GamesList)
+                    }
                 }
             )
         }
