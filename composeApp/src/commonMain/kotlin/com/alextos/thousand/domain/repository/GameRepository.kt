@@ -12,7 +12,8 @@ interface GameRepository {
 
     suspend fun saveUser(user: User)
 
-    suspend fun saveGame(game: Game): Long
+    suspend fun createGame(game: Game): Game
+    suspend fun saveGame(game: Game)
 
     suspend fun getGame(id: Long): Game?
 

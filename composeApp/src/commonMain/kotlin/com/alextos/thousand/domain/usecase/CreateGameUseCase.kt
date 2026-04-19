@@ -8,10 +8,10 @@ import com.alextos.thousand.domain.repository.GameRepository
 class CreateGameUseCase(
     private val repository: GameRepository
 ) {
-    suspend operator fun invoke(users: Set<User>): Long {
+    suspend operator fun invoke(users: Set<User>): Game {
         val players = users.map {
             Player(user = it)
         }
-        return repository.saveGame(Game(players = players))
+        return repository.createGame(Game(players = players))
     }
 }

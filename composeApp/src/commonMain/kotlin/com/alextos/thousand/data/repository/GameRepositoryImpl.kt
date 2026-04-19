@@ -43,15 +43,15 @@ class GameRepositoryImpl(
         userDao.insert(user.toEntity())
     }
 
-    override suspend fun saveGame(game: Game): Long {
-        val gameId = if (game.id == 0L) {
-            gameDao.insert(game.toEntity())
-        } else {
-            gameDao.upsert(game.toEntity())
-            game.id
-        }
+    override suspend fun createGame(game: Game): Game {
+        val gameId = gameDao.insert(game.toEntity())
         playerDao.upsert(game.players.map { it.toEntity(gameId = gameId) })
-        return gameId
+        return game.copy(id = gameId)
+    }
+
+    override suspend fun saveGame(game: Game) {
+        gameDao.upsert(game.toEntity())
+        playerDao.upsert(game.players.map { it.toEntity(gameId = game.id) })
     }
 
     override suspend fun getGame(id: Long): Game? {

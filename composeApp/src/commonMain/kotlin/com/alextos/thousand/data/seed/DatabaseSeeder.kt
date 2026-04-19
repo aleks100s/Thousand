@@ -16,10 +16,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
-import kotlin.random.Random
 
 class DatabaseSeeder(
     private val gameRepository: GameRepository,
@@ -93,7 +93,7 @@ class DatabaseSeeder(
             players = listOf(activePlayerAlice, activePlayerBob),
         )
 
-        val savedActiveGameId = gameRepository.saveGame(activeGame)
+        val savedActiveGameId = gameRepository.createGame(activeGame).id
         val savedActiveGame = activeGame.copy(id = savedActiveGameId)
 
         saveTurns(
@@ -202,7 +202,7 @@ class DatabaseSeeder(
             players = listOf(finishedPlayerAlice, finishedPlayerBob),
         )
 
-        val savedFinishedGameId = gameRepository.saveGame(finishedGame)
+        val savedFinishedGameId = gameRepository.createGame(finishedGame).id
         val savedFinishedGame = finishedGame.copy(id = savedFinishedGameId)
 
         saveTurns(
@@ -334,7 +334,7 @@ class DatabaseSeeder(
             players = listOf(freshPlayerAlice, freshPlayerBob),
         )
 
-        gameRepository.saveGame(emptyGame)
+        gameRepository.createGame(emptyGame)
     }
 
     private suspend fun saveTurns(game: Game, turns: List<Turn>) {
