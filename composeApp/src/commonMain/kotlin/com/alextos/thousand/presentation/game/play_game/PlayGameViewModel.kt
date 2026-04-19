@@ -7,6 +7,8 @@ import androidx.navigation.toRoute
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.GameStatus
 import com.alextos.thousand.domain.models.RollAbility
+import com.alextos.thousand.domain.service.ShakeDeviceObserver
+import com.alextos.thousand.domain.service.ShakeDeviceObserverDelegate
 import com.alextos.thousand.domain.usecase.CalculateDiceRollScoreUseCase
 import com.alextos.thousand.domain.usecase.FindCurrentPlayerUseCase
 import com.alextos.thousand.domain.usecase.LoadGameTurnsUseCase
@@ -29,12 +31,23 @@ class PlayGameViewModel(
     private val rollTheDiceUseCase: RollTheDiceUseCase,
     private val calculateDiceRollScoreUseCase: CalculateDiceRollScoreUseCase,
     private val saveTurnUseCase: SaveTurnUseCase,
-    private val updateGameUseCase: UpdateGameUseCase
-) : ViewModel() {
+    private val updateGameUseCase: UpdateGameUseCase,
+    private val shakeDeviceObserver: ShakeDeviceObserver
+) : ViewModel(), ShakeDeviceObserverDelegate {
     private val route = savedStateHandle.toRoute<GameRoute.PlayGame>()
 
     private val _state = MutableStateFlow(PlayGameState())
     val state: StateFlow<PlayGameState> = _state.asStateFlow()
+
+    init {
+        shakeDeviceObserver.delegate = this
+    }
+
+    override fun deviceDidShake() {
+        if (state.value.rollAbility != RollAbility.UNAVAILABLE) {
+            rollTheDice()
+        }
+    }
 
     fun onAction(action: PlayGameAction) {
         when (action) {

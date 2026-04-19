@@ -12,6 +12,7 @@ import com.alextos.thousand.data.dao.UserDao
 import com.alextos.thousand.data.repository.GameRepositoryImpl
 import com.alextos.thousand.data.seed.DatabaseSeeder
 import com.alextos.thousand.domain.repository.GameRepository
+import com.alextos.thousand.domain.service.ShakeDeviceObserver
 import com.alextos.thousand.domain.usecase.CalculateDiceRollScoreUseCase
 import com.alextos.thousand.domain.usecase.CreateGameUseCase
 import com.alextos.thousand.domain.usecase.DeleteGameUseCase
@@ -34,7 +35,7 @@ import org.koin.dsl.module
 
 expect val platformModule: Module
 
-val appModule = module {
+fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     includes(platformModule)
 
     single<UserDao> { get<ThousandDatabase>().userDao() }
@@ -63,4 +64,5 @@ val appModule = module {
     factory { SaveTurnUseCase(get()) }
     factory { UpdateGameUseCase(get()) }
     factory { DeleteGameUseCase(get()) }
+    single { shakeDeviceObserver }
 }

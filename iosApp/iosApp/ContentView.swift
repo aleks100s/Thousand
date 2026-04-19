@@ -11,11 +11,13 @@ struct ComposeView: UIViewControllerRepresentable {
 }
 
 struct ContentView: View {
+    let observer: ShakeDeviceObserver
+    
     var body: some View {
         ComposeView()
             .ignoresSafeArea()
+            .onShake {
+                observer.shake()
+            }
     }
 }
-
-
-

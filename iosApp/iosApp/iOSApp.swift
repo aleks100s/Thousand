@@ -3,13 +3,15 @@ import ComposeApp
 
 @main
 struct iOSApp: App {
+    private let observer = ShakeDeviceObserverImpl()
+    
     init() {
-        KoinKt.doInitKoin()
+        KoinKt.doInitKoin(shakeDeviceObserver: observer, appDeclaration: { _ in })
     }
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(observer: observer)
         }
     }
 }
