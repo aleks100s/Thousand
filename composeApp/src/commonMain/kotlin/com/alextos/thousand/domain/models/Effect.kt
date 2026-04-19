@@ -4,5 +4,6 @@ enum class Effect {
     OVERTAKE,
     SKI_FALL,
     PIT_FALL,
-    BARREL_LIMIT;
+    BARREL_LIMIT,
+    WIN;
 }

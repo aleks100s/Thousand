@@ -4,15 +4,12 @@ import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.GameStatus
 import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.repository.GameRepository
+import com.alextos.thousand.domain.usecase.SaveTurnUseCase.Companion.GAME_GOAL
 import kotlin.time.Clock
 
 class UpdateGameUseCase(
     private val repository: GameRepository
 ) {
-    companion object {
-        private const val GAME_GOAL = 100
-    }
-
     suspend operator fun invoke(
         game: Game,
         currentTurn: Turn

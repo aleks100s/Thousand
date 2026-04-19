@@ -7,6 +7,7 @@ internal fun Effect.toStorageValue(): String = when (this) {
     Effect.SKI_FALL -> "SKI_FALL"
     Effect.PIT_FALL -> "PIT_FALL"
     Effect.BARREL_LIMIT -> "BARREL_LIMIT"
+    Effect.WIN -> "WIN"
 }
 
 internal fun String.toDomainEffect(): Effect = when (this) {
@@ -14,5 +15,6 @@ internal fun String.toDomainEffect(): Effect = when (this) {
     "SKI_FALL" -> Effect.SKI_FALL
     "PIT_FALL" -> Effect.PIT_FALL
     "BARREL_LIMIT" -> Effect.BARREL_LIMIT
+    "WIN" -> Effect.WIN
     else -> error("Unsupported effect type: $this")
 }
