@@ -4,7 +4,8 @@ data class Player(
     val id: Long = 0,
     val user: User,
     var currentScore: Int = 0,
-    var isWinner: Boolean = false
+    var isWinner: Boolean = false,
+    var boltCount: Int = 0
 ) {
     override fun toString(): String {
         return user.name

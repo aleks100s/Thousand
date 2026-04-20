@@ -11,6 +11,7 @@ fun Player.toEntity(gameId: Long): PlayerEntity = PlayerEntity(
     gameId = gameId,
     currentScore = currentScore,
     isWinner = isWinner,
+    boltCount = boltCount
 )
 
 fun PlayerEntity.toDomain(user: User): Player = Player(
@@ -18,6 +19,7 @@ fun PlayerEntity.toDomain(user: User): Player = Player(
     user = user,
     currentScore = currentScore,
     isWinner = isWinner,
+    boltCount = boltCount
 )
 
 fun PlayerWithUser.toDomain(): Player = player.toDomain(

@@ -148,7 +148,7 @@ fun PlayGameScreen(
             }
         } else {
             Column(modifier = modifier.fillMaxSize()) {
-                GameHeaderView(game, currentPlayer = state.currentPlayer)
+                GameHeaderView(game, state.currentPlayer, showBolts = true)
 
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     if (state.isEmpty()) {
@@ -159,7 +159,7 @@ fun PlayGameScreen(
                         CurrentRollView(roll)
                     }
 
-                    if (state.currentTurn.isNotEmpty()) {
+                    if (state.currentTurn.count() > 1) {
                         TurnHistoryView(
                             modifier = Modifier
                                 .padding(16.dp)

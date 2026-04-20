@@ -2,7 +2,7 @@ package com.alextos.thousand.domain.models
 
 enum class Effect {
     OVERTAKE,
-    SKI_FALL,
+    TRIPLE_BOLT,
     PIT_FALL,
     BARREL_LIMIT,
     WIN;

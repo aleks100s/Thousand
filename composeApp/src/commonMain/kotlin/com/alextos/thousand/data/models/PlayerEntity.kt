@@ -34,4 +34,5 @@ data class PlayerEntity(
     val gameId: Long,
     val currentScore: Int,
     val isWinner: Boolean,
+    val boltCount: Int
 )

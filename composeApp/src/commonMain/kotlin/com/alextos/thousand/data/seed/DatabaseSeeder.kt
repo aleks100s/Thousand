@@ -48,6 +48,7 @@ class DatabaseSeeder(
         )
         gameRepository.saveUser(alice)
         gameRepository.saveUser(bob)
+        return
         val activePlayerAlice = Player(
             id = 3L,
             user = alice,

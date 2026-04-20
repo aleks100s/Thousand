@@ -1,6 +1,5 @@
 package com.alextos.thousand.presentation.game.components
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -9,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -25,12 +25,16 @@ import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Player
 import org.jetbrains.compose.resources.painterResource
 import thousand.composeapp.generated.resources.Res
-import thousand.composeapp.generated.resources.casino_24px
+import thousand.composeapp.generated.resources.bolt_24px
 import thousand.composeapp.generated.resources.person_24px
 import thousand.composeapp.generated.resources.trophy_24px
 
 @Composable
-fun GameHeaderView(game: Game, currentPlayer: Player? = null) {
+fun GameHeaderView(
+    game: Game,
+    currentPlayer: Player? = null,
+    showBolts: Boolean = false
+) {
     Row(
         modifier = Modifier
             // .horizontalScroll(rememberScrollState())
@@ -40,7 +44,7 @@ fun GameHeaderView(game: Game, currentPlayer: Player? = null) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         game.players.forEach { player ->
-            PlayerView(player, currentPlayer == player)
+            PlayerView(player, currentPlayer == player, showBolts)
 
             if (game.players.firstOrNull() == player && game.players.count() > 1) {
                 Text(
@@ -57,10 +61,10 @@ fun GameHeaderView(game: Game, currentPlayer: Player? = null) {
 }
 
 @Composable
-private fun PlayerView(player: Player, isActive: Boolean) {
+private fun PlayerView(player: Player, isActive: Boolean, showBolts: Boolean) {
     val scale by animateFloatAsState(
         targetValue = if (isActive) 1.2f else 1f,
-        animationSpec = tween(durationMillis = 1000, delayMillis = 1000)
+        animationSpec = tween(durationMillis = 1000)
     )
 
     Column(
@@ -70,7 +74,7 @@ private fun PlayerView(player: Player, isActive: Boolean) {
             scaleY = scale
         }
     ) {
-        Row {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 painter = painterResource(if (player.isWinner) Res.drawable.trophy_24px else Res.drawable.person_24px),
                 contentDescription = null,
@@ -82,12 +86,15 @@ private fun PlayerView(player: Player, isActive: Boolean) {
                 color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
             )
 
-            AnimatedVisibility(isActive) {
-                Icon(
-                    painter = painterResource(Res.drawable.casino_24px),
-                    tint = MaterialTheme.colorScheme.primary,
-                    contentDescription = "Активный игрок"
-                )
+            if (showBolts) {
+                (1..player.boltCount).forEach { i ->
+                    Icon(
+                        modifier = Modifier.size(16.dp),
+                        painter = painterResource(Res.drawable.bolt_24px),
+                        tint = MaterialTheme.colorScheme.secondary,
+                        contentDescription = "Пропущенный ход"
+                    )
+                }
             }
         }
 

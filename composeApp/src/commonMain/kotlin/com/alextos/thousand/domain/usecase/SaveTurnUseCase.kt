@@ -15,6 +15,7 @@ class SaveTurnUseCase(
     companion object {
         const val GAME_GOAL = 1000
         private const val PIT_SCORE = 555
+        private const val BOLT_FINE = 100
         private val BARREL_1 = 200..300
         private val BARREL_2 = 600..700
     }
@@ -27,26 +28,19 @@ class SaveTurnUseCase(
         val turnTotal = calculateTurnResult(rolls)
 
         checkGameGoal(currentPlayer, turnTotal)?.let {
-            return saveTurn(currentPlayer, rolls, turnTotal, it, game)
+            return saveTurn(currentPlayer, rolls, turnTotal, listOf(it.first), listOf(it.second), game)
         }
 
         checkPitFall(currentPlayer, turnTotal)?.let {
-            return saveTurn(currentPlayer, rolls, turnTotal, it, game)
+            return saveTurn(currentPlayer, rolls, turnTotal, listOf(it.first), listOf(it.second), game)
         }
 
         checkBarrels(currentPlayer, turnTotal)?.let {
-            return saveTurn(currentPlayer, rolls, turnTotal, it, game)
+            return saveTurn(currentPlayer, rolls, turnTotal, it.first, it.second, game)
         }
 
-        val results = calculateResults(game, currentPlayer, turnTotal)
-        val turn = Turn(
-            player = currentPlayer,
-            rolls = rolls,
-            total = turnTotal,
-            effects = emptyList(),
-            results = results
-        )
-        return repository.saveTurn(turn, game)
+        val (effects, results) = calculateResults(game, currentPlayer, turnTotal)
+        return saveTurn(currentPlayer, rolls, turnTotal, effects, results, game)
     }
 
     private fun calculateTurnResult(
@@ -65,6 +59,7 @@ class SaveTurnUseCase(
         val proposedScore = currentPlayer.currentScore + turnTotal
         if (proposedScore >= GAME_GOAL) {
             currentPlayer.currentScore = proposedScore
+            currentPlayer.boltCount = 0
             val effect = TurnEffect(affectedPlayer = currentPlayer, effect = Effect.WIN)
             val result = TurnResult(player = currentPlayer, scoreChange = turnTotal, newScore = proposedScore)
             return effect to result
@@ -78,6 +73,7 @@ class SaveTurnUseCase(
     ): Pair<TurnEffect, TurnResult>? {
         if (player.currentScore + turnTotal == PIT_SCORE) {
             player.currentScore = 0
+            player.boltCount = 0
             val effect = TurnEffect(affectedPlayer = player, effect = Effect.PIT_FALL)
             val result = TurnResult(player = player, scoreChange = -player.currentScore, newScore = 0)
             return effect to result
@@ -88,15 +84,25 @@ class SaveTurnUseCase(
     private fun checkBarrels(
         currentPlayer: Player,
         turnTotal: Int
-    ): Pair<TurnEffect, TurnResult>? {
+    ): Pair<List<TurnEffect>, List<TurnResult>>? {
         val previousScore = currentPlayer.currentScore
         val proposedScore = previousScore + turnTotal
         val firstBarrel = BARREL_1.contains(previousScore) && BARREL_1.contains(proposedScore)
         val secondBarrel = BARREL_2.contains(previousScore) && BARREL_2.contains(proposedScore)
         if (firstBarrel || secondBarrel) {
-            val effect = TurnEffect(affectedPlayer = currentPlayer, effect = Effect.BARREL_LIMIT)
-            val result = TurnResult(player = currentPlayer, scoreChange = 0, newScore = previousScore)
-            return effect to result
+            val effects = mutableListOf<TurnEffect>()
+            val results = mutableListOf<TurnResult>()
+            val barrelEffect = TurnEffect(affectedPlayer = currentPlayer, effect = Effect.BARREL_LIMIT)
+            effects.add(barrelEffect)
+            currentPlayer.boltCount += 1
+            checkBolt(currentPlayer)?.let {
+                effects.add(it.first)
+                results.add(it.second)
+            } ?: run {
+                val barrelResult = TurnResult(player = currentPlayer, scoreChange = 0, newScore = previousScore)
+                results.add(barrelResult)
+            }
+            return effects to results
         }
         return null
     }
@@ -105,34 +111,67 @@ class SaveTurnUseCase(
         game: Game,
         currentPlayer: Player,
         turnTotal: Int
-    ): List<TurnResult> {
-        return game.players.mapNotNull { player ->
-            if (player == currentPlayer) {
-                player.currentScore += turnTotal
-                TurnResult(
+    ): Pair<List<TurnEffect>, List<TurnResult>> {
+        val effects = mutableListOf<TurnEffect>()
+        val results = mutableListOf<TurnResult>()
+
+        if (turnTotal == 0) {
+            currentPlayer.boltCount += 1
+            checkBolt(currentPlayer)?.let {
+                effects.add(it.first)
+                results.add(it.second)
+            } ?: run {
+                val currentPlayerResult = TurnResult(
                     player = currentPlayer,
                     scoreChange = turnTotal,
                     newScore = currentPlayer.currentScore
                 )
-            } else {
-                null
+                results.add(currentPlayerResult)
+            }
+        } else {
+            currentPlayer.boltCount = 0
+            currentPlayer.currentScore += turnTotal
+            val currentPlayerResult = TurnResult(
+                player = currentPlayer,
+                scoreChange = turnTotal,
+                newScore = currentPlayer.currentScore
+            )
+            results.add(currentPlayerResult)
+        }
+
+        for (player in game.players) {
+            if (player == currentPlayer) {
+                continue
             }
         }
+        return effects to results
+    }
+
+    private fun checkBolt(player: Player): Pair<TurnEffect, TurnResult>? {
+        if (player.boltCount == 3) {
+            player.boltCount = 0
+            player.currentScore -= BOLT_FINE
+            val effect = TurnEffect(affectedPlayer = player, effect = Effect.TRIPLE_BOLT)
+            val result = TurnResult(player = player, scoreChange = -BOLT_FINE, newScore = player.currentScore)
+            return effect to result
+        }
+        return null
     }
 
     private suspend fun saveTurn(
         currentPlayer: Player,
         rolls: List<DiceRoll>,
         turnTotal: Int,
-        pair: Pair<TurnEffect, TurnResult>,
+        effects: List<TurnEffect>,
+        results: List<TurnResult>,
         game: Game
     ): Turn {
         val turn = Turn(
             player = currentPlayer,
             rolls = rolls,
             total = turnTotal,
-            effects = listOf(pair.first),
-            results = listOf(pair.second)
+            effects = effects,
+            results = results
         )
         return repository.saveTurn(turn, game)
     }
