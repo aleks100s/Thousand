@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -116,6 +117,8 @@ private fun TurnView(turn: Turn) {
         }
 
         if (turn.rolls.count() > 1) {
+            HorizontalDivider()
+
             Row(modifier = Modifier.fillMaxWidth()) {
                 (1..5).forEach { _ ->
                     EmptyCell()

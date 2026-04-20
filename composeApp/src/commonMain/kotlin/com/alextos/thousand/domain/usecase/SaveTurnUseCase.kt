@@ -67,46 +67,6 @@ class SaveTurnUseCase(
         return null
     }
 
-    private fun checkPitFall(
-        player: Player,
-        turnTotal: Int
-    ): Pair<TurnEffect, TurnResult>? {
-        if (player.currentScore + turnTotal == PIT_SCORE) {
-            player.currentScore = 0
-            player.boltCount = 0
-            val effect = TurnEffect(affectedPlayer = player, effect = Effect.PIT_FALL)
-            val result = TurnResult(player = player, scoreChange = -player.currentScore, newScore = 0)
-            return effect to result
-        }
-        return null
-    }
-
-    private fun checkBarrels(
-        currentPlayer: Player,
-        turnTotal: Int
-    ): Pair<List<TurnEffect>, List<TurnResult>>? {
-        val previousScore = currentPlayer.currentScore
-        val proposedScore = previousScore + turnTotal
-        val firstBarrel = BARREL_1.contains(previousScore) && BARREL_1.contains(proposedScore)
-        val secondBarrel = BARREL_2.contains(previousScore) && BARREL_2.contains(proposedScore)
-        if (firstBarrel || secondBarrel) {
-            val effects = mutableListOf<TurnEffect>()
-            val results = mutableListOf<TurnResult>()
-            val barrelEffect = TurnEffect(affectedPlayer = currentPlayer, effect = Effect.BARREL_LIMIT)
-            effects.add(barrelEffect)
-            currentPlayer.boltCount += 1
-            checkBolt(currentPlayer)?.let {
-                effects.add(it.first)
-                results.add(it.second)
-            } ?: run {
-                val barrelResult = TurnResult(player = currentPlayer, scoreChange = 0, newScore = previousScore)
-                results.add(barrelResult)
-            }
-            return effects to results
-        }
-        return null
-    }
-
     private fun calculateResults(
         game: Game,
         currentPlayer: Player,
@@ -117,9 +77,9 @@ class SaveTurnUseCase(
 
         if (turnTotal == 0) {
             currentPlayer.boltCount += 1
-            checkBolt(currentPlayer)?.let {
-                effects.add(it.first)
-                results.add(it.second)
+            checkBolt(currentPlayer)?.let { bolt ->
+                effects.addAll(bolt.first)
+                results.add(bolt.second)
             } ?: run {
                 val currentPlayerResult = TurnResult(
                     player = currentPlayer,
@@ -143,16 +103,72 @@ class SaveTurnUseCase(
             if (player == currentPlayer) {
                 continue
             }
+            // Обгоны
         }
         return effects to results
     }
 
-    private fun checkBolt(player: Player): Pair<TurnEffect, TurnResult>? {
+    // Barrel, Bolt, Pit check
+    private fun checkBarrels(
+        currentPlayer: Player,
+        turnTotal: Int
+    ): Pair<List<TurnEffect>, List<TurnResult>>? {
+        val previousScore = currentPlayer.currentScore
+        val proposedScore = previousScore + turnTotal
+        val firstBarrel = BARREL_1.contains(previousScore) && BARREL_1.contains(proposedScore)
+        val secondBarrel = BARREL_2.contains(previousScore) && BARREL_2.contains(proposedScore)
+        if (firstBarrel || secondBarrel) {
+            val effects = mutableListOf<TurnEffect>()
+            val results = mutableListOf<TurnResult>()
+
+            val barrelEffect = TurnEffect(affectedPlayer = currentPlayer, effect = Effect.BARREL_LIMIT)
+            effects.add(barrelEffect)
+            currentPlayer.boltCount += 1
+
+            checkBolt(currentPlayer)?.let { bolt ->
+                effects.addAll(bolt.first)
+                results.add(bolt.second)
+            } ?: run {
+                val barrelResult = TurnResult(player = currentPlayer, scoreChange = 0, newScore = previousScore)
+                results.add(barrelResult)
+            }
+
+            return effects to results
+        }
+        return null
+    }
+
+    // Bolt, Pit check
+    private fun checkBolt(player: Player): Pair<List<TurnEffect>, TurnResult>? {
         if (player.boltCount == 3) {
+            val effects = mutableListOf<TurnEffect>()
+
             player.boltCount = 0
             player.currentScore -= BOLT_FINE
             val effect = TurnEffect(affectedPlayer = player, effect = Effect.TRIPLE_BOLT)
-            val result = TurnResult(player = player, scoreChange = -BOLT_FINE, newScore = player.currentScore)
+            effects.add(effect)
+
+            var result: TurnResult
+            checkPitFall(player, 0)?.let { pitFall ->
+                effects.add(pitFall.first)
+                result = pitFall.second.copy(scoreChange = pitFall.second.scoreChange - BOLT_FINE)
+            } ?: run {
+                result = TurnResult(player = player, scoreChange = -BOLT_FINE, newScore = player.currentScore)
+            }
+            return effects to result
+        }
+        return null
+    }
+
+    private fun checkPitFall(
+        player: Player,
+        turnTotal: Int
+    ): Pair<TurnEffect, TurnResult>? {
+        if (player.currentScore + turnTotal == PIT_SCORE) {
+            player.currentScore = 0
+            player.boltCount = 0
+            val effect = TurnEffect(affectedPlayer = player, effect = Effect.PIT_FALL)
+            val result = TurnResult(player = player, scoreChange = -player.currentScore, newScore = 0)
             return effect to result
         }
         return null
