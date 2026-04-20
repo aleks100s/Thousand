@@ -165,10 +165,10 @@ class SaveTurnUseCase(
         turnTotal: Int
     ): Pair<TurnEffect, TurnResult>? {
         if (player.currentScore + turnTotal == PIT_SCORE) {
-            player.currentScore = 0
-            player.boltCount = 0
             val effect = TurnEffect(affectedPlayer = player, effect = Effect.PIT_FALL)
             val result = TurnResult(player = player, scoreChange = -player.currentScore, newScore = 0)
+            player.currentScore = 0
+            player.boltCount = 0
             return effect to result
         }
         return null
