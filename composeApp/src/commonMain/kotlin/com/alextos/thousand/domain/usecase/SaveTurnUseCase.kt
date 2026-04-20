@@ -16,6 +16,7 @@ class SaveTurnUseCase(
         const val GAME_GOAL = 1000
         private const val PIT_SCORE = 555
         private const val BOLT_FINE = 100
+        private const val STARTING_LIMIT = 50
         private val BARREL_1 = 200..300
         private val BARREL_2 = 600..700
     }
@@ -26,6 +27,10 @@ class SaveTurnUseCase(
         game: Game
     ): Turn {
         val turnTotal = calculateTurnResult(rolls)
+
+        checkStartingLimit(currentPlayer, turnTotal)?.let {
+            return saveTurn(currentPlayer, rolls, turnTotal, it.first, listOf(it.second), game)
+        }
 
         checkGameGoal(currentPlayer, turnTotal)?.let {
             return saveTurn(currentPlayer, rolls, turnTotal, listOf(it.first), listOf(it.second), game)
@@ -91,6 +96,7 @@ class SaveTurnUseCase(
         } else {
             currentPlayer.boltCount = 0
             currentPlayer.currentScore += turnTotal
+            currentPlayer.hasPassedStartLimit = true
             val currentPlayerResult = TurnResult(
                 player = currentPlayer,
                 scoreChange = turnTotal,
@@ -136,6 +142,35 @@ class SaveTurnUseCase(
             return effects to results
         }
         return null
+    }
+
+    private fun checkStartingLimit(
+        currentPlayer: Player,
+        turnTotal: Int
+    ): Pair<List<TurnEffect>, TurnResult>? {
+        val effects = mutableListOf<TurnEffect>()
+        if (!currentPlayer.hasPassedStartLimit) {
+            if (turnTotal < STARTING_LIMIT) {
+                val effect =
+                    TurnEffect(affectedPlayer = currentPlayer, effect = Effect.STARTING_LIMIT)
+                effects.add(effect)
+
+                var result: TurnResult
+                currentPlayer.boltCount += 1
+                checkBolt(currentPlayer)?.let { bolt ->
+                    effects.addAll(bolt.first)
+                    result = bolt.second
+                } ?: run {
+                    result = TurnResult(player = currentPlayer, scoreChange = 0, newScore = currentPlayer.currentScore)
+                }
+
+                return effects to result
+            } else {
+                return null
+            }
+        } else {
+            return null
+        }
     }
 
     // Bolt, Pit check

@@ -5,5 +5,6 @@ enum class Effect {
     TRIPLE_BOLT,
     PIT_FALL,
     BARREL_LIMIT,
-    WIN;
+    WIN,
+    STARTING_LIMIT;
 }

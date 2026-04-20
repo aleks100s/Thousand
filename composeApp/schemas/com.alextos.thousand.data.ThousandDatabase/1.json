@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "1e2e0456f31870f130df7e9795a23e8d",
+    "identityHash": "907ce3273f766a3fe00c6311c0fba55a",
     "entities": [
       {
         "tableName": "users",
@@ -59,7 +59,7 @@
       },
       {
         "tableName": "players",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` INTEGER NOT NULL, `gameId` INTEGER NOT NULL, `currentScore` INTEGER NOT NULL, `isWinner` INTEGER NOT NULL, `boltCount` INTEGER NOT NULL, FOREIGN KEY(`userId`) REFERENCES `users`(`id`) ON UPDATE CASCADE ON DELETE CASCADE , FOREIGN KEY(`gameId`) REFERENCES `games`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` INTEGER NOT NULL, `gameId` INTEGER NOT NULL, `currentScore` INTEGER NOT NULL, `isWinner` INTEGER NOT NULL, `boltCount` INTEGER NOT NULL, `hasPassedStartLimit` INTEGER NOT NULL, FOREIGN KEY(`userId`) REFERENCES `users`(`id`) ON UPDATE CASCADE ON DELETE CASCADE , FOREIGN KEY(`gameId`) REFERENCES `games`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -94,6 +94,12 @@
           {
             "fieldPath": "boltCount",
             "columnName": "boltCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hasPassedStartLimit",
+            "columnName": "hasPassedStartLimit",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -576,7 +582,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '1e2e0456f31870f130df7e9795a23e8d')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '907ce3273f766a3fe00c6311c0fba55a')"
     ]
   }
 }

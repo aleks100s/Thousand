@@ -198,6 +198,7 @@ private fun TurnEffectView(effect: TurnEffect, currentPlayer: Player) {
             Effect.PIT_FALL -> "Игрок ${effect.affectedPlayer} обнулился: его счет 0"
             Effect.BARREL_LIMIT -> "Игрок ${effect.affectedPlayer} не прошел бочку: ход не засчитан"
             Effect.WIN -> "Игрок ${effect.affectedPlayer} победил!"
+            Effect.STARTING_LIMIT -> "Игрок ${effect.affectedPlayer} не прошел стартовый барьер"
         }
         Text(
             text = text,
