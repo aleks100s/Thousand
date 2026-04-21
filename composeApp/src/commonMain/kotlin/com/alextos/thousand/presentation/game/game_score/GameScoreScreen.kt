@@ -28,6 +28,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
+import com.alextos.thousand.domain.GameConstants.BOLT_FINE
+import com.alextos.thousand.domain.GameConstants.OVERTAKE_FINE
+import com.alextos.thousand.domain.GameConstants.PIT_SCORE
+import com.alextos.thousand.domain.GameConstants.STARTING_LIMIT
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.Die
 import com.alextos.thousand.domain.models.Effect
@@ -193,12 +197,12 @@ private fun TurnEffectView(effect: TurnEffect, currentPlayer: Player) {
         .fillMaxWidth()
     ) {
         val text = when (effect.effect) {
-            Effect.OVERTAKE -> "Игрок $currentPlayer обогнал игрока ${effect.affectedPlayer}: -100 очков у игрока ${effect.affectedPlayer}"
-            Effect.TRIPLE_BOLT -> "Игрок ${effect.affectedPlayer} три хода подряд получал 0 очков"
-            Effect.PIT_FALL -> "Игрок ${effect.affectedPlayer} обнулился: его счет 0"
+            Effect.OVERTAKE -> "Игрок $currentPlayer обогнал игрока ${effect.affectedPlayer}: -${OVERTAKE_FINE} очков у игрока ${effect.affectedPlayer}"
+            Effect.TRIPLE_BOLT -> "Игрок ${effect.affectedPlayer} три хода подряд получал 0 очков: -${BOLT_FINE} очков"
+            Effect.PIT_FALL -> "Счет игрока ${effect.affectedPlayer} стал ${PIT_SCORE} и обнулился"
             Effect.BARREL_LIMIT -> "Игрок ${effect.affectedPlayer} не прошел бочку: ход не засчитан"
             Effect.WIN -> "Игрок ${effect.affectedPlayer} победил!"
-            Effect.STARTING_LIMIT -> "Игрок ${effect.affectedPlayer} не прошел стартовый барьер"
+            Effect.STARTING_LIMIT -> "Игрок ${effect.affectedPlayer} не выбил стартовые $STARTING_LIMIT"
         }
         Text(
             text = text,

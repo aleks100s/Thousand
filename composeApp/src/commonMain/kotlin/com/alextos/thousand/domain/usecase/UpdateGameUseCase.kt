@@ -1,10 +1,10 @@
 package com.alextos.thousand.domain.usecase
 
+import com.alextos.thousand.domain.GameConstants.GAME_GOAL
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.GameStatus
 import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.repository.GameRepository
-import com.alextos.thousand.domain.usecase.SaveTurnUseCase.Companion.GAME_GOAL
 import kotlin.time.Clock
 
 class UpdateGameUseCase(

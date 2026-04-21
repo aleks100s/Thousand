@@ -1,5 +1,6 @@
 package com.alextos.thousand.domain.usecase
 
+import com.alextos.thousand.domain.GameConstants
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.Effect
 import com.alextos.thousand.domain.models.Game
@@ -12,15 +13,6 @@ import com.alextos.thousand.domain.repository.GameRepository
 class SaveTurnUseCase(
     private val repository: GameRepository
 ) {
-    companion object {
-        const val GAME_GOAL = 1000
-        private const val PIT_SCORE = 555
-        private const val BOLT_FINE = 100
-        private const val STARTING_LIMIT = 50
-        private val BARREL_1 = 200..300
-        private val BARREL_2 = 600..700
-    }
-
     suspend operator fun invoke(
         currentPlayer: Player,
         rolls: List<DiceRoll>,
@@ -62,7 +54,7 @@ class SaveTurnUseCase(
         turnTotal: Int
     ): Pair<TurnEffect, TurnResult>? {
         val proposedScore = currentPlayer.currentScore + turnTotal
-        if (proposedScore >= GAME_GOAL) {
+        if (proposedScore >= GameConstants.GAME_GOAL) {
             currentPlayer.currentScore = proposedScore
             currentPlayer.boltCount = 0
             val effect = TurnEffect(affectedPlayer = currentPlayer, effect = Effect.WIN)
@@ -77,6 +69,7 @@ class SaveTurnUseCase(
         currentPlayer: Player,
         turnTotal: Int
     ): Pair<List<TurnEffect>, List<TurnResult>> {
+        val previousScore = currentPlayer.currentScore
         val effects = mutableListOf<TurnEffect>()
         val results = mutableListOf<TurnResult>()
 
@@ -109,7 +102,20 @@ class SaveTurnUseCase(
             if (player == currentPlayer) {
                 continue
             }
-            // Обгоны
+
+            if (currentPlayer.currentScore > player.currentScore && previousScore < player.currentScore) {
+                val effect = TurnEffect(affectedPlayer = player, effect = Effect.OVERTAKE)
+                effects.add(effect)
+                player.currentScore -= GameConstants.OVERTAKE_FINE
+
+                checkPitFall(player, 0)?.let { pitFall ->
+                    effects.add(pitFall.first)
+                    results.add(pitFall.second.copy(scoreChange = pitFall.second.scoreChange - GameConstants.OVERTAKE_FINE))
+                } ?: run {
+                    val result = TurnResult(player = player, scoreChange = -GameConstants.OVERTAKE_FINE, newScore = player.currentScore)
+                    results.add(result)
+                }
+            }
         }
         return effects to results
     }
@@ -121,8 +127,8 @@ class SaveTurnUseCase(
     ): Pair<List<TurnEffect>, List<TurnResult>>? {
         val previousScore = currentPlayer.currentScore
         val proposedScore = previousScore + turnTotal
-        val firstBarrel = BARREL_1.contains(previousScore) && BARREL_1.contains(proposedScore)
-        val secondBarrel = BARREL_2.contains(previousScore) && BARREL_2.contains(proposedScore)
+        val firstBarrel = GameConstants.BARREL_1.contains(previousScore) && GameConstants.BARREL_1.contains(proposedScore)
+        val secondBarrel = GameConstants.BARREL_2.contains(previousScore) && GameConstants.BARREL_2.contains(proposedScore)
         if (firstBarrel || secondBarrel) {
             val effects = mutableListOf<TurnEffect>()
             val results = mutableListOf<TurnResult>()
@@ -150,7 +156,7 @@ class SaveTurnUseCase(
     ): Pair<List<TurnEffect>, TurnResult>? {
         val effects = mutableListOf<TurnEffect>()
         if (!currentPlayer.hasPassedStartLimit) {
-            if (turnTotal < STARTING_LIMIT) {
+            if (turnTotal < GameConstants.STARTING_LIMIT) {
                 val effect =
                     TurnEffect(affectedPlayer = currentPlayer, effect = Effect.STARTING_LIMIT)
                 effects.add(effect)
@@ -179,16 +185,16 @@ class SaveTurnUseCase(
             val effects = mutableListOf<TurnEffect>()
 
             player.boltCount = 0
-            player.currentScore -= BOLT_FINE
+            player.currentScore -= GameConstants.BOLT_FINE
             val effect = TurnEffect(affectedPlayer = player, effect = Effect.TRIPLE_BOLT)
             effects.add(effect)
 
             var result: TurnResult
             checkPitFall(player, 0)?.let { pitFall ->
                 effects.add(pitFall.first)
-                result = pitFall.second.copy(scoreChange = pitFall.second.scoreChange - BOLT_FINE)
+                result = pitFall.second.copy(scoreChange = pitFall.second.scoreChange - GameConstants.BOLT_FINE)
             } ?: run {
-                result = TurnResult(player = player, scoreChange = -BOLT_FINE, newScore = player.currentScore)
+                result = TurnResult(player = player, scoreChange = -GameConstants.BOLT_FINE, newScore = player.currentScore)
             }
             return effects to result
         }
@@ -199,7 +205,7 @@ class SaveTurnUseCase(
         player: Player,
         turnTotal: Int
     ): Pair<TurnEffect, TurnResult>? {
-        if (player.currentScore + turnTotal == PIT_SCORE) {
+        if (player.currentScore + turnTotal == GameConstants.PIT_SCORE) {
             val effect = TurnEffect(affectedPlayer = player, effect = Effect.PIT_FALL)
             val result = TurnResult(player = player, scoreChange = -player.currentScore, newScore = 0)
             player.currentScore = 0
