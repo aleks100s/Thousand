@@ -46,7 +46,7 @@ fun GameHeaderView(
         game.players.forEach { player ->
             PlayerView(player, currentPlayer == player, showBolts)
 
-            if (game.players.firstOrNull() == player && game.players.count() > 1) {
+            if (game.players.count() > 1 && game.players.lastOrNull() != player) {
                 Text(
                     modifier = Modifier
                         .clip(CircleShape)

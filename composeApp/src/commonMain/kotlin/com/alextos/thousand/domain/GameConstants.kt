@@ -6,6 +6,6 @@ object GameConstants {
     const val BOLT_FINE = 100
     const val OVERTAKE_FINE = 50
     const val STARTING_LIMIT = 50
-    val BARREL_1 = 200..300
-    val BARREL_2 = 600..700
+    val BARREL_1 = 200..299
+    val BARREL_2 = 600..699
 }
