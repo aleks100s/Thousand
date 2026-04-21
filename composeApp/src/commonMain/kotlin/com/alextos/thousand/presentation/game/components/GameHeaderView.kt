@@ -6,14 +6,20 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,26 +41,60 @@ fun GameHeaderView(
     currentPlayer: Player? = null,
     showBolts: Boolean = false
 ) {
-    Row(
-        modifier = Modifier
-            // .horizontalScroll(rememberScrollState())
-            .padding(vertical = 8.dp)
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceAround,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        game.players.forEach { player ->
-            PlayerView(player, currentPlayer == player, showBolts)
+    val shouldScroll = game.players.size > 2
 
-            if (game.players.count() > 1 && game.players.lastOrNull() != player) {
-                Text(
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.errorContainer)
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
-                    text = "vs",
-                    color = MaterialTheme.colorScheme.error
-                )
+    val content: @Composable (Player) -> Unit = { player ->
+        PlayerView(player, currentPlayer == player, showBolts)
+
+        if (game.players.count() > 1 && game.players.lastOrNull() != player) {
+            Text(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.errorContainer)
+                    .padding(horizontal = 6.dp, vertical = 2.dp),
+                text = "vs",
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+    }
+
+    if (shouldScroll) {
+        val scrollState = rememberLazyListState()
+
+        LaunchedEffect(currentPlayer) {
+            val index = game.players.indexOfFirst { it == currentPlayer }
+            if (index >= 0) {
+                scrollState.animateScrollToItem(index)
+            }
+        }
+
+        LazyRow(
+            state = scrollState,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item {
+                Spacer(Modifier.width(16.dp))
+            }
+
+            items(game.players) { player ->
+                content(player)
+            }
+
+            item {
+                Spacer(Modifier.width(16.dp))
+            }
+        }
+    } else {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            game.players.forEach {
+                content(it)
             }
         }
     }
