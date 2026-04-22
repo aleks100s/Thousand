@@ -17,8 +17,11 @@ import com.alextos.thousand.domain.usecase.game.RollTheDiceUseCase
 import com.alextos.thousand.domain.usecase.game.SaveTurnUseCase
 import com.alextos.thousand.domain.usecase.game.UpdateGameUseCase
 import com.alextos.thousand.presentation.game.GameRoute
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -38,6 +41,9 @@ class PlayGameViewModel(
 
     private val _state = MutableStateFlow(PlayGameState())
     val state: StateFlow<PlayGameState> = _state.asStateFlow()
+
+    private val _events = MutableSharedFlow<PlayGameEvent>()
+    val events: SharedFlow<PlayGameEvent> = _events.asSharedFlow()
 
     private var rollBlocked: Boolean = false
 
@@ -108,6 +114,11 @@ class PlayGameViewModel(
                 rolls = rolls,
                 game = game
             )
+            if (turn.effects.isNotEmpty()) {
+                turn.effects.forEach { effect ->
+                    showSnackbar(effect.text(player))
+                }
+            }
             val turns = state.value.turns.toMutableList()
             turns.add(turn)
             val status = updateGameUseCase(game, turn)
@@ -138,5 +149,11 @@ class PlayGameViewModel(
 
     private fun finishRoll() {
         rollBlocked = false
+    }
+
+    private fun showSnackbar(message: String) {
+        viewModelScope.launch {
+            _events.emit(PlayGameEvent.ShowSnackbar(message))
+        }
     }
 }

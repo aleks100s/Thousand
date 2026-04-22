@@ -196,16 +196,8 @@ private fun TurnEffectView(effect: TurnEffect, currentPlayer: Player) {
         .padding(vertical = 8.dp, horizontal = 16.dp)
         .fillMaxWidth()
     ) {
-        val text = when (effect.effect) {
-            Effect.OVERTAKE -> "Игрок $currentPlayer обогнал игрока ${effect.affectedPlayer}: -${OVERTAKE_FINE} очков у игрока ${effect.affectedPlayer}"
-            Effect.TRIPLE_BOLT -> "Игрок ${effect.affectedPlayer} три хода подряд получал 0 очков: -${BOLT_FINE} очков"
-            Effect.PIT_FALL -> "Счет игрока ${effect.affectedPlayer} стал ${PIT_SCORE} и обнулился"
-            Effect.BARREL_LIMIT -> "Игрок ${effect.affectedPlayer} не прошел бочку: ход не засчитан"
-            Effect.WIN -> "Игрок ${effect.affectedPlayer} победил!"
-            Effect.STARTING_LIMIT -> "Игрок ${effect.affectedPlayer} не выбил стартовые $STARTING_LIMIT"
-        }
         Text(
-            text = text,
+            text = effect.text(currentPlayer),
             color = MaterialTheme.colorScheme.secondary,
             style = MaterialTheme.typography.bodyMedium
         )

@@ -37,6 +37,7 @@ fun Screen(
     goBack: (() -> Unit)? = null,
     backButtonIcon: Painter = painterResource(Res.drawable.arrow_back_24px),
     floatingActionButton: @Composable () -> Unit = {},
+    snackbarHost: @Composable () -> Unit = {},
     actions: @Composable (Color) -> @Composable RowScope.() -> Unit = { {} },
     bannerView: @Composable (() -> Unit)? = null,
     content: @Composable (Modifier) -> Unit
@@ -93,6 +94,7 @@ fun Screen(
         },
         containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = floatingActionButton,
+        snackbarHost = snackbarHost,
         bottomBar = {
             if (bannerView != null) {
                 bannerView()

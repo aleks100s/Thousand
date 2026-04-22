@@ -20,6 +20,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -57,16 +59,30 @@ fun PlayGameScreen(
 ) {
     val viewModel: PlayGameViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
     var isRulesSheetVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.onAction(PlayGameAction.LoadGame)
     }
 
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is PlayGameEvent.ShowSnackbar -> {
+                    snackbarHostState.showSnackbar(event.message, withDismissAction = true)
+                }
+            }
+        }
+    }
+    
     Screen(
         modifier = Modifier,
         title = state.title,
         goBack = onGoBack,
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        },
         actions = {
             {
                 TextButton(
