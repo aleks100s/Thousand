@@ -1,4 +1,4 @@
-package com.alextos.thousand.domain.usecase
+package com.alextos.thousand.domain.usecase.game
 
 import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.repository.GameRepository

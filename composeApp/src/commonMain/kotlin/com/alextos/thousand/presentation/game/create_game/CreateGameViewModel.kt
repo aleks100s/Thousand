@@ -3,9 +3,9 @@ package com.alextos.thousand.presentation.game.create_game
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alextos.thousand.domain.models.User
-import com.alextos.thousand.domain.usecase.CreateGameUseCase
-import com.alextos.thousand.domain.usecase.GetAllUsersUseCase
-import com.alextos.thousand.domain.usecase.SaveUserUseCase
+import com.alextos.thousand.domain.usecase.game.CreateGameUseCase
+import com.alextos.thousand.domain.usecase.game.GetAllUsersUseCase
+import com.alextos.thousand.domain.usecase.game.SaveUserUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

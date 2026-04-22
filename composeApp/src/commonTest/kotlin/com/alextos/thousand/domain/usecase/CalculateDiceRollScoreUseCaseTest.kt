@@ -3,6 +3,7 @@ package com.alextos.thousand.domain.usecase
 import com.alextos.thousand.domain.models.Die
 import com.alextos.thousand.domain.models.DieValue
 import com.alextos.thousand.domain.models.RollAbility
+import com.alextos.thousand.domain.usecase.game.CalculateDiceRollScoreUseCase
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

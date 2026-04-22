@@ -39,6 +39,7 @@ import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.RollAbility
 import com.alextos.thousand.presentation.game.components.GameRulesView
 import com.alextos.thousand.presentation.game.components.GameHeaderView
+import com.alextos.thousand.presentation.game.components.RollingDiceView
 import com.alextos.thousand.presentation.game.components.SingleDieView
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -210,8 +211,8 @@ private fun CurrentRollView(roll: DiceRoll) {
             .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            roll.dice.forEach { die ->
-                SingleDieView(dieValue = die.value)
+            roll.dice.forEachIndexed { index, die ->
+                RollingDiceView(die, delay = (index + 1) * 200L)
             }
         }
 

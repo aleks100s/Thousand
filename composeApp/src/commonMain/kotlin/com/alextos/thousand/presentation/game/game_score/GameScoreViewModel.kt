@@ -4,8 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import com.alextos.thousand.domain.usecase.LoadGameUseCase
-import com.alextos.thousand.domain.usecase.LoadGameTurnsUseCase
+import com.alextos.thousand.domain.usecase.game.LoadGameUseCase
+import com.alextos.thousand.domain.usecase.game.LoadGameTurnsUseCase
 import com.alextos.thousand.presentation.game.GameRoute
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
