@@ -2,10 +2,8 @@ package com.alextos.thousand.presentation.statistics
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-
-private const val STATISTICS_ROUTE = "statistics"
+import com.alextos.thousand.common.horizontalTransition
 
 @Composable
 fun StatisticsTabRoot() {
@@ -13,10 +11,43 @@ fun StatisticsTabRoot() {
 
     NavHost(
         navController = navController,
-        startDestination = STATISTICS_ROUTE,
+        startDestination = StatisticsRoute.Statistics,
     ) {
-        composable(STATISTICS_ROUTE) {
-            StatisticsScreen()
+        horizontalTransition<StatisticsRoute.Statistics> {
+            StatisticsScreen(
+                openGamesStatistics = {
+                    navController.navigate(StatisticsRoute.GamesStatistics)
+                },
+                openTurnsStatistics = {
+                    navController.navigate(StatisticsRoute.TurnsStatistics)
+                },
+                openRollsStatistics = {
+                    navController.navigate(StatisticsRoute.RollsStatistics)
+                },
+                openDiceStatistics = {
+                    navController.navigate(StatisticsRoute.DiceStatistics)
+                },
+            )
+        }
+        horizontalTransition<StatisticsRoute.GamesStatistics> {
+            GamesStatisticsScreen(
+                goBack = navController::popBackStack,
+            )
+        }
+        horizontalTransition<StatisticsRoute.TurnsStatistics> {
+            TurnsStatisticsScreen(
+                goBack = navController::popBackStack,
+            )
+        }
+        horizontalTransition<StatisticsRoute.RollsStatistics> {
+            RollsStatisticsScreen(
+                goBack = navController::popBackStack,
+            )
+        }
+        horizontalTransition<StatisticsRoute.DiceStatistics> {
+            DiceStatisticsScreen(
+                goBack = navController::popBackStack,
+            )
         }
     }
 }
