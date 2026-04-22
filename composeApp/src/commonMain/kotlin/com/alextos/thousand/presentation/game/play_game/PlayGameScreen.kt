@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -37,10 +37,11 @@ import com.alextos.thousand.common.Screen
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.RollAbility
-import com.alextos.thousand.presentation.game.components.GameRulesView
 import com.alextos.thousand.presentation.game.components.GameHeaderView
+import com.alextos.thousand.presentation.game.components.GameRulesView
 import com.alextos.thousand.presentation.game.components.RollingDiceView
 import com.alextos.thousand.presentation.game.components.SingleDieView
+import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
@@ -86,73 +87,22 @@ fun PlayGameScreen(
             }
         },
         floatingActionButton = {
-            if (state.game?.isFinished() == true) {
-                AnimatedVisibility(state.rollAbility != RollAbility.REQUIRED) {
-                    ExtendedFloatingActionButton(
-                        onClick = {
-                            state.game?.let {
-                                onFinishGame(it)
-                            }
-                        },
-                        text = {
-                            Text("Закончить игру")
-                        },
-                        icon = {
-                            Icon(
-                                painter = painterResource(Res.drawable.back_hand_24px),
-                                contentDescription = "Закончить игру"
-                            )
-                        },
-                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        shape = FloatingActionButtonDefaults.smallExtendedFabShape
-                    )
-                }
-            } else {
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    AnimatedVisibility(state.rollAbility != RollAbility.REQUIRED) {
-                        ExtendedFloatingActionButton(
-                            onClick = {
-                                viewModel.onAction(PlayGameAction.FinishTurn)
-                            },
-                            text = {
-                                Text("Закончить")
-                            },
-                            icon = {
-                                Icon(
-                                    painter = painterResource(Res.drawable.back_hand_24px),
-                                    contentDescription = "Закончить"
-                                )
-                            },
-                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            shape = FloatingActionButtonDefaults.smallExtendedFabShape
-                        )
-                    }
+            var buttonsVisible by remember { mutableStateOf(true) }
 
-                    AnimatedVisibility(state.rollAbility != RollAbility.UNAVAILABLE) {
-                        ExtendedFloatingActionButton(
-                            onClick = {
-                                viewModel.onAction(PlayGameAction.RollTheDice)
-                            },
-                            text = {
-                                val text = when (state.rollAbility) {
-                                    RollAbility.UNAVAILABLE -> ""
-                                    RollAbility.REQUIRED -> "Бросить кубики"
-                                    else -> "Еще раз (${state.rollAbility.count})"
-                                }
-                                Text(text)
-                            },
-                            icon = {
-                                Icon(
-                                    painter = painterResource(Res.drawable.casino_24px),
-                                    contentDescription = "Бросить кубики"
-                                )
-                            },
-                            shape = FloatingActionButtonDefaults.smallExtendedFabShape
-                        )
-                    }
+            LaunchedEffect(state.currentRoll) {
+                val delay = (state.currentRoll?.dice?.count() ?: 0) * 200L
+                if (delay > 0L) {
+                    buttonsVisible = false
+                    delay(delay)
+                    buttonsVisible = true
+                } else {
+                    buttonsVisible = true
                 }
+                viewModel.onAction(PlayGameAction.FinishRoll)
+            }
+
+            AnimatedVisibility(visible = buttonsVisible) {
+                ButtonsView(state, onFinishGame, viewModel)
             }
         }
     ) { modifier ->
@@ -196,6 +146,83 @@ fun PlayGameScreen(
             }
         ) {
             GameRulesView()
+        }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+private fun ButtonsView(
+    state: PlayGameState,
+    onFinishGame: (Game) -> Unit,
+    viewModel: PlayGameViewModel
+) {
+    if (state.game?.isFinished() == true) {
+        AnimatedVisibility(state.rollAbility != RollAbility.REQUIRED) {
+            ExtendedFloatingActionButton(
+                onClick = {
+                    state.game.let {
+                        onFinishGame(it)
+                    }
+                },
+                text = {
+                    Text("Закончить игру")
+                },
+                icon = {
+                    Icon(
+                        painter = painterResource(Res.drawable.back_hand_24px),
+                        contentDescription = "Закончить игру"
+                    )
+                },
+                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                shape = FloatingActionButtonDefaults.smallExtendedFabShape
+            )
+        }
+    } else {
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            AnimatedVisibility(state.rollAbility != RollAbility.REQUIRED) {
+                ExtendedFloatingActionButton(
+                    onClick = {
+                        viewModel.onAction(PlayGameAction.FinishTurn)
+                    },
+                    text = {
+                        Text("Закончить")
+                    },
+                    icon = {
+                        Icon(
+                            painter = painterResource(Res.drawable.back_hand_24px),
+                            contentDescription = "Закончить"
+                        )
+                    },
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    shape = FloatingActionButtonDefaults.smallExtendedFabShape
+                )
+            }
+
+            AnimatedVisibility(state.rollAbility != RollAbility.UNAVAILABLE) {
+                ExtendedFloatingActionButton(
+                    onClick = {
+                        viewModel.onAction(PlayGameAction.RollTheDice)
+                    },
+                    text = {
+                        val text = when (state.rollAbility) {
+                            RollAbility.UNAVAILABLE -> ""
+                            RollAbility.REQUIRED -> "Бросить кубики"
+                            else -> "Еще раз (${state.rollAbility.count})"
+                        }
+                        Text(text)
+                    },
+                    icon = {
+                        Icon(
+                            painter = painterResource(Res.drawable.casino_24px),
+                            contentDescription = "Бросить кубики"
+                        )
+                    },
+                    shape = FloatingActionButtonDefaults.smallExtendedFabShape
+                )
+            }
         }
     }
 }

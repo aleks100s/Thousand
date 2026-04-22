@@ -32,19 +32,21 @@ class PlayGameViewModel(
     private val calculateDiceRollScoreUseCase: CalculateDiceRollScoreUseCase,
     private val saveTurnUseCase: SaveTurnUseCase,
     private val updateGameUseCase: UpdateGameUseCase,
-    private val shakeDeviceObserver: ShakeDeviceObserver
+    shakeDeviceObserver: ShakeDeviceObserver
 ) : ViewModel(), ShakeDeviceObserverDelegate {
     private val route = savedStateHandle.toRoute<GameRoute.PlayGame>()
 
     private val _state = MutableStateFlow(PlayGameState())
     val state: StateFlow<PlayGameState> = _state.asStateFlow()
 
+    private var rollBlocked: Boolean = false
+
     init {
         shakeDeviceObserver.delegate = this
     }
 
     override fun deviceDidShake() {
-        if (state.value.rollAbility != RollAbility.UNAVAILABLE) {
+        if (state.value.rollAbility != RollAbility.UNAVAILABLE && rollBlocked.not()) {
             rollTheDice()
         }
     }
@@ -54,6 +56,7 @@ class PlayGameViewModel(
             PlayGameAction.LoadGame -> loadGame()
             PlayGameAction.RollTheDice -> rollTheDice()
             PlayGameAction.FinishTurn -> finishTurn()
+            PlayGameAction.FinishRoll -> finishRoll()
         }
     }
 
@@ -80,6 +83,7 @@ class PlayGameViewModel(
             val roll = DiceRoll(dice = dice, result = result.score)
             val currentTurn = state.value.currentTurn.toMutableList()
             currentTurn.add(roll)
+            rollBlocked = true
             _state.update {
                 it.copy(
                     currentTurn = currentTurn,
@@ -130,5 +134,9 @@ class PlayGameViewModel(
                 }
             }
         }
+    }
+
+    private fun finishRoll() {
+        rollBlocked = false
     }
 }
