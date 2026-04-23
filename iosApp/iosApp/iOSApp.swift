@@ -3,7 +3,7 @@ import ComposeApp
 
 @main
 struct iOSApp: App {
-    private let observer = ShakeDeviceObserverImpl()
+    private let observer = DefaultShakeDeviceObserver()
     
     init() {
         KoinKt.doInitKoin(shakeDeviceObserver: observer, appDeclaration: { _ in })
