@@ -9,6 +9,8 @@ import com.alextos.thousand.data.dao.TurnDao
 import com.alextos.thousand.data.dao.TurnEffectDao
 import com.alextos.thousand.data.dao.TurnResultDao
 import com.alextos.thousand.data.dao.UserDao
+import com.alextos.thousand.data.local.DataStoreKeyValueStorage
+import com.alextos.thousand.data.local.KeyValueStorage
 import com.alextos.thousand.data.repository.GameRepositoryImpl
 import com.alextos.thousand.data.seed.DatabaseSeeder
 import com.alextos.thousand.domain.repository.GameRepository
@@ -46,6 +48,7 @@ fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     single<DieDao> { get<ThousandDatabase>().dieDao() }
     single<TurnEffectDao> { get<ThousandDatabase>().turnEffectDao() }
     single<TurnResultDao> { get<ThousandDatabase>().turnResultDao() }
+    single<KeyValueStorage> { DataStoreKeyValueStorage(get()) }
     single<GameRepository> { GameRepositoryImpl(get(), get(), get(), get(), get(), get(), get(), get()) }
     factory { GetAllGamesUseCase(get()) }
     factory { GetAllUsersUseCase(get()) }
