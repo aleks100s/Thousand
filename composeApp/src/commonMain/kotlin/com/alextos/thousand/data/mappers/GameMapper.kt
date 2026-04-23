@@ -9,11 +9,17 @@ fun Game.toEntity(): GameEntity = GameEntity(
     id = id,
     startedAt = startedAt.toEpochMilliseconds(),
     finishedAt = finishedAt?.toEpochMilliseconds(),
+    isShakeEnabled = isShakeEnabled,
+    isVirtualDiceEnabled = isVirtualDiceEnabled,
+    isNotificationEnabled = isNotificationEnabled,
 )
 
 fun GameWithRelations.toDomain(): Game = Game(
     id = game.id,
     startedAt = Instant.fromEpochMilliseconds(game.startedAt),
     finishedAt = game.finishedAt?.let(Instant::fromEpochMilliseconds),
+    isShakeEnabled = game.isShakeEnabled,
+    isVirtualDiceEnabled = game.isVirtualDiceEnabled,
+    isNotificationEnabled = game.isNotificationEnabled,
     players = players.map { it.toDomain() }
 )

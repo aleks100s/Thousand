@@ -127,7 +127,13 @@ class CreateGameViewModel(
 
     private fun createGame() {
         viewModelScope.launch {
-            val game = createGameUseCase(state.value.selectedUsers)
+            val state = state.value
+            val game = createGameUseCase(
+                users = state.selectedUsers,
+                isShakeEnabled = state.isShakeEnabled,
+                isVirtualDiceEnabled = state.isVirtualDiceEnabled,
+                isNotificationEnabled = state.isNotificationEnabled,
+            )
             _state.update {
                 it.copy(createdGameId = game.id)
             }

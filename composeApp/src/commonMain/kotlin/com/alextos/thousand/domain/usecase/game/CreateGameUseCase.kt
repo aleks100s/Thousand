@@ -8,10 +8,22 @@ import com.alextos.thousand.domain.repository.GameRepository
 class CreateGameUseCase(
     private val repository: GameRepository
 ) {
-    suspend operator fun invoke(users: Set<User>): Game {
+    suspend operator fun invoke(
+        users: Set<User>,
+        isShakeEnabled: Boolean = true,
+        isVirtualDiceEnabled: Boolean = true,
+        isNotificationEnabled: Boolean = true,
+    ): Game {
         val players = users.map {
             Player(user = it)
         }
-        return repository.createGame(Game(players = players))
+        return repository.createGame(
+            Game(
+                players = players,
+                isShakeEnabled = isShakeEnabled,
+                isVirtualDiceEnabled = isVirtualDiceEnabled,
+                isNotificationEnabled = isNotificationEnabled,
+            )
+        )
     }
 }
