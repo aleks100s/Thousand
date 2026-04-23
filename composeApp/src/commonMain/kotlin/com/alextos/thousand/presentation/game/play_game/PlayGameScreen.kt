@@ -255,13 +255,24 @@ private fun CurrentRollView(roll: DiceRoll) {
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             roll.dice.forEachIndexed { index, die ->
-                RollingDiceView(die, delay = (index + 1) * 200L)
+                RollingDiceView(die, delay = (index + 1) * 250L)
             }
         }
 
-        HorizontalDivider(Modifier.width(180.dp))
+        var isResultVisible by remember { mutableStateOf(false) }
+        LaunchedEffect(roll) {
+            isResultVisible = false
+            delay(250L * roll.dice.count())
+            isResultVisible = true
+        }
 
-        Text(roll.result.toString())
+        AnimatedVisibility(isResultVisible) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                HorizontalDivider(Modifier.width(220.dp))
+
+                Text(roll.result.toString())
+            }
+        }
     }
 }
 

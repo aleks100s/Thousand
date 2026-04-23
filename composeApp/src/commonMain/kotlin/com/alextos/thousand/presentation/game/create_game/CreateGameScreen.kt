@@ -31,10 +31,16 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.presentation.game.components.GameRulesView
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
 import thousand.composeapp.generated.resources.casino_24px
+import thousand.composeapp.generated.resources.mobile_hand_24px
+import thousand.composeapp.generated.resources.mobile_vibrate_24px
+import thousand.composeapp.generated.resources.notifications_24px
+import thousand.composeapp.generated.resources.notifications_off_24px
+import thousand.composeapp.generated.resources.sports_esports_24px
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -220,6 +226,7 @@ private fun GameSettingsView(
         )
         GameSettingsItemView(
             text = "Уведомления во время игры",
+            resource = if (state.isNotificationEnabled) Res.drawable.notifications_24px else Res.drawable.notifications_off_24px,
             checked = state.isNotificationEnabled,
             onCheckedChange = {
                 onAction(CreateGameAction.SetNotificationEnabled(it))
@@ -227,6 +234,7 @@ private fun GameSettingsView(
         )
         GameSettingsItemView(
             text = "Бросать виртуальные кубики",
+            resource = if (state.isVirtualDiceEnabled) Res.drawable.sports_esports_24px else Res.drawable.casino_24px,
             checked = state.isVirtualDiceEnabled,
             onCheckedChange = {
                 onAction(CreateGameAction.SetVirtualDiceEnabled(it))
@@ -234,6 +242,7 @@ private fun GameSettingsView(
         )
         GameSettingsItemView(
             text = "Бросать кубики по тряске устройства",
+            resource = if (state.isShakeEnabled) Res.drawable.mobile_vibrate_24px else Res.drawable.mobile_hand_24px,
             checked = state.isShakeEnabled,
             onCheckedChange = {
                 onAction(CreateGameAction.SetShakeEnabled(it))
@@ -246,6 +255,7 @@ private fun GameSettingsView(
 @Composable
 private fun GameSettingsItemView(
     text: String,
+    resource: DrawableResource,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
@@ -254,6 +264,12 @@ private fun GameSettingsItemView(
             Text(
                 text = text,
                 style = MaterialTheme.typography.bodyLarge,
+            )
+        },
+        leadingContent = {
+            Icon(
+                painter = painterResource(resource),
+                contentDescription = text
             )
         },
         trailingContent = {

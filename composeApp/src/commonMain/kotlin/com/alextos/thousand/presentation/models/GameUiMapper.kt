@@ -19,6 +19,8 @@ fun Game.toUi(): GameUi {
         finishedAt = finishedAt?.formatForUi(),
         winnerName = players.firstOrNull { it.isWinner }?.user?.name,
         isFinished = isFinished(),
+        isVirtualDiceEnabled,
+        isNotificationEnabled
     )
 }
 
