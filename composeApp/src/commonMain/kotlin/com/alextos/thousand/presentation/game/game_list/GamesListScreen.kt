@@ -51,6 +51,10 @@ import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
 import thousand.composeapp.generated.resources.add_24px
+import thousand.composeapp.generated.resources.casino_24px
+import thousand.composeapp.generated.resources.notifications_24px
+import thousand.composeapp.generated.resources.notifications_off_24px
+import thousand.composeapp.generated.resources.sports_esports_24px
 import thousand.composeapp.generated.resources.trophy_24px
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -136,22 +140,20 @@ private fun GameItem(
                     },
                 ),
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Column {
+            Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
                     Text(text = game.title)
 
-                    Text(
-                        text = game.opponents,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    GameStatus(game)
                 }
 
-                GameStatus(game = game)
+                Text(
+                    text = game.opponents,
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
         }
 
@@ -177,54 +179,73 @@ private fun GameItem(
 
 @Composable
 private fun GameStatus(game: GameUi) {
-    if (game.isFinished && game.winnerName != null) {
-        Column(horizontalAlignment = Alignment.End) {
-            Row(verticalAlignment = Alignment.Bottom) {
-                Text(text = game.winnerName)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Icon(
+            painter = painterResource(if (game.isNotificationEnabled) Res.drawable.notifications_24px else Res.drawable.notifications_off_24px),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.secondary,
+            modifier = Modifier.size(16.dp)
+        )
 
-                Icon(
-                    painter = painterResource(Res.drawable.trophy_24px),
-                    contentDescription = "Победитель",
-                    tint = Color.Yellow
+        Icon(
+            painter = painterResource(if (game.isVirtualDiceEnabled) Res.drawable.sports_esports_24px else Res.drawable.casino_24px),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.secondary,
+            modifier = Modifier.size(16.dp)
+        )
+
+        if (game.isFinished && game.winnerName != null) {
+            Column(horizontalAlignment = Alignment.End) {
+                Row(verticalAlignment = Alignment.Bottom) {
+                    Text(text = game.winnerName)
+
+                    Icon(
+                        painter = painterResource(Res.drawable.trophy_24px),
+                        contentDescription = "Победитель",
+                        tint = Color.Yellow
+                    )
+                }
+
+                Text(
+                    text = game.finishedAt.orEmpty(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-
-            Text(
-                text = game.finishedAt.orEmpty(),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            return
         }
-        return
+
+        val transition = rememberInfiniteTransition()
+        val alpha by transition.animateFloat(
+            initialValue = 0.35f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 900),
+                repeatMode = RepeatMode.Reverse,
+            ),
+        )
+        val scale by transition.animateFloat(
+            initialValue = 0.85f,
+            targetValue = 1.15f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 900),
+                repeatMode = RepeatMode.Reverse,
+            ),
+        )
+
+        Box(
+            modifier = Modifier
+                .size(14.dp)
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                }
+                .alpha(alpha)
+                .clip(CircleShape)
+                .background(Color.Red),
+        )
     }
-
-    val transition = rememberInfiniteTransition()
-    val alpha by transition.animateFloat(
-        initialValue = 0.35f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 900),
-            repeatMode = RepeatMode.Reverse,
-        ),
-    )
-    val scale by transition.animateFloat(
-        initialValue = 0.85f,
-        targetValue = 1.15f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 900),
-            repeatMode = RepeatMode.Reverse,
-        ),
-    )
-
-    Box(
-        modifier = Modifier
-            .size(14.dp)
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
-            .alpha(alpha)
-            .clip(CircleShape)
-            .background(Color.Red),
-    )
 }
