@@ -35,8 +35,4 @@ private val DateFormatter = LocalDateTime.Format {
     monthNumber()
     char('.')
     year()
-    char(' ')
-    hour()
-    char(':')
-    minute()
 }

@@ -150,10 +150,21 @@ private fun GameItem(
                     GameStatus(game)
                 }
 
-                Text(
-                    text = game.opponents,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = game.opponents,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+
+                    Text(
+                        text = game.finishedAt.orEmpty(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
 
@@ -186,66 +197,57 @@ private fun GameStatus(game: GameUi) {
         Icon(
             painter = painterResource(if (game.isNotificationEnabled) Res.drawable.notifications_24px else Res.drawable.notifications_off_24px),
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.secondary,
+            tint = MaterialTheme.colorScheme.tertiary,
             modifier = Modifier.size(16.dp)
         )
 
         Icon(
             painter = painterResource(if (game.isVirtualDiceEnabled) Res.drawable.sports_esports_24px else Res.drawable.casino_24px),
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.secondary,
+            tint = MaterialTheme.colorScheme.tertiary,
             modifier = Modifier.size(16.dp)
         )
 
         if (game.isFinished && game.winnerName != null) {
-            Column(horizontalAlignment = Alignment.End) {
-                Row(verticalAlignment = Alignment.Bottom) {
-                    Text(text = game.winnerName)
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(text = game.winnerName)
 
-                    Icon(
-                        painter = painterResource(Res.drawable.trophy_24px),
-                        contentDescription = "Победитель",
-                        tint = Color.Yellow
-                    )
-                }
-
-                Text(
-                    text = game.finishedAt.orEmpty(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                Icon(
+                    painter = painterResource(Res.drawable.trophy_24px),
+                    contentDescription = "Победитель",
+                    tint = Color.Yellow
                 )
             }
-            return
+        } else {
+            val transition = rememberInfiniteTransition()
+            val alpha by transition.animateFloat(
+                initialValue = 0.35f,
+                targetValue = 1f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durationMillis = 900),
+                    repeatMode = RepeatMode.Reverse,
+                ),
+            )
+            val scale by transition.animateFloat(
+                initialValue = 0.85f,
+                targetValue = 1.15f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durationMillis = 900),
+                    repeatMode = RepeatMode.Reverse,
+                ),
+            )
+
+            Box(
+                modifier = Modifier
+                    .size(14.dp)
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                    }
+                    .alpha(alpha)
+                    .clip(CircleShape)
+                    .background(Color.Red),
+            )
         }
-
-        val transition = rememberInfiniteTransition()
-        val alpha by transition.animateFloat(
-            initialValue = 0.35f,
-            targetValue = 1f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(durationMillis = 900),
-                repeatMode = RepeatMode.Reverse,
-            ),
-        )
-        val scale by transition.animateFloat(
-            initialValue = 0.85f,
-            targetValue = 1.15f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(durationMillis = 900),
-                repeatMode = RepeatMode.Reverse,
-            ),
-        )
-
-        Box(
-            modifier = Modifier
-                .size(14.dp)
-                .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                }
-                .alpha(alpha)
-                .clip(CircleShape)
-                .background(Color.Red),
-        )
     }
 }

@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,6 +22,9 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -224,28 +228,62 @@ private fun GameSettingsView(
             text = "Настройки игры",
             style = MaterialTheme.typography.titleLarge,
         )
+
+        val text = if (state.isVirtualDiceEnabled) {
+            "В игровом режиме вам не понадобятся настоящие кубики - вы сможете играть прямо на телефоне."
+        } else {
+            "Режим ассистента позволяет вести счет реальной игры в приложении"
+        }
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                painter = painterResource(if (state.isVirtualDiceEnabled) Res.drawable.sports_esports_24px else Res.drawable.casino_24px),
+                contentDescription = null
+            )
+
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+
+        SingleChoiceSegmentedButtonRow(Modifier.padding(horizontal = 16.dp).fillMaxWidth()) {
+            listOf(true, false).forEachIndexed { index, isEnabled ->
+                SegmentedButton(
+                    selected = state.isVirtualDiceEnabled == isEnabled,
+                    onClick = {
+                        onAction(CreateGameAction.SetVirtualDiceEnabled(isEnabled))
+                    },
+                    label = {
+                        Text(if (isEnabled) "Игровой режим" else "Режим ассистента")
+                    },
+                    shape = SegmentedButtonDefaults.itemShape(
+                        index = index,
+                        count = 2
+                    )
+                )
+            }
+        }
+
+        AnimatedVisibility(state.isVirtualDiceEnabled) {
+            GameSettingsItemView(
+                text = "Бросать кубики по тряске устройства",
+                resource = if (state.isShakeEnabled) Res.drawable.mobile_vibrate_24px else Res.drawable.mobile_hand_24px,
+                checked = state.isShakeEnabled,
+                onCheckedChange = {
+                    onAction(CreateGameAction.SetShakeEnabled(it))
+                },
+            )
+        }
+
         GameSettingsItemView(
             text = "Уведомления во время игры",
             resource = if (state.isNotificationEnabled) Res.drawable.notifications_24px else Res.drawable.notifications_off_24px,
             checked = state.isNotificationEnabled,
             onCheckedChange = {
                 onAction(CreateGameAction.SetNotificationEnabled(it))
-            },
-        )
-        GameSettingsItemView(
-            text = "Бросать виртуальные кубики",
-            resource = if (state.isVirtualDiceEnabled) Res.drawable.sports_esports_24px else Res.drawable.casino_24px,
-            checked = state.isVirtualDiceEnabled,
-            onCheckedChange = {
-                onAction(CreateGameAction.SetVirtualDiceEnabled(it))
-            },
-        )
-        GameSettingsItemView(
-            text = "Бросать кубики по тряске устройства",
-            resource = if (state.isShakeEnabled) Res.drawable.mobile_vibrate_24px else Res.drawable.mobile_hand_24px,
-            checked = state.isShakeEnabled,
-            onCheckedChange = {
-                onAction(CreateGameAction.SetShakeEnabled(it))
             },
         )
     }
