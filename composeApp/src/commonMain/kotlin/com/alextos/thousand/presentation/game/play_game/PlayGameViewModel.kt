@@ -9,6 +9,7 @@ import com.alextos.thousand.domain.models.GameStatus
 import com.alextos.thousand.domain.models.RollAbility
 import com.alextos.thousand.domain.service.ShakeDeviceObserver
 import com.alextos.thousand.domain.service.ShakeDeviceObserverDelegate
+import com.alextos.thousand.domain.service.StorageService
 import com.alextos.thousand.domain.usecase.game.CalculateDiceRollScoreUseCase
 import com.alextos.thousand.domain.usecase.game.FindCurrentPlayerUseCase
 import com.alextos.thousand.domain.usecase.game.LoadGameTurnsUseCase
@@ -35,7 +36,8 @@ class PlayGameViewModel(
     private val calculateDiceRollScoreUseCase: CalculateDiceRollScoreUseCase,
     private val saveTurnUseCase: SaveTurnUseCase,
     private val updateGameUseCase: UpdateGameUseCase,
-    shakeDeviceObserver: ShakeDeviceObserver
+    shakeDeviceObserver: ShakeDeviceObserver,
+    private val storageService: StorageService
 ) : ViewModel(), ShakeDeviceObserverDelegate {
     private val route = savedStateHandle.toRoute<GameRoute.PlayGame>()
 
@@ -46,13 +48,27 @@ class PlayGameViewModel(
     val events: SharedFlow<PlayGameEvent> = _events.asSharedFlow()
 
     private var rollBlocked: Boolean = false
+    private var isShakeEnabled: Boolean = true
+    private var isNotificationEnabled: Boolean = true
 
     init {
         shakeDeviceObserver.delegate = this
+
+        viewModelScope.launch {
+            storageService.isShakeEnabled.collect {
+                isShakeEnabled = it
+            }
+        }
+
+        viewModelScope.launch {
+            storageService.isNotificationEnabled.collect {
+                isNotificationEnabled = it
+            }
+        }
     }
 
     override fun deviceDidShake() {
-        if (state.value.rollAbility != RollAbility.UNAVAILABLE && rollBlocked.not()) {
+        if (state.value.rollAbility != RollAbility.UNAVAILABLE && rollBlocked.not() && isShakeEnabled) {
             rollTheDice()
         }
     }
@@ -114,11 +130,13 @@ class PlayGameViewModel(
                 rolls = rolls,
                 game = game
             )
-            if (turn.effects.isNotEmpty()) {
+
+            if (turn.effects.isNotEmpty() && isNotificationEnabled) {
                 turn.effects.forEach { effect ->
                     showSnackbar(effect.text(player))
                 }
             }
+
             val turns = state.value.turns.toMutableList()
             turns.add(turn)
             val status = updateGameUseCase(game, turn)
