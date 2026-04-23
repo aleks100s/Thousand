@@ -28,13 +28,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
-import com.alextos.thousand.domain.GameConstants.BOLT_FINE
-import com.alextos.thousand.domain.GameConstants.OVERTAKE_FINE
-import com.alextos.thousand.domain.GameConstants.PIT_SCORE
-import com.alextos.thousand.domain.GameConstants.STARTING_LIMIT
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.Die
-import com.alextos.thousand.domain.models.Effect
 import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.models.TurnEffect

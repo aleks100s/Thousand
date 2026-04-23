@@ -3,6 +3,7 @@ package com.alextos.thousand.presentation.game.create_game
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alextos.thousand.domain.models.User
+import com.alextos.thousand.domain.service.StorageService
 import com.alextos.thousand.domain.usecase.game.CreateGameUseCase
 import com.alextos.thousand.domain.usecase.game.GetAllUsersUseCase
 import com.alextos.thousand.domain.usecase.game.SaveUserUseCase
@@ -15,7 +16,8 @@ import kotlinx.coroutines.launch
 class CreateGameViewModel(
     private val getAllUsersUseCase: GetAllUsersUseCase,
     private val saveUserUseCase: SaveUserUseCase,
-    private val createGameUseCase: CreateGameUseCase
+    private val createGameUseCase: CreateGameUseCase,
+    private val storageService: StorageService,
 ) : ViewModel() {
     private val _state = MutableStateFlow(CreateGameState())
     val state: StateFlow<CreateGameState> = _state.asStateFlow()
@@ -30,6 +32,9 @@ class CreateGameViewModel(
             CreateGameAction.ShowAddUserSheet -> showAddUserSheet()
             is CreateGameAction.UpdateNewUserName -> updateNewUserName(action.value)
             is CreateGameAction.ToggleUserSelection -> toggleUserSelection(action.user)
+            is CreateGameAction.SetNotificationEnabled -> setNotificationEnabled(action.isEnabled)
+            is CreateGameAction.SetVirtualDiceEnabled -> setVirtualDiceEnabled(action.isEnabled)
+            is CreateGameAction.SetShakeEnabled -> setShakeEnabled(action.isEnabled)
             CreateGameAction.CreateGame -> createGame()
         }
     }
@@ -42,6 +47,27 @@ class CreateGameViewModel(
             getAllUsersUseCase().collect { users ->
                 _state.update {
                     it.copy(users = users)
+                }
+            }
+        }
+        viewModelScope.launch {
+            storageService.isNotificationEnabled.collect { isEnabled ->
+                _state.update {
+                    it.copy(isNotificationEnabled = isEnabled)
+                }
+            }
+        }
+        viewModelScope.launch {
+            storageService.isManualInputEnabled.collect { isEnabled ->
+                _state.update {
+                    it.copy(isVirtualDiceEnabled = isEnabled.not())
+                }
+            }
+        }
+        viewModelScope.launch {
+            storageService.isShakeEnabled.collect { isEnabled ->
+                _state.update {
+                    it.copy(isShakeEnabled = isEnabled)
                 }
             }
         }
@@ -111,6 +137,24 @@ class CreateGameViewModel(
     private fun consumeCreatedGame() {
         _state.update {
             it.copy(createdGameId = null)
+        }
+    }
+
+    private fun setNotificationEnabled(isEnabled: Boolean) {
+        viewModelScope.launch {
+            storageService.setNotificationEnabled(isEnabled)
+        }
+    }
+
+    private fun setVirtualDiceEnabled(isEnabled: Boolean) {
+        viewModelScope.launch {
+            storageService.setManualInputEnabled(isEnabled.not())
+        }
+    }
+
+    private fun setShakeEnabled(isEnabled: Boolean) {
+        viewModelScope.launch {
+            storageService.setShakeEnabled(isEnabled)
         }
     }
 }

@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,12 +14,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,11 +30,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
-import com.alextos.thousand.domain.GameConstants.BARREL_1
-import com.alextos.thousand.domain.GameConstants.BARREL_2
-import com.alextos.thousand.domain.GameConstants.BOLT_FINE
-import com.alextos.thousand.domain.GameConstants.OVERTAKE_FINE
-import com.alextos.thousand.domain.GameConstants.STARTING_LIMIT
 import com.alextos.thousand.presentation.game.components.GameRulesView
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -99,6 +95,17 @@ fun CreateGameScreen(
                 }
 
                 item {
+                    GameSettingsView(
+                        state = state,
+                        onAction = viewModel::onAction,
+                    )
+                }
+
+                item {
+                    Spacer(Modifier.height(16.dp))
+                }
+
+                item {
                     Text(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         text = "Выберите игроков",
@@ -129,7 +136,6 @@ fun CreateGameScreen(
                             .clickable(onClick = {
                                 viewModel.onAction(CreateGameAction.ToggleUserSelection(user))
                             })
-                            .padding(horizontal = 16.dp)
                             .fillMaxWidth(),
                     )
                 }
@@ -195,4 +201,71 @@ fun CreateGameScreen(
             }
         }
     }
+}
+
+@Composable
+private fun GameSettingsView(
+    state: CreateGameState,
+    onAction: (CreateGameAction) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            text = "Настройки игры",
+            style = MaterialTheme.typography.titleLarge,
+        )
+        GameSettingsItemView(
+            text = "Уведомления во время игры",
+            checked = state.isNotificationEnabled,
+            onCheckedChange = {
+                onAction(CreateGameAction.SetNotificationEnabled(it))
+            },
+        )
+        GameSettingsItemView(
+            text = "Бросать виртуальные кубики",
+            checked = state.isVirtualDiceEnabled,
+            onCheckedChange = {
+                onAction(CreateGameAction.SetVirtualDiceEnabled(it))
+            },
+        )
+        GameSettingsItemView(
+            text = "Бросать кубики по тряске устройства",
+            checked = state.isShakeEnabled,
+            onCheckedChange = {
+                onAction(CreateGameAction.SetShakeEnabled(it))
+            },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun GameSettingsItemView(
+    text: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    ListItem(
+        headlineContent = {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        },
+        trailingContent = {
+            Switch(
+                checked = checked,
+                onCheckedChange = onCheckedChange,
+            )
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                onCheckedChange(checked.not())
+            },
+    )
 }

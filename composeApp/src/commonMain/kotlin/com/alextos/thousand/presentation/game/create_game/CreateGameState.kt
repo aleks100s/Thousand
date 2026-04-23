@@ -8,5 +8,8 @@ data class CreateGameState(
     val selectedUsers: Set<User> = emptySet(),
     val createdGameId: Long? = null,
     val newUserName: String = "",
-    val isAddUserSheetVisible: Boolean = false
+    val isAddUserSheetVisible: Boolean = false,
+    val isNotificationEnabled: Boolean = true,
+    val isVirtualDiceEnabled: Boolean = true,
+    val isShakeEnabled: Boolean = true,
 )

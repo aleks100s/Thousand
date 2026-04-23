@@ -9,6 +9,9 @@ sealed interface CreateGameAction {
     data object ConsumeCreatedGame : CreateGameAction
     data class UpdateNewUserName(val value: String) : CreateGameAction
     data class ToggleUserSelection(val user: User) : CreateGameAction
+    data class SetNotificationEnabled(val isEnabled: Boolean) : CreateGameAction
+    data class SetVirtualDiceEnabled(val isEnabled: Boolean) : CreateGameAction
+    data class SetShakeEnabled(val isEnabled: Boolean) : CreateGameAction
     data object SaveNewUser : CreateGameAction
     data object CreateGame: CreateGameAction
 }
