@@ -13,8 +13,10 @@ import com.alextos.thousand.data.local.DataStoreKeyValueStorage
 import com.alextos.thousand.data.local.KeyValueStorage
 import com.alextos.thousand.data.repository.GameRepositoryImpl
 import com.alextos.thousand.data.seed.DatabaseSeeder
+import com.alextos.thousand.data.service.StorageServiceImpl
 import com.alextos.thousand.domain.repository.GameRepository
 import com.alextos.thousand.domain.service.ShakeDeviceObserver
+import com.alextos.thousand.domain.service.StorageService
 import com.alextos.thousand.domain.usecase.game.CalculateDiceRollScoreUseCase
 import com.alextos.thousand.domain.usecase.game.CreateGameUseCase
 import com.alextos.thousand.domain.usecase.game.DeleteGameUseCase
@@ -49,6 +51,7 @@ fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     single<TurnEffectDao> { get<ThousandDatabase>().turnEffectDao() }
     single<TurnResultDao> { get<ThousandDatabase>().turnResultDao() }
     single<KeyValueStorage> { DataStoreKeyValueStorage(get()) }
+    single<StorageService> { StorageServiceImpl(get()) }
     single<GameRepository> { GameRepositoryImpl(get(), get(), get(), get(), get(), get(), get(), get()) }
     factory { GetAllGamesUseCase(get()) }
     factory { GetAllUsersUseCase(get()) }
