@@ -37,8 +37,7 @@ class PlayGameViewModel(
     private val calculateDiceRollScoreUseCase: CalculateDiceRollScoreUseCase,
     private val saveTurnUseCase: SaveTurnUseCase,
     private val updateGameUseCase: UpdateGameUseCase,
-    shakeDeviceObserver: ShakeDeviceObserver,
-    private val storageService: StorageService
+    shakeDeviceObserver: ShakeDeviceObserver
 ) : ViewModel(), ShakeDeviceObserverDelegate {
     private val route = savedStateHandle.toRoute<GameRoute.PlayGame>()
 

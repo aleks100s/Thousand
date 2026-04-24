@@ -24,7 +24,7 @@ fun ManualDiceInputView(
     count: Int,
     onSubmit: (List<Die>) -> Unit
 ) {
-    var dice = remember { mutableStateListOf<Die>() }
+    val dice = remember { mutableStateListOf<Die>() }
 
     Column(
         modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),

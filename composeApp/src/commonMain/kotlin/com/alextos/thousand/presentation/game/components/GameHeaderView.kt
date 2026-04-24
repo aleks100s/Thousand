@@ -127,7 +127,7 @@ private fun PlayerView(player: Player, isActive: Boolean, showBolts: Boolean) {
             )
 
             if (showBolts) {
-                (1..player.boltCount).forEach { i ->
+                (1..player.boltCount).forEach { _ ->
                     Icon(
                         modifier = Modifier.size(16.dp),
                         painter = painterResource(Res.drawable.bolt_24px),

@@ -102,17 +102,6 @@ fun CreateGameScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 item {
-                    GameRulesSettingsView(
-                        state = state,
-                        onAction = viewModel::onAction,
-                    )
-                }
-
-                item {
-                    Spacer(Modifier.height(16.dp))
-                }
-
-                item {
                     GameSettingsView(
                         state = state,
                         onAction = viewModel::onAction,
@@ -222,109 +211,6 @@ fun CreateGameScreen(
 }
 
 @Composable
-private fun GameRulesSettingsView(
-    state: CreateGameState,
-    onAction: (CreateGameAction) -> Unit,
-) {
-    Column(Modifier.padding(horizontal = 16.dp)) {
-        Text(
-            text = "Правила игры",
-            style = MaterialTheme.typography.titleLarge,
-        )
-
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Открытие игры с $STARTING_LIMIT очков", color = MaterialTheme.colorScheme.onSurfaceVariant)
-
-                Switch(
-                    checked = state.hasStartLimit,
-                    onCheckedChange = {
-                        onAction(CreateGameAction.SetHasStartLimit(it))
-                    }
-                )
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Первая бочка $BARREL_1", color = MaterialTheme.colorScheme.onSurfaceVariant)
-
-                Switch(
-                    checked = state.isBarrel1Active,
-                    onCheckedChange = {
-                        onAction(CreateGameAction.SetBarrel1Active(it))
-                    }
-                )
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Вторая бочка $BARREL_2", color = MaterialTheme.colorScheme.onSurfaceVariant)
-
-                Switch(
-                    checked = state.isBarrel2Active,
-                    onCheckedChange = {
-                        onAction(CreateGameAction.SetBarrel2Active(it))
-                    }
-                )
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Третья бочка $BARREL_3", color = MaterialTheme.colorScheme.onSurfaceVariant)
-
-                Switch(
-                    checked = state.isBarrel3Active,
-                    onCheckedChange = {
-                        onAction(CreateGameAction.SetBarrel3Active(it))
-                    }
-                )
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "Штраф $BOLT_FINE очков за 3 болта",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Switch(
-                    checked = state.isTripleBoltFineActive,
-                    onCheckedChange = {
-                        onAction(CreateGameAction.SetTripleBoltFineActive(it))
-                    }
-                )
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Штраф за обгон $OVERTAKE_FINE очков", color = MaterialTheme.colorScheme.onSurfaceVariant)
-
-                Switch(
-                    checked = state.isOvertakeFineActive,
-                    onCheckedChange = {
-                        onAction(CreateGameAction.SetOvertakeFineActive(it))
-                    }
-                )
-            }
-        }
-    }
-}
-
-
-@Composable
 private fun GameSettingsView(
     state: CreateGameState,
     onAction: (CreateGameAction) -> Unit,
@@ -395,6 +281,60 @@ private fun GameSettingsView(
             checked = state.isNotificationEnabled,
             onCheckedChange = {
                 onAction(CreateGameAction.SetNotificationEnabled(it))
+            },
+        )
+
+        GameSettingsItemView(
+            text = "Открытие игры с $STARTING_LIMIT очков",
+            resource = Res.drawable.casino_24px,
+            checked = state.hasStartLimit,
+            onCheckedChange = {
+                onAction(CreateGameAction.SetHasStartLimit(it))
+            },
+        )
+
+        GameSettingsItemView(
+            text = "Первая бочка $BARREL_1",
+            resource = Res.drawable.casino_24px,
+            checked = state.isBarrel1Active,
+            onCheckedChange = {
+                onAction(CreateGameAction.SetBarrel1Active(it))
+            },
+        )
+
+        GameSettingsItemView(
+            text = "Вторая бочка $BARREL_2",
+            resource = Res.drawable.casino_24px,
+            checked = state.isBarrel2Active,
+            onCheckedChange = {
+                onAction(CreateGameAction.SetBarrel2Active(it))
+            },
+        )
+
+        GameSettingsItemView(
+            text = "Третья бочка $BARREL_3",
+            resource = Res.drawable.casino_24px,
+            checked = state.isBarrel3Active,
+            onCheckedChange = {
+                onAction(CreateGameAction.SetBarrel3Active(it))
+            },
+        )
+
+        GameSettingsItemView(
+            text = "Штраф $BOLT_FINE очков за 3 болта",
+            resource = Res.drawable.casino_24px,
+            checked = state.isTripleBoltFineActive,
+            onCheckedChange = {
+                onAction(CreateGameAction.SetTripleBoltFineActive(it))
+            },
+        )
+
+        GameSettingsItemView(
+            text = "Штраф за обгон $OVERTAKE_FINE очков",
+            resource = Res.drawable.casino_24px,
+            checked = state.isOvertakeFineActive,
+            onCheckedChange = {
+                onAction(CreateGameAction.SetOvertakeFineActive(it))
             },
         )
     }

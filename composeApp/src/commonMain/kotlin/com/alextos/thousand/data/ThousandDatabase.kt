@@ -52,7 +52,6 @@ abstract class ThousandDatabase : RoomDatabase() {
     abstract fun turnResultDao(): TurnResultDao
 }
 
-@Suppress("KotlinNoActualForExpect")
 expect object ThousandDatabaseConstructor : RoomDatabaseConstructor<ThousandDatabase> {
     override fun initialize(): ThousandDatabase
 }
