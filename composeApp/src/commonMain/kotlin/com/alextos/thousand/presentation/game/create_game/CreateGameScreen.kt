@@ -20,6 +20,7 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -46,6 +47,7 @@ import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
+import thousand.composeapp.generated.resources.add_24px
 import thousand.composeapp.generated.resources.casino_24px
 import thousand.composeapp.generated.resources.mobile_hand_24px
 import thousand.composeapp.generated.resources.mobile_vibrate_24px
@@ -79,6 +81,22 @@ fun CreateGameScreen(
             when (state.step) {
                 CreateGameStep.Players -> goBack()
                 CreateGameStep.Settings -> viewModel.onAction(CreateGameAction.OpenPlayersStep)
+            }
+        },
+        actions = {
+            {
+                if (state.step == CreateGameStep.Players) {
+                    IconButton(
+                        onClick = {
+                            viewModel.onAction(CreateGameAction.ShowAddUserSheet)
+                        }
+                    ) {
+                        Icon(
+                            painter = painterResource(Res.drawable.add_24px),
+                            contentDescription = "Добавить игрока"
+                        )
+                    }
+                }
             }
         },
         floatingActionButton = {
@@ -149,19 +167,6 @@ fun CreateGameScreen(
                                     })
                                     .fillMaxWidth(),
                             )
-                        }
-
-                        item {
-                            Button(
-                                onClick = {
-                                    viewModel.onAction(CreateGameAction.ShowAddUserSheet)
-                                },
-                                modifier = Modifier
-                                    .padding(horizontal = 16.dp)
-                                    .fillMaxWidth(),
-                            ) {
-                                Text("Добавить нового")
-                            }
                         }
                     }
                     CreateGameStep.Settings -> {
