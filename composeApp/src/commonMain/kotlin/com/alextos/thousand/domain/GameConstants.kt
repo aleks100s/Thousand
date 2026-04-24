@@ -8,4 +8,5 @@ object GameConstants {
     const val STARTING_LIMIT = 50
     val BARREL_1 = 200..299
     val BARREL_2 = 600..699
+    val BARREL_3 = 900..999
 }

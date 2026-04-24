@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.alextos.thousand.domain.GameConstants.BARREL_1
 import com.alextos.thousand.domain.GameConstants.BARREL_2
+import com.alextos.thousand.domain.GameConstants.BARREL_3
 import com.alextos.thousand.domain.GameConstants.BOLT_FINE
 import com.alextos.thousand.domain.GameConstants.OVERTAKE_FINE
 import com.alextos.thousand.domain.GameConstants.STARTING_LIMIT
@@ -50,6 +51,15 @@ fun GameRulesView() {
                 Text("Вторая бочка", color = MaterialTheme.colorScheme.onSurfaceVariant)
 
                 Text("$BARREL_2")
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Третья бочка", color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+                Text("$BARREL_3")
             }
 
             Row(

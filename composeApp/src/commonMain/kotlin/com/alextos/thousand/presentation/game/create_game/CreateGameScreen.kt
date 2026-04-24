@@ -34,7 +34,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
-import com.alextos.thousand.presentation.game.components.GameRulesView
+import com.alextos.thousand.domain.GameConstants.BARREL_1
+import com.alextos.thousand.domain.GameConstants.BARREL_2
+import com.alextos.thousand.domain.GameConstants.BARREL_3
+import com.alextos.thousand.domain.GameConstants.BOLT_FINE
+import com.alextos.thousand.domain.GameConstants.OVERTAKE_FINE
+import com.alextos.thousand.domain.GameConstants.STARTING_LIMIT
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -97,7 +102,7 @@ fun CreateGameScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 item {
-                    GameRulesView()
+                    GameRulesSettingsView()
                 }
 
                 item {
@@ -212,6 +217,94 @@ fun CreateGameScreen(
         }
     }
 }
+
+@Composable
+private fun GameRulesSettingsView() {
+    Column(Modifier.padding(horizontal = 16.dp)) {
+        Text(
+            text = "Правила игры",
+            style = MaterialTheme.typography.titleLarge,
+        )
+
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Открытие игры с $STARTING_LIMIT очков", color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+                Switch(
+                    checked = true,
+                    onCheckedChange = null
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Первая бочка $BARREL_1", color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+                Switch(
+                    checked = true,
+                    onCheckedChange = null
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Вторая бочка $BARREL_2", color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+                Switch(
+                    checked = true,
+                    onCheckedChange = null
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Третья бочка $BARREL_3", color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+                Switch(
+                    checked = true,
+                    onCheckedChange = null
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Штраф $BOLT_FINE очков за 3 болта",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Switch(
+                    checked = true,
+                    onCheckedChange = null
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Штраф за обгон $OVERTAKE_FINE очков", color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+                Switch(
+                    checked = true,
+                    onCheckedChange = null
+                )
+            }
+        }
+    }
+}
+
 
 @Composable
 private fun GameSettingsView(
