@@ -14,6 +14,7 @@ data class PlayGameState(
     val currentTurn: List<DiceRoll> = emptyList(),
     val currentRoll: DiceRoll? = null,
     val rollAbility: RollAbility = RollAbility.REQUIRED,
+    val isManualInputEnabled: Boolean = false
 ) {
     val title: String
         get() = game?.let { "Игра №${it.id}" } ?: ""

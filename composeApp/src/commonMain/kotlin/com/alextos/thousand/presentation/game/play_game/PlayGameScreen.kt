@@ -43,6 +43,7 @@ import com.alextos.thousand.presentation.game.components.GameHeaderView
 import com.alextos.thousand.presentation.game.components.GameRulesView
 import com.alextos.thousand.presentation.game.components.RollingDiceView
 import com.alextos.thousand.presentation.game.components.SingleDieView
+import com.alextos.thousand.presentation.game.play_game.components.ManualDiceInputView
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -133,7 +134,7 @@ fun PlayGameScreen(
 
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     state.currentRoll?.let { roll ->
-                        CurrentRollView(roll)
+                        CurrentRollView(roll, animate = state.isManualInputEnabled.not())
                     } ?: run {
                         if (state.isEmpty()) {
                             Text("Игра началась!")
@@ -167,19 +168,32 @@ fun PlayGameScreen(
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 private fun ButtonsView(
     state: PlayGameState,
     onFinishGame: (Game) -> Unit,
     viewModel: PlayGameViewModel
 ) {
+    var isManualInputShown by remember { mutableStateOf(false) }
+
+    if (isManualInputShown) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                isManualInputShown = false
+            }
+        ) {
+            ManualDiceInputView(count = state.rollAbility.count) {
+                isManualInputShown = false
+                viewModel.onAction(PlayGameAction.ApplyDiceRoll(it))
+            }
+        }
+    }
+
     if (state.game?.isFinished() == true) {
         AnimatedVisibility(state.rollAbility != RollAbility.REQUIRED) {
             ExtendedFloatingActionButton(
                 onClick = {
-                    state.game.let {
-                        onFinishGame(it)
-                    }
+                    onFinishGame(state.game)
                 },
                 text = {
                     Text("Закончить игру")
@@ -220,7 +234,11 @@ private fun ButtonsView(
             AnimatedVisibility(state.rollAbility != RollAbility.UNAVAILABLE) {
                 ExtendedFloatingActionButton(
                     onClick = {
-                        viewModel.onAction(PlayGameAction.RollTheDice)
+                        if (state.isManualInputEnabled) {
+                            isManualInputShown = true
+                        } else {
+                            viewModel.onAction(PlayGameAction.RollTheDice)
+                        }
                     },
                     text = {
                         val text = when (state.rollAbility) {
@@ -244,7 +262,7 @@ private fun ButtonsView(
 }
 
 @Composable
-private fun CurrentRollView(roll: DiceRoll) {
+private fun CurrentRollView(roll: DiceRoll, animate: Boolean = true) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -255,22 +273,26 @@ private fun CurrentRollView(roll: DiceRoll) {
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             roll.dice.forEachIndexed { index, die ->
-                RollingDiceView(die, delay = (index + 1) * 250L)
+                RollingDiceView(die, delay = if (animate) (index + 1) * 250L else 0L)
             }
         }
 
-        var isResultVisible by remember { mutableStateOf(false) }
+        var isResultVisible by remember(roll) { mutableStateOf<Boolean?>(null) }
         LaunchedEffect(roll) {
-            isResultVisible = false
-            delay(250L * roll.dice.count())
+            if (animate) {
+                isResultVisible = false
+                delay(250L * roll.dice.count())
+            }
             isResultVisible = true
         }
 
-        AnimatedVisibility(isResultVisible) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                HorizontalDivider(Modifier.width(220.dp))
+        isResultVisible?.let {
+            AnimatedVisibility(it) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    HorizontalDivider(Modifier.width(220.dp))
 
-                Text(roll.result.toString())
+                    Text(roll.result.toString())
+                }
             }
         }
     }

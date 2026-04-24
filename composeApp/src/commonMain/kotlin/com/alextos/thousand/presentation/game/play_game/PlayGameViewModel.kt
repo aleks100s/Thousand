@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.alextos.thousand.domain.models.DiceRoll
+import com.alextos.thousand.domain.models.Die
 import com.alextos.thousand.domain.models.GameStatus
 import com.alextos.thousand.domain.models.RollAbility
 import com.alextos.thousand.domain.service.ShakeDeviceObserver
@@ -53,22 +54,10 @@ class PlayGameViewModel(
 
     init {
         shakeDeviceObserver.delegate = this
-
-        viewModelScope.launch {
-            storageService.isShakeEnabled.collect {
-                isShakeEnabled = it
-            }
-        }
-
-        viewModelScope.launch {
-            storageService.isNotificationEnabled.collect {
-                isNotificationEnabled = it
-            }
-        }
     }
 
     override fun deviceDidShake() {
-        if (state.value.rollAbility != RollAbility.UNAVAILABLE && rollBlocked.not() && isShakeEnabled) {
+        if (state.value.rollAbility != RollAbility.UNAVAILABLE && rollBlocked.not() && isShakeEnabled && state.value.isManualInputEnabled.not()) {
             rollTheDice()
         }
     }
@@ -79,6 +68,7 @@ class PlayGameViewModel(
             PlayGameAction.RollTheDice -> rollTheDice()
             PlayGameAction.FinishTurn -> finishTurn()
             PlayGameAction.FinishRoll -> finishRoll()
+            is PlayGameAction.ApplyDiceRoll -> applyDiceRoll(action.dice)
         }
     }
 
@@ -92,27 +82,34 @@ class PlayGameViewModel(
                     isLoading = false,
                     game = game,
                     turns = turns,
-                    currentPlayer = currentPlayer
+                    currentPlayer = currentPlayer,
+                    isManualInputEnabled = game?.isVirtualDiceEnabled?.not() ?: false
                 )
             }
+            isShakeEnabled = game?.isShakeEnabled ?: true
+            isNotificationEnabled = game?.isNotificationEnabled ?: true
         }
     }
 
     private fun rollTheDice() {
         viewModelScope.launch {
             val dice = rollTheDiceUseCase(state.value.rollAbility.count)
-            val result = calculateDiceRollScoreUseCase(dice)
-            val roll = DiceRoll(dice = dice, result = result.score)
-            val currentTurn = state.value.currentTurn.toMutableList()
-            currentTurn.add(roll)
-            rollBlocked = true
-            _state.update {
-                it.copy(
-                    currentTurn = currentTurn,
-                    currentRoll = roll,
-                    rollAbility = result.rerollAbility
-                )
-            }
+            applyDiceRoll(dice)
+        }
+    }
+
+    private fun applyDiceRoll(dice: List<Die>) {
+        val result = calculateDiceRollScoreUseCase(dice)
+        val roll = DiceRoll(dice = dice, result = result.score)
+        val currentTurn = state.value.currentTurn.toMutableList()
+        currentTurn.add(roll)
+        rollBlocked = true
+        _state.update {
+            it.copy(
+                currentTurn = currentTurn,
+                currentRoll = roll,
+                rollAbility = result.rerollAbility
+            )
         }
     }
 
