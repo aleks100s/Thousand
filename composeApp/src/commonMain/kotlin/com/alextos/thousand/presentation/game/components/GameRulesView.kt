@@ -44,7 +44,7 @@ fun GameRulesView(game: Game) {
                 value = if (game.isBarrel3Active) "$BARREL_3" else "Отключено",
             )
             RuleRow(
-                title = "Штраф за 3 подряд нулевых хода",
+                title = "Штраф за 3 болта",
                 value = if (game.isTripleBoltFineActive) "$BOLT_FINE" else "Отключено",
             )
             RuleRow(

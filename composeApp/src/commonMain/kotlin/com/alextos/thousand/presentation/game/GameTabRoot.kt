@@ -26,6 +26,11 @@ fun GameTabRoot() {
                         navController.navigate(GameRoute.PlayGame(game.id))
                     }
                 },
+                openGame = {
+                    navController.navigate(GameRoute.PlayGame(it)) {
+                        popUpTo(GameRoute.GamesList)
+                    }
+                },
                 onCreateGame = {
                     navController.navigate(GameRoute.CreateGame)
                 }

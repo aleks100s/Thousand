@@ -68,10 +68,12 @@ fun CreateGameScreen(
         viewModel.onAction(CreateGameAction.Initialize)
     }
 
-    LaunchedEffect(state.createdGameId) {
-        val createdGameId = state.createdGameId ?: return@LaunchedEffect
-        openGame(createdGameId)
-        viewModel.onAction(CreateGameAction.ConsumeCreatedGame)
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is CreateGameEvent.OpenGame -> openGame(event.gameId)
+            }
+        }
     }
 
     Screen(

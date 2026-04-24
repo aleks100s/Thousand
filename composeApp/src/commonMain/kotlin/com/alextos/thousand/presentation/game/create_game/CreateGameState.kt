@@ -6,7 +6,6 @@ data class CreateGameState(
     val users: List<User> = emptyList(),
     val selectedUsers: Set<User> = emptySet(),
     val step: CreateGameStep = CreateGameStep.Players,
-    val createdGameId: Long? = null,
     val newUserName: String = "",
     val isAddUserSheetVisible: Boolean = false,
     val isNotificationEnabled: Boolean = true,

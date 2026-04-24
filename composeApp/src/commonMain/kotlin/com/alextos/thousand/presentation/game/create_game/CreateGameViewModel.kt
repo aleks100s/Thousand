@@ -7,7 +7,10 @@ import com.alextos.thousand.domain.service.StorageService
 import com.alextos.thousand.domain.usecase.game.CreateGameUseCase
 import com.alextos.thousand.domain.usecase.game.GetAllUsersUseCase
 import com.alextos.thousand.domain.usecase.game.SaveUserUseCase
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -21,13 +24,16 @@ class CreateGameViewModel(
 ) : ViewModel() {
     private val _state = MutableStateFlow(CreateGameState())
     val state: StateFlow<CreateGameState> = _state.asStateFlow()
+
+    private val _events = MutableSharedFlow<CreateGameEvent>()
+    val events: SharedFlow<CreateGameEvent> = _events.asSharedFlow()
+
     private var initialized = false
 
     fun onAction(action: CreateGameAction) {
         when (action) {
             CreateGameAction.Initialize -> initialize()
             CreateGameAction.HideAddUserSheet -> hideAddUserSheet()
-            CreateGameAction.ConsumeCreatedGame -> consumeCreatedGame()
             CreateGameAction.SaveNewUser -> saveNewUser()
             CreateGameAction.ShowAddUserSheet -> showAddUserSheet()
             CreateGameAction.OpenPlayersStep -> openPlayersStep()
@@ -164,15 +170,7 @@ class CreateGameViewModel(
                 isTripleBoltFineActive = state.isTripleBoltFineActive,
                 isOvertakeFineActive = state.isOvertakeFineActive
             )
-            _state.update {
-                it.copy(createdGameId = game.id)
-            }
-        }
-    }
-
-    private fun consumeCreatedGame() {
-        _state.update {
-            it.copy(createdGameId = null)
+            _events.emit(CreateGameEvent.OpenGame(game.id))
         }
     }
 

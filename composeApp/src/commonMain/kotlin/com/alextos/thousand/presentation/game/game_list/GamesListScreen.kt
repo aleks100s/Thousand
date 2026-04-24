@@ -61,6 +61,7 @@ import thousand.composeapp.generated.resources.trophy_24px
 @Composable
 fun GamesListScreen(
     onGameClick: (GameUi) -> Unit,
+    openGame: (Long) -> Unit,
     onCreateGame: () -> Unit
 ) {
     val viewModel: GamesListViewModel = koinViewModel()
@@ -68,6 +69,14 @@ fun GamesListScreen(
 
     LaunchedEffect(Unit) {
         viewModel.onAction(GamesListAction.LoadGames)
+    }
+
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is GamesListEvent.OpenGame -> openGame(event.gameId)
+            }
+        }
     }
 
     Screen(
@@ -109,6 +118,9 @@ fun GamesListScreen(
                         onDeleteGame = {
                             viewModel.onAction(GamesListAction.DeleteGame(game.id))
                         },
+                        onRematchGame = {
+                            viewModel.onAction(GamesListAction.CreateRematch(game.id))
+                        },
                     )
                 }
 
@@ -126,6 +138,7 @@ private fun GameItem(
     game: GameUi,
     onGameClick: () -> Unit,
     onDeleteGame: () -> Unit,
+    onRematchGame: () -> Unit,
 ) {
     var isMenuExpanded by remember { mutableStateOf(false) }
 
@@ -174,6 +187,16 @@ private fun GameItem(
                 isMenuExpanded = false
             },
         ) {
+            DropdownMenuItem(
+                text = {
+                    Text("Реванш")
+                },
+                onClick = {
+                    isMenuExpanded = false
+                    onRematchGame()
+                },
+            )
+
             DropdownMenuItem(
                 text = {
                     Text("Удалить игру")

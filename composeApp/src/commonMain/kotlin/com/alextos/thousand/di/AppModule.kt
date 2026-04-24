@@ -19,6 +19,7 @@ import com.alextos.thousand.domain.service.ShakeDeviceObserver
 import com.alextos.thousand.domain.service.StorageService
 import com.alextos.thousand.domain.usecase.game.CalculateDiceRollScoreUseCase
 import com.alextos.thousand.domain.usecase.game.CreateGameUseCase
+import com.alextos.thousand.domain.usecase.game.CreateRematchUseCase
 import com.alextos.thousand.domain.usecase.game.DeleteGameUseCase
 import com.alextos.thousand.domain.usecase.game.FindCurrentPlayerUseCase
 import com.alextos.thousand.domain.usecase.game.GetAllGamesUseCase
@@ -65,6 +66,7 @@ fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     single { DatabaseSeeder(get()) }
     factory { CalculateDiceRollScoreUseCase() }
     factory { CreateGameUseCase(get()) }
+    factory { CreateRematchUseCase(get()) }
     factory { FindCurrentPlayerUseCase() }
     factory { RollTheDiceUseCase() }
     factory { SaveTurnUseCase(get()) }
