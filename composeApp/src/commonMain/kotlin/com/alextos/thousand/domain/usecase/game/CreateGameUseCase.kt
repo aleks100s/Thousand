@@ -13,6 +13,12 @@ class CreateGameUseCase(
         isShakeEnabled: Boolean = true,
         isVirtualDiceEnabled: Boolean = true,
         isNotificationEnabled: Boolean = true,
+        hasStartLimit: Boolean = true,
+        isBarrel1Active: Boolean = true,
+        isBarrel2Active: Boolean = true,
+        isBarrel3Active: Boolean = false,
+        isTripleBoltFineActive: Boolean = true,
+        isOvertakeFineActive: Boolean = true
     ): Game {
         val players = users.map {
             Player(user = it)
@@ -23,6 +29,12 @@ class CreateGameUseCase(
                 isShakeEnabled = isShakeEnabled,
                 isVirtualDiceEnabled = isVirtualDiceEnabled,
                 isNotificationEnabled = isNotificationEnabled,
+                hasStartLimit = hasStartLimit,
+                isBarrel1Active = isBarrel1Active,
+                isBarrel2Active = isBarrel2Active,
+                isBarrel3Active = isBarrel3Active,
+                isTripleBoltFineActive = isTripleBoltFineActive,
+                isOvertakeFineActive = isOvertakeFineActive
             )
         )
     }

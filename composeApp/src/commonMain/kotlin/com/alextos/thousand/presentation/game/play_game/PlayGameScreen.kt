@@ -162,7 +162,9 @@ fun PlayGameScreen(
                 isRulesSheetVisible = false
             }
         ) {
-            GameRulesView()
+            state.game?.let { game ->
+                GameRulesView(game = game)
+            }
         }
     }
 }

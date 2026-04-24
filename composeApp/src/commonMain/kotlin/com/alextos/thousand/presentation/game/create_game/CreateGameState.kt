@@ -12,4 +12,10 @@ data class CreateGameState(
     val isNotificationEnabled: Boolean = true,
     val isVirtualDiceEnabled: Boolean = true,
     val isShakeEnabled: Boolean = true,
+    val hasStartLimit: Boolean = true,
+    val isBarrel1Active: Boolean = true,
+    val isBarrel2Active: Boolean = true,
+    val isBarrel3Active: Boolean = false,
+    val isTripleBoltFineActive: Boolean = true,
+    val isOvertakeFineActive: Boolean = true,
 )

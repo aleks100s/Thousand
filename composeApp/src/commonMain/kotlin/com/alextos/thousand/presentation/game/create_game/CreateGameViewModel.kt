@@ -35,6 +35,12 @@ class CreateGameViewModel(
             is CreateGameAction.SetNotificationEnabled -> setNotificationEnabled(action.isEnabled)
             is CreateGameAction.SetVirtualDiceEnabled -> setVirtualDiceEnabled(action.isEnabled)
             is CreateGameAction.SetShakeEnabled -> setShakeEnabled(action.isEnabled)
+            is CreateGameAction.SetHasStartLimit -> setHasStartLimit(action.isEnabled)
+            is CreateGameAction.SetBarrel1Active -> setBarrel1Active(action.isEnabled)
+            is CreateGameAction.SetBarrel2Active -> setBarrel2Active(action.isEnabled)
+            is CreateGameAction.SetBarrel3Active -> setBarrel3Active(action.isEnabled)
+            is CreateGameAction.SetTripleBoltFineActive -> setTripleBoltFineActive(action.isEnabled)
+            is CreateGameAction.SetOvertakeFineActive -> setOvertakeFineActive(action.isEnabled)
             CreateGameAction.CreateGame -> createGame()
         }
     }
@@ -133,6 +139,12 @@ class CreateGameViewModel(
                 isShakeEnabled = state.isShakeEnabled,
                 isVirtualDiceEnabled = state.isVirtualDiceEnabled,
                 isNotificationEnabled = state.isNotificationEnabled,
+                hasStartLimit = state.hasStartLimit,
+                isBarrel1Active = state.isBarrel1Active,
+                isBarrel2Active = state.isBarrel2Active,
+                isBarrel3Active = state.isBarrel3Active,
+                isTripleBoltFineActive = state.isTripleBoltFineActive,
+                isOvertakeFineActive = state.isOvertakeFineActive
             )
             _state.update {
                 it.copy(createdGameId = game.id)
@@ -161,6 +173,42 @@ class CreateGameViewModel(
     private fun setShakeEnabled(isEnabled: Boolean) {
         viewModelScope.launch {
             storageService.setShakeEnabled(isEnabled)
+        }
+    }
+
+    private fun setHasStartLimit(isEnabled: Boolean) {
+        _state.update {
+            it.copy(hasStartLimit = isEnabled)
+        }
+    }
+
+    private fun setBarrel1Active(isEnabled: Boolean) {
+        _state.update {
+            it.copy(isBarrel1Active = isEnabled)
+        }
+    }
+
+    private fun setBarrel2Active(isEnabled: Boolean) {
+        _state.update {
+            it.copy(isBarrel2Active = isEnabled)
+        }
+    }
+
+    private fun setBarrel3Active(isEnabled: Boolean) {
+        _state.update {
+            it.copy(isBarrel3Active = isEnabled)
+        }
+    }
+
+    private fun setTripleBoltFineActive(isEnabled: Boolean) {
+        _state.update {
+            it.copy(isTripleBoltFineActive = isEnabled)
+        }
+    }
+
+    private fun setOvertakeFineActive(isEnabled: Boolean) {
+        _state.update {
+            it.copy(isOvertakeFineActive = isEnabled)
         }
     }
 }

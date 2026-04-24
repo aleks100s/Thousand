@@ -102,7 +102,10 @@ fun CreateGameScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 item {
-                    GameRulesSettingsView()
+                    GameRulesSettingsView(
+                        state = state,
+                        onAction = viewModel::onAction,
+                    )
                 }
 
                 item {
@@ -219,7 +222,10 @@ fun CreateGameScreen(
 }
 
 @Composable
-private fun GameRulesSettingsView() {
+private fun GameRulesSettingsView(
+    state: CreateGameState,
+    onAction: (CreateGameAction) -> Unit,
+) {
     Column(Modifier.padding(horizontal = 16.dp)) {
         Text(
             text = "Правила игры",
@@ -234,8 +240,10 @@ private fun GameRulesSettingsView() {
                 Text("Открытие игры с $STARTING_LIMIT очков", color = MaterialTheme.colorScheme.onSurfaceVariant)
 
                 Switch(
-                    checked = true,
-                    onCheckedChange = null
+                    checked = state.hasStartLimit,
+                    onCheckedChange = {
+                        onAction(CreateGameAction.SetHasStartLimit(it))
+                    }
                 )
             }
 
@@ -246,8 +254,10 @@ private fun GameRulesSettingsView() {
                 Text("Первая бочка $BARREL_1", color = MaterialTheme.colorScheme.onSurfaceVariant)
 
                 Switch(
-                    checked = true,
-                    onCheckedChange = null
+                    checked = state.isBarrel1Active,
+                    onCheckedChange = {
+                        onAction(CreateGameAction.SetBarrel1Active(it))
+                    }
                 )
             }
 
@@ -258,8 +268,10 @@ private fun GameRulesSettingsView() {
                 Text("Вторая бочка $BARREL_2", color = MaterialTheme.colorScheme.onSurfaceVariant)
 
                 Switch(
-                    checked = true,
-                    onCheckedChange = null
+                    checked = state.isBarrel2Active,
+                    onCheckedChange = {
+                        onAction(CreateGameAction.SetBarrel2Active(it))
+                    }
                 )
             }
 
@@ -270,8 +282,10 @@ private fun GameRulesSettingsView() {
                 Text("Третья бочка $BARREL_3", color = MaterialTheme.colorScheme.onSurfaceVariant)
 
                 Switch(
-                    checked = true,
-                    onCheckedChange = null
+                    checked = state.isBarrel3Active,
+                    onCheckedChange = {
+                        onAction(CreateGameAction.SetBarrel3Active(it))
+                    }
                 )
             }
 
@@ -285,8 +299,10 @@ private fun GameRulesSettingsView() {
                 )
 
                 Switch(
-                    checked = true,
-                    onCheckedChange = null
+                    checked = state.isTripleBoltFineActive,
+                    onCheckedChange = {
+                        onAction(CreateGameAction.SetTripleBoltFineActive(it))
+                    }
                 )
             }
 
@@ -297,8 +313,10 @@ private fun GameRulesSettingsView() {
                 Text("Штраф за обгон $OVERTAKE_FINE очков", color = MaterialTheme.colorScheme.onSurfaceVariant)
 
                 Switch(
-                    checked = true,
-                    onCheckedChange = null
+                    checked = state.isOvertakeFineActive,
+                    onCheckedChange = {
+                        onAction(CreateGameAction.SetOvertakeFineActive(it))
+                    }
                 )
             }
         }

@@ -16,9 +16,10 @@ import com.alextos.thousand.domain.GameConstants.BARREL_3
 import com.alextos.thousand.domain.GameConstants.BOLT_FINE
 import com.alextos.thousand.domain.GameConstants.OVERTAKE_FINE
 import com.alextos.thousand.domain.GameConstants.STARTING_LIMIT
+import com.alextos.thousand.domain.models.Game
 
 @Composable
-fun GameRulesView() {
+fun GameRulesView(game: Game) {
     Column(Modifier.padding(horizontal = 16.dp)) {
         Text(
             text = "Правила игры",
@@ -26,59 +27,47 @@ fun GameRulesView() {
         )
 
         Column {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Открытие игры", color = MaterialTheme.colorScheme.onSurfaceVariant)
-
-                Text("$STARTING_LIMIT очков")
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Первая бочка", color = MaterialTheme.colorScheme.onSurfaceVariant)
-
-                Text("$BARREL_1")
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Вторая бочка", color = MaterialTheme.colorScheme.onSurfaceVariant)
-
-                Text("$BARREL_2")
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Третья бочка", color = MaterialTheme.colorScheme.onSurfaceVariant)
-
-                Text("$BARREL_3")
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Штраф за 3 подряд нулевых хода", color = MaterialTheme.colorScheme.onSurfaceVariant)
-
-                Text("$BOLT_FINE")
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Штраф за обгон", color = MaterialTheme.colorScheme.onSurfaceVariant)
-
-                Text("$OVERTAKE_FINE")
-            }
+            RuleRow(
+                title = "Открытие игры",
+                value = if (game.hasStartLimit) "$STARTING_LIMIT очков" else "Отключено",
+            )
+            RuleRow(
+                title = "Первая бочка",
+                value = if (game.isBarrel1Active) "$BARREL_1" else "Отключено",
+            )
+            RuleRow(
+                title = "Вторая бочка",
+                value = if (game.isBarrel2Active) "$BARREL_2" else "Отключено",
+            )
+            RuleRow(
+                title = "Третья бочка",
+                value = if (game.isBarrel3Active) "$BARREL_3" else "Отключено",
+            )
+            RuleRow(
+                title = "Штраф за 3 подряд нулевых хода",
+                value = if (game.isTripleBoltFineActive) "$BOLT_FINE" else "Отключено",
+            )
+            RuleRow(
+                title = "Штраф за обгон",
+                value = if (game.isOvertakeFineActive) "$OVERTAKE_FINE" else "Отключено",
+            )
         }
+    }
+}
+
+@Composable
+private fun RuleRow(
+    title: String,
+    value: String,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(
+            text = title,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(text = value)
     }
 }

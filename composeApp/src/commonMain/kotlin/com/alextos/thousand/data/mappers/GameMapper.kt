@@ -12,6 +12,12 @@ fun Game.toEntity(): GameEntity = GameEntity(
     isShakeEnabled = isShakeEnabled,
     isVirtualDiceEnabled = isVirtualDiceEnabled,
     isNotificationEnabled = isNotificationEnabled,
+    hasStartLimit = hasStartLimit,
+    isBarrel1Active = isBarrel1Active,
+    isBarrel2Active = isBarrel2Active,
+    isBarrel3Active = isBarrel3Active,
+    isTripleBoltFineActive = isTripleBoltFineActive,
+    isOvertakeFineActive = isOvertakeFineActive,
 )
 
 fun GameWithRelations.toDomain(): Game = Game(
@@ -21,5 +27,11 @@ fun GameWithRelations.toDomain(): Game = Game(
     isShakeEnabled = game.isShakeEnabled,
     isVirtualDiceEnabled = game.isVirtualDiceEnabled,
     isNotificationEnabled = game.isNotificationEnabled,
+    hasStartLimit = game.hasStartLimit,
+    isBarrel1Active = game.isBarrel1Active,
+    isBarrel2Active = game.isBarrel2Active,
+    isBarrel3Active = game.isBarrel3Active,
+    isTripleBoltFineActive = game.isTripleBoltFineActive,
+    isOvertakeFineActive = game.isOvertakeFineActive,
     players = players.map { it.toDomain() }
 )
