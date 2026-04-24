@@ -44,7 +44,7 @@ fun GameHeaderView(
     val shouldScroll = game.players.size > 2
 
     val content: @Composable (Player) -> Unit = { player ->
-        PlayerView(player, currentPlayer == player, showBolts)
+        PlayerView(player, currentPlayer == player, showBolts && game.isTripleBoltFineActive)
 
         if (game.players.count() > 1 && game.players.lastOrNull() != player) {
             Text(

@@ -20,7 +20,7 @@ class SaveTurnUseCase(
     ): Turn {
         val turnTotal = calculateTurnResult(rolls)
 
-        checkStartingLimit(currentPlayer, turnTotal)?.let {
+        checkStartingLimit(currentPlayer, turnTotal, game)?.let {
             return saveTurn(currentPlayer, rolls, turnTotal, it.first, listOf(it.second), game)
         }
 
@@ -32,7 +32,7 @@ class SaveTurnUseCase(
             return saveTurn(currentPlayer, rolls, turnTotal, listOf(it.first), listOf(it.second), game)
         }
 
-        checkBarrels(currentPlayer, turnTotal)?.let {
+        checkBarrels(currentPlayer, turnTotal, game)?.let {
             return saveTurn(currentPlayer, rolls, turnTotal, it.first, it.second, game)
         }
 
@@ -75,7 +75,7 @@ class SaveTurnUseCase(
 
         if (turnTotal == 0) {
             currentPlayer.boltCount += 1
-            checkBolt(currentPlayer)?.let { bolt ->
+            checkBolt(currentPlayer, game)?.let { bolt ->
                 effects.addAll(bolt.first)
                 results.add(bolt.second)
             } ?: run {
@@ -103,7 +103,7 @@ class SaveTurnUseCase(
                 continue
             }
 
-            if (currentPlayer.currentScore > player.currentScore && previousScore < player.currentScore) {
+            if (game.isOvertakeFineActive && currentPlayer.currentScore > player.currentScore && previousScore < player.currentScore) {
                 val effect = TurnEffect(affectedPlayer = player, effect = Effect.OVERTAKE)
                 effects.add(effect)
                 player.currentScore -= GameConstants.OVERTAKE_FINE
@@ -123,13 +123,15 @@ class SaveTurnUseCase(
     // Barrel, Bolt, Pit check
     private fun checkBarrels(
         currentPlayer: Player,
-        turnTotal: Int
+        turnTotal: Int,
+        game: Game
     ): Pair<List<TurnEffect>, List<TurnResult>>? {
         val previousScore = currentPlayer.currentScore
         val proposedScore = previousScore + turnTotal
-        val firstBarrel = GameConstants.BARREL_1.contains(previousScore) && GameConstants.BARREL_1.contains(proposedScore)
-        val secondBarrel = GameConstants.BARREL_2.contains(previousScore) && GameConstants.BARREL_2.contains(proposedScore)
-        if (firstBarrel || secondBarrel) {
+        val firstBarrel = game.isBarrel1Active && GameConstants.BARREL_1.contains(previousScore) && GameConstants.BARREL_1.contains(proposedScore)
+        val secondBarrel = game.isBarrel2Active && GameConstants.BARREL_2.contains(previousScore) && GameConstants.BARREL_2.contains(proposedScore)
+        val thirdBarrel = game.isBarrel3Active && GameConstants.BARREL_3.contains(previousScore) && GameConstants.BARREL_3.contains(proposedScore)
+        if (firstBarrel || secondBarrel || thirdBarrel) {
             val effects = mutableListOf<TurnEffect>()
             val results = mutableListOf<TurnResult>()
 
@@ -137,7 +139,7 @@ class SaveTurnUseCase(
             effects.add(barrelEffect)
             currentPlayer.boltCount += 1
 
-            checkBolt(currentPlayer)?.let { bolt ->
+            checkBolt(currentPlayer, game)?.let { bolt ->
                 effects.addAll(bolt.first)
                 results.add(bolt.second)
             } ?: run {
@@ -152,8 +154,13 @@ class SaveTurnUseCase(
 
     private fun checkStartingLimit(
         currentPlayer: Player,
-        turnTotal: Int
+        turnTotal: Int,
+        game: Game
     ): Pair<List<TurnEffect>, TurnResult>? {
+        if (game.hasStartLimit.not()) {
+            return null
+        }
+
         val effects = mutableListOf<TurnEffect>()
         if (!currentPlayer.hasPassedStartLimit) {
             if (turnTotal < GameConstants.STARTING_LIMIT) {
@@ -163,7 +170,7 @@ class SaveTurnUseCase(
 
                 var result: TurnResult
                 currentPlayer.boltCount += 1
-                checkBolt(currentPlayer)?.let { bolt ->
+                checkBolt(currentPlayer, game)?.let { bolt ->
                     effects.addAll(bolt.first)
                     result = bolt.second
                 } ?: run {
@@ -180,7 +187,11 @@ class SaveTurnUseCase(
     }
 
     // Bolt, Pit check
-    private fun checkBolt(player: Player): Pair<List<TurnEffect>, TurnResult>? {
+    private fun checkBolt(player: Player, game: Game): Pair<List<TurnEffect>, TurnResult>? {
+        if (game.isTripleBoltFineActive.not()) {
+            return null
+        }
+
         if (player.boltCount == 3) {
             val effects = mutableListOf<TurnEffect>()
 
