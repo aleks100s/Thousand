@@ -30,6 +30,8 @@ class CreateGameViewModel(
             CreateGameAction.ConsumeCreatedGame -> consumeCreatedGame()
             CreateGameAction.SaveNewUser -> saveNewUser()
             CreateGameAction.ShowAddUserSheet -> showAddUserSheet()
+            CreateGameAction.OpenPlayersStep -> openPlayersStep()
+            CreateGameAction.OpenSettingsStep -> openSettingsStep()
             is CreateGameAction.UpdateNewUserName -> updateNewUserName(action.value)
             is CreateGameAction.ToggleUserSelection -> toggleUserSelection(action.user)
             is CreateGameAction.SetNotificationEnabled -> setNotificationEnabled(action.isEnabled)
@@ -85,6 +87,22 @@ class CreateGameViewModel(
                 isAddUserSheetVisible = true,
                 newUserName = "",
             )
+        }
+    }
+
+    private fun openPlayersStep() {
+        _state.update {
+            it.copy(step = CreateGameStep.Players)
+        }
+    }
+
+    private fun openSettingsStep() {
+        _state.update {
+            if (it.selectedUsers.isEmpty()) {
+                it
+            } else {
+                it.copy(step = CreateGameStep.Settings)
+            }
         }
     }
 

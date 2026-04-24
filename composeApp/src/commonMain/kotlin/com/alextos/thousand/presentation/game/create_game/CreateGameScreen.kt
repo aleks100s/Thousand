@@ -17,6 +17,8 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -51,7 +53,7 @@ import thousand.composeapp.generated.resources.notifications_24px
 import thousand.composeapp.generated.resources.notifications_off_24px
 import thousand.composeapp.generated.resources.sports_esports_24px
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CreateGameScreen(
     openGame: (Long) -> Unit,
@@ -73,23 +75,42 @@ fun CreateGameScreen(
     Screen(
         modifier = Modifier,
         title = state.title,
-        goBack = goBack,
+        goBack = {
+            when (state.step) {
+                CreateGameStep.Players -> goBack()
+                CreateGameStep.Settings -> viewModel.onAction(CreateGameAction.OpenPlayersStep)
+            }
+        },
         floatingActionButton = {
-            AnimatedVisibility(state.selectedUsers.isNotEmpty()) {
-                ExtendedFloatingActionButton(
-                    onClick = {
-                        viewModel.onAction(CreateGameAction.CreateGame)
-                    },
-                    text = {
-                        Text("Начать игру")
-                    },
-                    icon = {
-                        Icon(
-                            painter = painterResource(Res.drawable.casino_24px),
-                            contentDescription = "Начать игру"
-                        )
+            when (state.step) {
+                CreateGameStep.Players -> {
+                    AnimatedVisibility(state.selectedUsers.isNotEmpty()) {
+                        FloatingActionButton(
+                            onClick = {
+                                viewModel.onAction(CreateGameAction.OpenSettingsStep)
+                            },
+                            shape = FloatingActionButtonDefaults.largeShape
+                        ) {
+                            Text("Далее")
+                        }
                     }
-                )
+                }
+                CreateGameStep.Settings -> {
+                    ExtendedFloatingActionButton(
+                        onClick = {
+                            viewModel.onAction(CreateGameAction.CreateGame)
+                        },
+                        text = {
+                            Text("Начать игру")
+                        },
+                        icon = {
+                            Icon(
+                                painter = painterResource(Res.drawable.casino_24px),
+                                contentDescription = "Начать игру"
+                            )
+                        }
+                    )
+                }
             }
         }
     ) { modifier ->
@@ -101,62 +122,55 @@ fun CreateGameScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                item {
-                    GameSettingsView(
-                        state = state,
-                        onAction = viewModel::onAction,
-                    )
-                }
-
-                item {
-                    Spacer(Modifier.height(16.dp))
-                }
-
-                item {
-                    Text(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        text = "Выберите игроков",
-                        style = MaterialTheme.typography.titleLarge,
-                    )
-                }
-
-                items(
-                    items = state.users,
-                    key = { user -> user.id },
-                ) { user ->
-                    ListItem(
-                        headlineContent = {
-                            Text(
-                                text = user.name,
-                                style = MaterialTheme.typography.bodyLarge,
+                when (state.step) {
+                    CreateGameStep.Players -> {
+                        items(
+                            items = state.users,
+                            key = { user -> user.id },
+                        ) { user ->
+                            ListItem(
+                                headlineContent = {
+                                    Text(
+                                        text = user.name,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                    )
+                                },
+                                trailingContent = {
+                                    Checkbox(
+                                        checked = state.selectedUsers.contains(user),
+                                        onCheckedChange = {
+                                            viewModel.onAction(CreateGameAction.ToggleUserSelection(user))
+                                        }
+                                    )
+                                },
+                                modifier = Modifier
+                                    .clickable(onClick = {
+                                        viewModel.onAction(CreateGameAction.ToggleUserSelection(user))
+                                    })
+                                    .fillMaxWidth(),
                             )
-                        },
-                        trailingContent = {
-                            Checkbox(
-                                checked = state.selectedUsers.contains(user),
-                                onCheckedChange = {
-                                    viewModel.onAction(CreateGameAction.ToggleUserSelection(user))
-                                }
-                            )
-                        },
-                        modifier = Modifier
-                            .clickable(onClick = {
-                                viewModel.onAction(CreateGameAction.ToggleUserSelection(user))
-                            })
-                            .fillMaxWidth(),
-                    )
-                }
+                        }
 
-                item {
-                    Button(
-                        onClick = {
-                            viewModel.onAction(CreateGameAction.ShowAddUserSheet)
-                        },
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp)
-                            .fillMaxWidth(),
-                    ) {
-                        Text("Добавить нового")
+                        item {
+                            Button(
+                                onClick = {
+                                    viewModel.onAction(CreateGameAction.ShowAddUserSheet)
+                                },
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp)
+                                    .fillMaxWidth(),
+                            ) {
+                                Text("Добавить нового")
+                            }
+                        }
+                    }
+                    CreateGameStep.Settings -> {
+                        item {
+                            GameSettingsView(
+                                state = state,
+                                onAction = viewModel::onAction,
+                            )
+                        }
                     }
                 }
 
@@ -220,12 +234,6 @@ private fun GameSettingsView(
             .fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            text = "Настройки игры",
-            style = MaterialTheme.typography.titleLarge,
-        )
-
         val text = if (state.isVirtualDiceEnabled) {
             "В игровом режиме вам не понадобятся настоящие кубики - вы сможете играть прямо на телефоне."
         } else {
