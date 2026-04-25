@@ -17,8 +17,6 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -33,6 +31,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -49,6 +50,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
 import thousand.composeapp.generated.resources.add_24px
 import thousand.composeapp.generated.resources.casino_24px
+import thousand.composeapp.generated.resources.info_24px
 import thousand.composeapp.generated.resources.mobile_hand_24px
 import thousand.composeapp.generated.resources.mobile_vibrate_24px
 import thousand.composeapp.generated.resources.notifications_24px
@@ -105,11 +107,10 @@ fun CreateGameScreen(
             when (state.step) {
                 CreateGameStep.Players -> {
                     AnimatedVisibility(state.selectedUsers.isNotEmpty()) {
-                        FloatingActionButton(
+                        ExtendedFloatingActionButton(
                             onClick = {
                                 viewModel.onAction(CreateGameAction.OpenSettingsStep)
-                            },
-                            shape = FloatingActionButtonDefaults.largeShape
+                            }
                         ) {
                             Text("Далее")
                         }
@@ -231,11 +232,14 @@ fun CreateGameScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun GameSettingsView(
     state: CreateGameState,
     onAction: (CreateGameAction) -> Unit,
 ) {
+    var settingInfo by remember { mutableStateOf<GameSettingInfo?>(null) }
+
     Column(
         modifier = Modifier
             .fillMaxWidth(),
@@ -301,57 +305,119 @@ private fun GameSettingsView(
 
         GameSettingsItemView(
             text = "Открытие игры с $STARTING_LIMIT очков",
-            resource = Res.drawable.casino_24px,
+            resource = Res.drawable.info_24px,
             checked = state.hasStartLimit,
             onCheckedChange = {
                 onAction(CreateGameAction.SetHasStartLimit(it))
+            },
+            onInfoClick = {
+                settingInfo = GameSettingInfo(
+                    title = "Открытие игры",
+                    description = "Игрок начинает набирать очки только после хода на $STARTING_LIMIT очков или больше.",
+                )
             },
         )
 
         GameSettingsItemView(
             text = "Первая бочка $BARREL_1",
-            resource = Res.drawable.casino_24px,
+            resource = Res.drawable.info_24px,
             checked = state.isBarrel1Active,
             onCheckedChange = {
                 onAction(CreateGameAction.SetBarrel1Active(it))
+            },
+            onInfoClick = {
+                settingInfo = GameSettingInfo(
+                    title = "Первая бочка",
+                    description = "Если счет игрока остается в диапазоне $BARREL_1, ход не засчитывается и игрок получает болт.",
+                )
             },
         )
 
         GameSettingsItemView(
             text = "Вторая бочка $BARREL_2",
-            resource = Res.drawable.casino_24px,
+            resource = Res.drawable.info_24px,
             checked = state.isBarrel2Active,
             onCheckedChange = {
                 onAction(CreateGameAction.SetBarrel2Active(it))
+            },
+            onInfoClick = {
+                settingInfo = GameSettingInfo(
+                    title = "Вторая бочка",
+                    description = "Если счет игрока остается в диапазоне $BARREL_2, ход не засчитывается и игрок получает болт.",
+                )
             },
         )
 
         GameSettingsItemView(
             text = "Третья бочка $BARREL_3",
-            resource = Res.drawable.casino_24px,
+            resource = Res.drawable.info_24px,
             checked = state.isBarrel3Active,
             onCheckedChange = {
                 onAction(CreateGameAction.SetBarrel3Active(it))
+            },
+            onInfoClick = {
+                settingInfo = GameSettingInfo(
+                    title = "Третья бочка",
+                    description = "Если счет игрока остается в диапазоне $BARREL_3, ход не засчитывается и игрок получает болт.",
+                )
             },
         )
 
         GameSettingsItemView(
             text = "Штраф $BOLT_FINE очков за 3 болта",
-            resource = Res.drawable.casino_24px,
+            resource = Res.drawable.info_24px,
             checked = state.isTripleBoltFineActive,
             onCheckedChange = {
                 onAction(CreateGameAction.SetTripleBoltFineActive(it))
+            },
+            onInfoClick = {
+                settingInfo = GameSettingInfo(
+                    title = "Штраф за 3 болта",
+                    description = "Если игрок получает третий болт подряд, его счет уменьшается на $BOLT_FINE очков.",
+                )
             },
         )
 
         GameSettingsItemView(
             text = "Штраф за обгон $OVERTAKE_FINE очков",
-            resource = Res.drawable.casino_24px,
+            resource = Res.drawable.info_24px,
             checked = state.isOvertakeFineActive,
             onCheckedChange = {
                 onAction(CreateGameAction.SetOvertakeFineActive(it))
             },
+            onInfoClick = {
+                settingInfo = GameSettingInfo(
+                    title = "Штраф за обгон",
+                    description = "Когда игрок обгоняет соперника по счету, соперник теряет $OVERTAKE_FINE очков.",
+                )
+            },
         )
+    }
+
+    settingInfo?.let { info ->
+        ModalBottomSheet(
+            onDismissRequest = {
+                settingInfo = null
+            },
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    text = info.title,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    text = info.description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(16.dp))
+            }
+        }
     }
 }
 
@@ -361,7 +427,8 @@ private fun GameSettingsItemView(
     text: String,
     resource: DrawableResource,
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    onCheckedChange: (Boolean) -> Unit,
+    onInfoClick: (() -> Unit)? = null,
 ) {
     ListItem(
         headlineContent = {
@@ -371,10 +438,18 @@ private fun GameSettingsItemView(
             )
         },
         leadingContent = {
-            Icon(
-                painter = painterResource(resource),
-                contentDescription = text
-            )
+            if (onInfoClick == null) {
+                Icon(
+                    painter = painterResource(resource),
+                    contentDescription = text
+                )
+            } else {
+                Icon(
+                    painter = painterResource(resource),
+                    contentDescription = "Подробнее: $text",
+                    modifier = Modifier.clickable(onClick = onInfoClick)
+                )
+            }
         },
         trailingContent = {
             Switch(
@@ -389,3 +464,8 @@ private fun GameSettingsItemView(
             },
     )
 }
+
+private data class GameSettingInfo(
+    val title: String,
+    val description: String,
+)
