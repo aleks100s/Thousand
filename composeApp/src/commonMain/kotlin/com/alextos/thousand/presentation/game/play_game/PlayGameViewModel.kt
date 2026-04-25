@@ -8,6 +8,7 @@ import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.Die
 import com.alextos.thousand.domain.models.GameStatus
 import com.alextos.thousand.domain.models.RollAbility
+import com.alextos.thousand.domain.service.DiceHapticsService
 import com.alextos.thousand.domain.service.ShakeDeviceObserver
 import com.alextos.thousand.domain.service.ShakeDeviceObserverDelegate
 import com.alextos.thousand.domain.service.StorageService
@@ -37,6 +38,7 @@ class PlayGameViewModel(
     private val calculateDiceRollScoreUseCase: CalculateDiceRollScoreUseCase,
     private val saveTurnUseCase: SaveTurnUseCase,
     private val updateGameUseCase: UpdateGameUseCase,
+    private val hapticsService: DiceHapticsService,
     shakeDeviceObserver: ShakeDeviceObserver
 ) : ViewModel(), ShakeDeviceObserverDelegate {
     private val route = savedStateHandle.toRoute<GameRoute.PlayGame>()
@@ -92,7 +94,9 @@ class PlayGameViewModel(
 
     private fun rollTheDice() {
         viewModelScope.launch {
-            val dice = rollTheDiceUseCase(state.value.rollAbility.count)
+            val count = state.value.rollAbility.count
+            hapticsService.playDiceRollSequence(count)
+            val dice = rollTheDiceUseCase(count)
             applyDiceRoll(dice)
         }
     }
