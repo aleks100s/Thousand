@@ -30,6 +30,7 @@ import com.alextos.thousand.domain.usecase.game.GetAllUsersUseCase
 import com.alextos.thousand.domain.usecase.game.LoadGameUseCase
 import com.alextos.thousand.domain.usecase.game.LoadGameTurnsUseCase
 import com.alextos.thousand.domain.usecase.statistics.GamesStatisticsUseCase
+import com.alextos.thousand.domain.usecase.statistics.TurnsStatisticsUseCase
 import com.alextos.thousand.domain.game.RollTheDiceUseCase
 import com.alextos.thousand.domain.game.SaveTurnUseCase
 import com.alextos.thousand.domain.usecase.game.SaveUserUseCase
@@ -39,6 +40,7 @@ import com.alextos.thousand.presentation.game.game_list.GamesListViewModel
 import com.alextos.thousand.presentation.game.game_score.GameScoreViewModel
 import com.alextos.thousand.presentation.game.play_game.PlayGameViewModel
 import com.alextos.thousand.presentation.statistics.GamesStatisticsViewModel
+import com.alextos.thousand.presentation.statistics.TurnsStatisticsViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
@@ -59,10 +61,11 @@ fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     single<KeyValueStorage> { DataStoreKeyValueStorage(get()) }
     single<StorageService> { StorageServiceImpl(get()) }
     single<GameRepository> { GameRepositoryImpl(get(), get(), get(), get(), get(), get(), get(), get()) }
-    single<StatisticsRepository> { StatisticsRepositoryImpl(get()) }
+    single<StatisticsRepository> { StatisticsRepositoryImpl(get(), get()) }
     factory { GetAllGamesUseCase(get()) }
     factory { GetAllUsersUseCase(get()) }
     factory { GamesStatisticsUseCase(get()) }
+    factory { TurnsStatisticsUseCase(get()) }
     factory { LoadGameUseCase(get()) }
     factory { LoadGameTurnsUseCase(get()) }
     factory { SaveUserUseCase(get()) }
@@ -71,6 +74,7 @@ fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     viewModelOf(::PlayGameViewModel)
     viewModelOf(::GameScoreViewModel)
     viewModelOf(::GamesStatisticsViewModel)
+    viewModelOf(::TurnsStatisticsViewModel)
     single { DatabaseSeeder(get()) }
     factory { CalculateDiceRollScoreUseCase() }
     factory { CreateGameUseCase(get()) }
