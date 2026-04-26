@@ -20,10 +20,8 @@ class TurnsStatisticsUseCase(
     }
 
     private fun List<Turn>.toStatistics(): List<PlayerWithTurnStatistics> {
-        return groupBy { turn -> turn.player.user.id }
-            .map { (_, turns) ->
-                val user = turns.first().player.user
-
+        return groupBy { turn -> turn.player.user }
+            .map { (user, turns) ->
                 PlayerWithTurnStatistics(
                     userId = user.id,
                     userName = user.name,
