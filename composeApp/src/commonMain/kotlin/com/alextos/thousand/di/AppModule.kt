@@ -29,6 +29,7 @@ import com.alextos.thousand.domain.usecase.game.GetAllGamesUseCase
 import com.alextos.thousand.domain.usecase.game.GetAllUsersUseCase
 import com.alextos.thousand.domain.usecase.game.LoadGameUseCase
 import com.alextos.thousand.domain.usecase.game.LoadGameTurnsUseCase
+import com.alextos.thousand.domain.usecase.statistics.DiceStatisticsUseCase
 import com.alextos.thousand.domain.usecase.statistics.GamesStatisticsUseCase
 import com.alextos.thousand.domain.usecase.statistics.RollsStatisticsUseCase
 import com.alextos.thousand.domain.usecase.statistics.TurnsStatisticsUseCase
@@ -40,6 +41,7 @@ import com.alextos.thousand.presentation.game.create_game.CreateGameViewModel
 import com.alextos.thousand.presentation.game.game_list.GamesListViewModel
 import com.alextos.thousand.presentation.game.game_score.GameScoreViewModel
 import com.alextos.thousand.presentation.game.play_game.PlayGameViewModel
+import com.alextos.thousand.presentation.statistics.DiceStatisticsViewModel
 import com.alextos.thousand.presentation.statistics.GamesStatisticsViewModel
 import com.alextos.thousand.presentation.statistics.RollsStatisticsViewModel
 import com.alextos.thousand.presentation.statistics.TurnsStatisticsViewModel
@@ -66,6 +68,7 @@ fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     single<StatisticsRepository> { StatisticsRepositoryImpl(get(), get()) }
     factory { GetAllGamesUseCase(get()) }
     factory { GetAllUsersUseCase(get()) }
+    factory { DiceStatisticsUseCase(get()) }
     factory { GamesStatisticsUseCase(get()) }
     factory { RollsStatisticsUseCase(get()) }
     factory { TurnsStatisticsUseCase(get()) }
@@ -76,6 +79,7 @@ fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     viewModelOf(::GamesListViewModel)
     viewModelOf(::PlayGameViewModel)
     viewModelOf(::GameScoreViewModel)
+    viewModelOf(::DiceStatisticsViewModel)
     viewModelOf(::GamesStatisticsViewModel)
     viewModelOf(::RollsStatisticsViewModel)
     viewModelOf(::TurnsStatisticsViewModel)
