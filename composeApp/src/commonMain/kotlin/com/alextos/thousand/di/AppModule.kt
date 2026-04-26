@@ -29,6 +29,7 @@ import com.alextos.thousand.domain.usecase.game.GetAllGamesUseCase
 import com.alextos.thousand.domain.usecase.game.GetAllUsersUseCase
 import com.alextos.thousand.domain.usecase.game.LoadGameUseCase
 import com.alextos.thousand.domain.usecase.game.LoadGameTurnsUseCase
+import com.alextos.thousand.domain.usecase.statistics.GamesStatisticsUseCase
 import com.alextos.thousand.domain.game.RollTheDiceUseCase
 import com.alextos.thousand.domain.game.SaveTurnUseCase
 import com.alextos.thousand.domain.usecase.game.SaveUserUseCase
@@ -37,6 +38,7 @@ import com.alextos.thousand.presentation.game.create_game.CreateGameViewModel
 import com.alextos.thousand.presentation.game.game_list.GamesListViewModel
 import com.alextos.thousand.presentation.game.game_score.GameScoreViewModel
 import com.alextos.thousand.presentation.game.play_game.PlayGameViewModel
+import com.alextos.thousand.presentation.statistics.GamesStatisticsViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
@@ -60,6 +62,7 @@ fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     single<StatisticsRepository> { StatisticsRepositoryImpl(get()) }
     factory { GetAllGamesUseCase(get()) }
     factory { GetAllUsersUseCase(get()) }
+    factory { GamesStatisticsUseCase(get()) }
     factory { LoadGameUseCase(get()) }
     factory { LoadGameTurnsUseCase(get()) }
     factory { SaveUserUseCase(get()) }
@@ -67,6 +70,7 @@ fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     viewModelOf(::GamesListViewModel)
     viewModelOf(::PlayGameViewModel)
     viewModelOf(::GameScoreViewModel)
+    viewModelOf(::GamesStatisticsViewModel)
     single { DatabaseSeeder(get()) }
     factory { CalculateDiceRollScoreUseCase() }
     factory { CreateGameUseCase(get()) }

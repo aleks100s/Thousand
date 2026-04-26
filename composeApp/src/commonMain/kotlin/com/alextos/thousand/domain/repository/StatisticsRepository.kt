@@ -1,8 +1,8 @@
 package com.alextos.thousand.domain.repository
 
-import com.alextos.thousand.domain.models.Player
+import com.alextos.thousand.domain.models.Game
 import kotlinx.coroutines.flow.Flow
 
 interface StatisticsRepository {
-    fun getAllPlayers(): Flow<List<Player>>
+    fun getAllGames(): Flow<List<Game>>
 }

@@ -9,10 +9,10 @@ data class Player(
     var hasPassedStartLimit: Boolean = false
 ) {
     override fun toString(): String {
-        if (user.name.count() > 10) {
-            return "${user.name.substring(0, 8)}…"
+        return if (user.name.count() > 10) {
+            "${user.name.substring(0, 8)}…"
         } else {
-            return user.name
+            user.name
         }
     }
 }
