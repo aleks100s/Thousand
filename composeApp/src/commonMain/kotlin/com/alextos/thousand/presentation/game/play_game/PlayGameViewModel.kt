@@ -58,7 +58,7 @@ class PlayGameViewModel(
                         }
 
                         is GameEvent.FinishGame -> {
-                            _events.tryEmit(PlayGameEvent.FinishGame(event.game))
+                            _events.emit(PlayGameEvent.FinishGame(event.game))
                         }
 
                         is GameEvent.HapticFeedback -> {

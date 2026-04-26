@@ -49,10 +49,10 @@ class GameServer(
         }
     }
 
-    private fun rollTheDice() {
+    private suspend fun rollTheDice() {
         if (state.value.rollAbility != RollAbility.UNAVAILABLE && rollBlocked.not()) {
             val count = state.value.rollAbility.count
-            _events.tryEmit(GameEvent.HapticFeedback(count))
+            _events.emit(GameEvent.HapticFeedback(count))
             val dice = rollTheDiceUseCase(count)
             applyDiceRoll(dice)
         }
