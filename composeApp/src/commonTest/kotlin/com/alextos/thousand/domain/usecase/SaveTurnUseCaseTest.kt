@@ -10,7 +10,7 @@ import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.models.User
 import com.alextos.thousand.domain.repository.GameRepository
-import com.alextos.thousand.domain.usecase.game.SaveTurnUseCase
+import com.alextos.thousand.domain.game.SaveTurnUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlin.coroutines.Continuation

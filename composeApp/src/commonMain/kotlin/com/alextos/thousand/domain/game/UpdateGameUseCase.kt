@@ -1,8 +1,7 @@
-package com.alextos.thousand.domain.usecase.game
+package com.alextos.thousand.domain.game
 
-import com.alextos.thousand.domain.GameConstants.GAME_GOAL
+import com.alextos.thousand.domain.GameConstants
 import com.alextos.thousand.domain.models.Game
-import com.alextos.thousand.domain.models.GameStatus
 import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.repository.GameRepository
 import kotlin.time.Clock
@@ -18,7 +17,7 @@ class UpdateGameUseCase(
         game.players.forEach { player ->
             val turnResult = currentTurn.results.firstOrNull { it.player == player }
             if (turnResult != null) {
-                player.isWinner = turnResult.newScore >= GAME_GOAL
+                player.isWinner = turnResult.newScore >= GameConstants.GAME_GOAL
                 status = if (player.isWinner) {
                     GameStatus.FINISHED
                 } else {

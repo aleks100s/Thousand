@@ -17,19 +17,20 @@ import com.alextos.thousand.data.service.StorageServiceImpl
 import com.alextos.thousand.domain.repository.GameRepository
 import com.alextos.thousand.domain.service.ShakeDeviceObserver
 import com.alextos.thousand.domain.service.StorageService
-import com.alextos.thousand.domain.usecase.game.CalculateDiceRollScoreUseCase
+import com.alextos.thousand.domain.game.CalculateDiceRollScoreUseCase
 import com.alextos.thousand.domain.usecase.game.CreateGameUseCase
 import com.alextos.thousand.domain.usecase.game.CreateRematchUseCase
 import com.alextos.thousand.domain.usecase.game.DeleteGameUseCase
-import com.alextos.thousand.domain.usecase.game.FindCurrentPlayerUseCase
+import com.alextos.thousand.domain.game.FindCurrentPlayerUseCase
+import com.alextos.thousand.domain.game.GameServer
 import com.alextos.thousand.domain.usecase.game.GetAllGamesUseCase
 import com.alextos.thousand.domain.usecase.game.GetAllUsersUseCase
 import com.alextos.thousand.domain.usecase.game.LoadGameUseCase
 import com.alextos.thousand.domain.usecase.game.LoadGameTurnsUseCase
-import com.alextos.thousand.domain.usecase.game.RollTheDiceUseCase
-import com.alextos.thousand.domain.usecase.game.SaveTurnUseCase
+import com.alextos.thousand.domain.game.RollTheDiceUseCase
+import com.alextos.thousand.domain.game.SaveTurnUseCase
 import com.alextos.thousand.domain.usecase.game.SaveUserUseCase
-import com.alextos.thousand.domain.usecase.game.UpdateGameUseCase
+import com.alextos.thousand.domain.game.UpdateGameUseCase
 import com.alextos.thousand.presentation.game.create_game.CreateGameViewModel
 import com.alextos.thousand.presentation.game.game_list.GamesListViewModel
 import com.alextos.thousand.presentation.game.game_score.GameScoreViewModel
@@ -73,4 +74,5 @@ fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     factory { UpdateGameUseCase(get()) }
     factory { DeleteGameUseCase(get()) }
     single { shakeDeviceObserver }
+    factory { GameServer(get(), get(), get(), get(), get(), get()) }
 }

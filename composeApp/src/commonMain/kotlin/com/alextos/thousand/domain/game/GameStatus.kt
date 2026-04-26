@@ -1,4 +1,4 @@
-package com.alextos.thousand.domain.models
+package com.alextos.thousand.domain.game
 
 enum class GameStatus {
     ONGOING,

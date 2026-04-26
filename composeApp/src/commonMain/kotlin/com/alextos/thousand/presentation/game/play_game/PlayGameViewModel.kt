@@ -4,21 +4,13 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import com.alextos.thousand.domain.models.DiceRoll
-import com.alextos.thousand.domain.models.Die
-import com.alextos.thousand.domain.models.GameStatus
-import com.alextos.thousand.domain.models.RollAbility
+import com.alextos.thousand.domain.game.GameAction
+import com.alextos.thousand.domain.game.GameEvent
+import com.alextos.thousand.domain.game.GameServer
 import com.alextos.thousand.domain.service.DiceHapticsService
 import com.alextos.thousand.domain.service.ShakeDeviceObserver
 import com.alextos.thousand.domain.service.ShakeDeviceObserverDelegate
-import com.alextos.thousand.domain.service.StorageService
-import com.alextos.thousand.domain.usecase.game.CalculateDiceRollScoreUseCase
-import com.alextos.thousand.domain.usecase.game.FindCurrentPlayerUseCase
-import com.alextos.thousand.domain.usecase.game.LoadGameTurnsUseCase
 import com.alextos.thousand.domain.usecase.game.LoadGameUseCase
-import com.alextos.thousand.domain.usecase.game.RollTheDiceUseCase
-import com.alextos.thousand.domain.usecase.game.SaveTurnUseCase
-import com.alextos.thousand.domain.usecase.game.UpdateGameUseCase
 import com.alextos.thousand.presentation.game.GameRoute
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,12 +24,7 @@ import kotlinx.coroutines.launch
 class PlayGameViewModel(
     savedStateHandle: SavedStateHandle,
     private val loadGameUseCase: LoadGameUseCase,
-    private val loadGameTurnsUseCase: LoadGameTurnsUseCase,
-    private val findCurrentPlayerUseCase: FindCurrentPlayerUseCase,
-    private val rollTheDiceUseCase: RollTheDiceUseCase,
-    private val calculateDiceRollScoreUseCase: CalculateDiceRollScoreUseCase,
-    private val saveTurnUseCase: SaveTurnUseCase,
-    private val updateGameUseCase: UpdateGameUseCase,
+    private val gameServer: GameServer,
     private val hapticsService: DiceHapticsService,
     shakeDeviceObserver: ShakeDeviceObserver
 ) : ViewModel(), ShakeDeviceObserverDelegate {
@@ -49,129 +36,88 @@ class PlayGameViewModel(
     private val _events = MutableSharedFlow<PlayGameEvent>()
     val events: SharedFlow<PlayGameEvent> = _events.asSharedFlow()
 
-    private var rollBlocked: Boolean = false
     private var isShakeEnabled: Boolean = true
     private var isNotificationEnabled: Boolean = true
 
     init {
         shakeDeviceObserver.delegate = this
+
+        viewModelScope.launch {
+            gameServer.state
+                .collect { gameState ->
+                    _state.update { it.copy(gameState = gameState) }
+                }
+        }
+
+        viewModelScope.launch {
+            gameServer.events
+                .collect { event ->
+                    when (event) {
+                        is GameEvent.Notification -> {
+                            showSnackbar(event.message)
+                        }
+
+                        is GameEvent.FinishGame -> {
+                            _events.tryEmit(PlayGameEvent.FinishGame(event.game))
+                        }
+
+                        is GameEvent.HapticFeedback -> {
+                            hapticsService.playDiceRollSequence(event.count)
+                        }
+                    }
+                }
+        }
     }
 
     override fun deviceDidShake() {
-        if (state.value.rollAbility != RollAbility.UNAVAILABLE && rollBlocked.not() && isShakeEnabled && state.value.isManualInputEnabled.not()) {
-            rollTheDice()
+        if (isShakeEnabled && state.value.isManualInputEnabled.not()) {
+            sendGameAction(GameAction.RollDice)
         }
     }
 
     fun onAction(action: PlayGameAction) {
         when (action) {
             PlayGameAction.LoadGame -> loadGame()
-            PlayGameAction.RollTheDice -> rollTheDice()
-            PlayGameAction.FinishTurn -> finishTurn()
-            PlayGameAction.FinishRoll -> finishRoll()
-            is PlayGameAction.ApplyDiceRoll -> applyDiceRoll(action.dice)
+            PlayGameAction.FinishGame -> finishGame()
+            is PlayGameAction.SendGameAction -> sendGameAction(action.action)
+            is PlayGameAction.ApplyDiceRoll -> sendGameAction(GameAction.ApplyRoll(action.dice))
         }
     }
 
     private fun loadGame() {
         viewModelScope.launch {
             val game = loadGameUseCase(route.gameId)
-            val turns = loadGameTurnsUseCase(route.gameId)
-            val currentPlayer = findCurrentPlayerUseCase(game, turns)
             _state.update {
-                it.copy(
-                    isLoading = false,
-                    game = game,
-                    turns = turns,
-                    currentPlayer = currentPlayer,
-                    isManualInputEnabled = game?.isVirtualDiceEnabled?.not() ?: false
-                )
+                it.copy(isManualInputEnabled = game?.isVirtualDiceEnabled?.not() ?: false)
             }
             isShakeEnabled = game?.isShakeEnabled ?: true
             isNotificationEnabled = game?.isNotificationEnabled ?: true
+
+            gameServer.initGame(game)
         }
     }
 
-    private fun rollTheDice() {
+    private fun sendGameAction(action: GameAction) {
         viewModelScope.launch {
-            val count = state.value.rollAbility.count
-            hapticsService.playDiceRollSequence(count)
-            val dice = rollTheDiceUseCase(count)
-            applyDiceRoll(dice)
+            gameServer.sendAction(action)
         }
-    }
-
-    private fun applyDiceRoll(dice: List<Die>) {
-        val result = calculateDiceRollScoreUseCase(dice)
-        val roll = DiceRoll(dice = dice, result = result.score)
-        val currentTurn = state.value.currentTurn.toMutableList()
-        currentTurn.add(roll)
-        rollBlocked = true
-        _state.update {
-            it.copy(
-                currentTurn = currentTurn,
-                currentRoll = roll,
-                rollAbility = result.rerollAbility
-            )
-        }
-    }
-
-    private fun finishTurn() {
-        viewModelScope.launch {
-            val game = state.value.game
-            val player = state.value.currentPlayer
-            if (game == null || player == null) {
-                return@launch
-            }
-
-            val rolls = state.value.currentTurn
-            val turn = saveTurnUseCase(
-                currentPlayer = player,
-                rolls = rolls,
-                game = game
-            )
-
-            if (turn.effects.isNotEmpty() && isNotificationEnabled) {
-                turn.effects.forEach { effect ->
-                    showSnackbar(effect.text(player))
-                }
-            }
-
-            val turns = state.value.turns.toMutableList()
-            turns.add(turn)
-            val status = updateGameUseCase(game, turn)
-            _state.update {
-                when (status) {
-                    GameStatus.ONGOING -> {
-                        it.copy(
-                            rollAbility = RollAbility.REQUIRED,
-                            currentRoll = null,
-                            currentTurn = emptyList(),
-                            turns = turns,
-                            currentPlayer = findCurrentPlayerUseCase(game, turns)
-                        )
-                    }
-                    GameStatus.FINISHED -> {
-                        it.copy(
-                            rollAbility = RollAbility.UNAVAILABLE,
-                            currentRoll = null,
-                            currentTurn = emptyList(),
-                            turns = turns,
-                            currentPlayer = null
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    private fun finishRoll() {
-        rollBlocked = false
     }
 
     private fun showSnackbar(message: String) {
+        if (isNotificationEnabled.not()) {
+            return
+        }
+
         viewModelScope.launch {
             _events.emit(PlayGameEvent.ShowSnackbar(message))
+        }
+    }
+
+    private fun finishGame() {
+        viewModelScope.launch {
+            _state.value.gameState.game?.let {
+                _events.emit(PlayGameEvent.FinishGame(it))
+            }
         }
     }
 }

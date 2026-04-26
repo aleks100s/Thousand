@@ -1,4 +1,4 @@
-package com.alextos.thousand.domain.usecase.game
+package com.alextos.thousand.domain.game
 
 import com.alextos.thousand.domain.GameConstants
 import com.alextos.thousand.domain.models.DiceRoll
@@ -58,7 +58,11 @@ class SaveTurnUseCase(
             currentPlayer.currentScore = proposedScore
             currentPlayer.boltCount = 0
             val effect = TurnEffect(affectedPlayer = currentPlayer, effect = Effect.WIN)
-            val result = TurnResult(player = currentPlayer, scoreChange = turnTotal, newScore = proposedScore)
+            val result = TurnResult(
+                player = currentPlayer,
+                scoreChange = turnTotal,
+                newScore = proposedScore
+            )
             return effect to result
         }
         return null
@@ -112,7 +116,11 @@ class SaveTurnUseCase(
                     effects.add(pitFall.first)
                     results.add(pitFall.second.copy(scoreChange = pitFall.second.scoreChange - GameConstants.OVERTAKE_FINE))
                 } ?: run {
-                    val result = TurnResult(player = player, scoreChange = -GameConstants.OVERTAKE_FINE, newScore = player.currentScore)
+                    val result = TurnResult(
+                        player = player,
+                        scoreChange = -GameConstants.OVERTAKE_FINE,
+                        newScore = player.currentScore
+                    )
                     results.add(result)
                 }
             }
@@ -135,7 +143,8 @@ class SaveTurnUseCase(
             val effects = mutableListOf<TurnEffect>()
             val results = mutableListOf<TurnResult>()
 
-            val barrelEffect = TurnEffect(affectedPlayer = currentPlayer, effect = Effect.BARREL_LIMIT)
+            val barrelEffect =
+                TurnEffect(affectedPlayer = currentPlayer, effect = Effect.BARREL_LIMIT)
             effects.add(barrelEffect)
             currentPlayer.boltCount += 1
 
@@ -143,7 +152,8 @@ class SaveTurnUseCase(
                 effects.addAll(bolt.first)
                 results.add(bolt.second)
             } ?: run {
-                val barrelResult = TurnResult(player = currentPlayer, scoreChange = 0, newScore = previousScore)
+                val barrelResult =
+                    TurnResult(player = currentPlayer, scoreChange = 0, newScore = previousScore)
                 results.add(barrelResult)
             }
 
@@ -174,7 +184,11 @@ class SaveTurnUseCase(
                     effects.addAll(bolt.first)
                     result = bolt.second
                 } ?: run {
-                    result = TurnResult(player = currentPlayer, scoreChange = 0, newScore = currentPlayer.currentScore)
+                    result = TurnResult(
+                        player = currentPlayer,
+                        scoreChange = 0,
+                        newScore = currentPlayer.currentScore
+                    )
                 }
 
                 return effects to result
@@ -205,7 +219,11 @@ class SaveTurnUseCase(
                 effects.add(pitFall.first)
                 result = pitFall.second.copy(scoreChange = pitFall.second.scoreChange - GameConstants.BOLT_FINE)
             } ?: run {
-                result = TurnResult(player = player, scoreChange = -GameConstants.BOLT_FINE, newScore = player.currentScore)
+                result = TurnResult(
+                    player = player,
+                    scoreChange = -GameConstants.BOLT_FINE,
+                    newScore = player.currentScore
+                )
             }
             return effects to result
         }
@@ -218,7 +236,8 @@ class SaveTurnUseCase(
     ): Pair<TurnEffect, TurnResult>? {
         if (player.currentScore + turnTotal == GameConstants.PIT_SCORE) {
             val effect = TurnEffect(affectedPlayer = player, effect = Effect.PIT_FALL)
-            val result = TurnResult(player = player, scoreChange = -player.currentScore, newScore = 0)
+            val result =
+                TurnResult(player = player, scoreChange = -player.currentScore, newScore = 0)
             player.currentScore = 0
             player.boltCount = 0
             return effect to result

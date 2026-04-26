@@ -1,4 +1,4 @@
-package com.alextos.thousand.domain.usecase.game
+package com.alextos.thousand.domain.game
 
 import com.alextos.thousand.domain.models.Die
 import com.alextos.thousand.domain.models.DieValue
