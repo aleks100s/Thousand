@@ -8,16 +8,16 @@ import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Instant
 
 fun Game.toUi(): GameUi {
+    val winner = players.firstOrNull { it.isWinner }
     return GameUi(
         id = id,
         title = "Игра #$id",
         opponents = if (isFinished()) {
-            players.joinToString(separator = " vs ") { it.user.name }
+            players.joinToString(separator = " \uD83C\uDD9A ") { "${if (it == winner) "\uD83C\uDFC6 " else ""}${it.user.name}" }
         } else {
-            players.joinToString(separator = " vs ") { "${it.user.name}: ${it.currentScore}" }
+            players.joinToString(separator = " \uD83C\uDD9A ") { "${it.user.name}: ${it.currentScore}" }
         },
-        finishedAt = finishedAt?.formatForUi(),
-        winnerName = players.firstOrNull { it.isWinner }?.user?.name,
+        finishedAt = "${finishedAt?.formatForUi()} \uD83C\uDFC1",
         isFinished = isFinished(),
         isVirtualDiceEnabled,
         isNotificationEnabled

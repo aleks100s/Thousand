@@ -5,7 +5,6 @@ data class GameUi(
     val title: String,
     val opponents: String,
     val finishedAt: String?,
-    val winnerName: String?,
     val isFinished: Boolean,
     val isVirtualDiceEnabled: Boolean,
     val isNotificationEnabled: Boolean,

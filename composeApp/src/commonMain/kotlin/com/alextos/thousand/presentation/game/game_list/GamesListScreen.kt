@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -153,31 +154,42 @@ private fun GameItem(
                     },
                 ),
         ) {
-            Column(Modifier.fillMaxWidth().padding(16.dp)) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(text = game.title)
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(text = game.title)
+
+                        Icon(
+                            painter = painterResource(if (game.isNotificationEnabled) Res.drawable.notifications_24px else Res.drawable.notifications_off_24px),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.tertiary,
+                            modifier = Modifier.size(16.dp)
+                        )
+
+                        Icon(
+                            painter = painterResource(if (game.isVirtualDiceEnabled) Res.drawable.sports_esports_24px else Res.drawable.casino_24px),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.tertiary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
 
                     GameStatus(game)
                 }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = game.opponents,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-
-                    Text(
-                        text = game.finishedAt.orEmpty(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+                Text(
+                    text = game.opponents,
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
         }
 
@@ -187,15 +199,17 @@ private fun GameItem(
                 isMenuExpanded = false
             },
         ) {
-            DropdownMenuItem(
-                text = {
-                    Text("Реванш")
-                },
-                onClick = {
-                    isMenuExpanded = false
-                    onRematchGame()
-                },
-            )
+            if (game.isFinished) {
+                DropdownMenuItem(
+                    text = {
+                        Text("Реванш")
+                    },
+                    onClick = {
+                        isMenuExpanded = false
+                        onRematchGame()
+                    },
+                )
+            }
 
             DropdownMenuItem(
                 text = {
@@ -214,34 +228,26 @@ private fun GameItem(
 @Composable
 private fun GameStatus(game: GameUi) {
     Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .background(MaterialTheme.colorScheme.tertiaryContainer)
+            .padding(vertical = 4.dp, horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Icon(
-            painter = painterResource(if (game.isNotificationEnabled) Res.drawable.notifications_24px else Res.drawable.notifications_off_24px),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.tertiary,
-            modifier = Modifier.size(16.dp)
-        )
-
-        Icon(
-            painter = painterResource(if (game.isVirtualDiceEnabled) Res.drawable.sports_esports_24px else Res.drawable.casino_24px),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.tertiary,
-            modifier = Modifier.size(16.dp)
-        )
-
-        if (game.isFinished && game.winnerName != null) {
-            Row(verticalAlignment = Alignment.Bottom) {
-                Text(text = game.winnerName)
-
-                Icon(
-                    painter = painterResource(Res.drawable.trophy_24px),
-                    contentDescription = "Победитель",
-                    tint = Color.Yellow
-                )
-            }
+        if (game.isFinished) {
+            Text(
+                text = game.finishedAt.orEmpty(),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
+            )
         } else {
+            Text(
+                text = "В процессе",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onTertiaryContainer
+            )
+
             val transition = rememberInfiniteTransition()
             val alpha by transition.animateFloat(
                 initialValue = 0.35f,
