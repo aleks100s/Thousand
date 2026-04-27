@@ -1,18 +1,29 @@
 package com.alextos.thousand.presentation.game.create_game
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -22,19 +33,24 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalBottomSheetDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
@@ -44,6 +60,7 @@ import com.alextos.thousand.domain.GameConstants.BARREL_3
 import com.alextos.thousand.domain.GameConstants.BOLT_FINE
 import com.alextos.thousand.domain.GameConstants.OVERTAKE_FINE
 import com.alextos.thousand.domain.GameConstants.STARTING_LIMIT
+import com.alextos.thousand.domain.models.User
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -139,51 +156,35 @@ fun CreateGameScreen(
             modifier = modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                when (state.step) {
-                    CreateGameStep.Players -> {
-                        items(
-                            items = state.users,
-                            key = { user -> user.id },
-                        ) { user ->
-                            ListItem(
-                                headlineContent = {
-                                    Text(
-                                        text = user.name,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                    )
-                                },
-                                trailingContent = {
-                                    Checkbox(
-                                        checked = state.selectedUsers.contains(user),
-                                        onCheckedChange = {
-                                            viewModel.onAction(CreateGameAction.ToggleUserSelection(user))
-                                        }
-                                    )
-                                },
-                                modifier = Modifier
-                                    .clickable(onClick = {
-                                        viewModel.onAction(CreateGameAction.ToggleUserSelection(user))
-                                    })
-                                    .fillMaxWidth(),
-                            )
-                        }
-                    }
-                    CreateGameStep.Settings -> {
+            when (state.step) {
+                CreateGameStep.Players -> {
+                    PlayersGrid(
+                        modifier = Modifier.fillMaxSize(),
+                        users = state.users,
+                        selectedUsers = state.selectedUsers,
+                        onAddUser = {
+                            viewModel.onAction(CreateGameAction.ShowAddUserSheet)
+                        },
+                        onToggleUser = { user ->
+                            viewModel.onAction(CreateGameAction.ToggleUserSelection(user))
+                        },
+                    )
+                }
+                CreateGameStep.Settings -> {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
                         item {
                             GameSettingsView(
                                 state = state,
                                 onAction = viewModel::onAction,
                             )
                         }
+                        item {
+                            Spacer(Modifier.height(16.dp))
+                        }
                     }
-                }
-
-                item {
-                    Spacer(Modifier.height(16.dp))
                 }
             }
         }
@@ -191,6 +192,7 @@ fun CreateGameScreen(
 
     if (state.isAddUserSheetVisible) {
         ModalBottomSheet(
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             onDismissRequest = {
                 viewModel.onAction(CreateGameAction.HideAddUserSheet)
             }
@@ -230,6 +232,175 @@ fun CreateGameScreen(
             }
         }
     }
+}
+
+@Composable
+private fun PlayersGrid(
+    modifier: Modifier,
+    users: List<User>,
+    selectedUsers: Set<User>,
+    onAddUser: () -> Unit,
+    onToggleUser: (User) -> Unit,
+) {
+    BoxWithConstraints(modifier) {
+        val columns = if (maxHeight >= maxWidth) {
+            PORTRAIT_PLAYER_COLUMNS
+        } else {
+            LANDSCAPE_PLAYER_COLUMNS
+        }
+
+        LazyVerticalGrid(
+            modifier = Modifier.fillMaxSize(),
+            columns = GridCells.Fixed(columns),
+            contentPadding = PaddingValues(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            item(key = "add_user") {
+                AddUserCard(onClick = onAddUser)
+            }
+
+            items(
+                items = users,
+                key = { user -> user.id },
+            ) { user ->
+                PlayerCard(
+                    user = user,
+                    isSelected = selectedUsers.contains(user),
+                    onClick = {
+                        onToggleUser(user)
+                    },
+                )
+            }
+
+            item {
+                Spacer(Modifier.height(16.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun AddUserCard(
+    onClick: () -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(PLAYER_CARD_HEIGHT)
+            .clickable(onClick = onClick),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.add_24px),
+                    contentDescription = "Добавить нового игрока",
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            Text(
+                text = "Добавить нового",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+    }
+}
+
+@Composable
+private fun PlayerCard(
+    user: User,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(PLAYER_CARD_HEIGHT)
+            .clickable(onClick = onClick),
+        border = BorderStroke(
+            width = if (isSelected) 2.dp else 1.dp,
+            color = if (isSelected) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.outlineVariant
+            },
+        ),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+        ) {
+            Checkbox(
+                modifier = Modifier
+                    .offset(x = 8.dp, y = (-8).dp)
+                    .align(Alignment.TopEnd),
+                checked = isSelected,
+                onCheckedChange = {
+                    onClick()
+                },
+            )
+
+            Column(
+                modifier = Modifier.align(Alignment.Center),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                UserAvatar(user)
+
+                Text(
+                    text = user.name,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun UserAvatar(
+    user: User,
+) {
+    Box(
+        modifier = Modifier
+            .size(56.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.secondaryContainer),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = user.name.initial(),
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+        )
+    }
+}
+
+private fun String.initial(): String {
+    return trim()
+        .firstOrNull()
+        ?.uppercaseChar()
+        ?.toString()
+        ?: "?"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -469,3 +640,7 @@ private data class GameSettingInfo(
     val title: String,
     val description: String,
 )
+
+private val PLAYER_CARD_HEIGHT = 160.dp
+private const val PORTRAIT_PLAYER_COLUMNS = 2
+private const val LANDSCAPE_PLAYER_COLUMNS = 4

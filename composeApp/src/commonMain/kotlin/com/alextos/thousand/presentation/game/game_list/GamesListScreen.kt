@@ -56,7 +56,6 @@ import thousand.composeapp.generated.resources.casino_24px
 import thousand.composeapp.generated.resources.notifications_24px
 import thousand.composeapp.generated.resources.notifications_off_24px
 import thousand.composeapp.generated.resources.sports_esports_24px
-import thousand.composeapp.generated.resources.trophy_24px
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
