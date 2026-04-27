@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.alextos.thousand.common.EmptyStateView
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.presentation.models.GameUi
 import org.jetbrains.compose.resources.painterResource
@@ -101,6 +102,12 @@ fun GamesListScreen(
             Box(modifier.fillMaxSize(), Alignment.Center) {
                 LoadingIndicator()
             }
+        } else if (state.games.isEmpty()) {
+            EmptyStateView(
+                modifier,
+                Res.drawable.casino_24px,
+                "Здесь будут ваши игры"
+            )
         } else {
             LazyColumn(
                 modifier = modifier
