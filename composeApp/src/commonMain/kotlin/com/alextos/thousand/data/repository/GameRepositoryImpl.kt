@@ -40,7 +40,7 @@ class GameRepositoryImpl(
     }
 
     override suspend fun saveUser(user: User) {
-        userDao.insert(user.toEntity())
+        userDao.upsert(user.toEntity())
     }
 
     override suspend fun createGame(game: Game): Game {

@@ -13,7 +13,6 @@ import com.alextos.thousand.data.local.DataStoreKeyValueStorage
 import com.alextos.thousand.data.local.KeyValueStorage
 import com.alextos.thousand.data.repository.GameRepositoryImpl
 import com.alextos.thousand.data.repository.StatisticsRepositoryImpl
-import com.alextos.thousand.data.seed.DatabaseSeeder
 import com.alextos.thousand.data.service.StorageServiceImpl
 import com.alextos.thousand.domain.repository.GameRepository
 import com.alextos.thousand.domain.repository.StatisticsRepository
@@ -43,6 +42,7 @@ import com.alextos.thousand.presentation.game.create_game.CreateGameViewModel
 import com.alextos.thousand.presentation.game.game_list.GamesListViewModel
 import com.alextos.thousand.presentation.game.game_score.GameScoreViewModel
 import com.alextos.thousand.presentation.game.play_game.PlayGameViewModel
+import com.alextos.thousand.presentation.onboarding.FirstUserViewModel
 import com.alextos.thousand.presentation.statistics.DiceStatisticsViewModel
 import com.alextos.thousand.presentation.statistics.GamesStatisticsViewModel
 import com.alextos.thousand.presentation.statistics.RollsStatisticsViewModel
@@ -78,6 +78,7 @@ fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     factory { LoadGameTurnsUseCase(get()) }
     factory { SaveUserUseCase(get()) }
     viewModelOf(::CreateGameViewModel)
+    viewModelOf(::FirstUserViewModel)
     viewModelOf(::GamesListViewModel)
     viewModelOf(::PlayGameViewModel)
     viewModelOf(::GameScoreViewModel)
@@ -85,7 +86,6 @@ fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     viewModelOf(::GamesStatisticsViewModel)
     viewModelOf(::RollsStatisticsViewModel)
     viewModelOf(::TurnsStatisticsViewModel)
-    single { DatabaseSeeder(get()) }
     factory { CalculateDiceRollScoreUseCase() }
     factory { CreateGameUseCase(get()) }
     factory { CreateRematchUseCase(get()) }

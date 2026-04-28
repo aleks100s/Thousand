@@ -1,6 +1,5 @@
 package com.alextos.thousand.di
 
-import com.alextos.thousand.data.seed.DatabaseSeeder
 import com.alextos.thousand.domain.service.ShakeDeviceObserver
 import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
@@ -15,10 +14,6 @@ fun initKoin(
         logger(PrintLogger(Level.INFO))
         appDeclaration()
         modules(appModule(shakeDeviceObserver))
-    }
-
-    if (isDebugBuild) {
-        koinApplication.koin.get<DatabaseSeeder>().seedInBackground()
     }
 
     return koinApplication

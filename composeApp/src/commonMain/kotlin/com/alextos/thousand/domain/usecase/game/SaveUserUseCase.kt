@@ -10,9 +10,11 @@ class SaveUserUseCase(
     suspend operator fun invoke(
         name: String,
         kind: UserKind = UserKind.LocalUser,
+        id: Long = 0,
     ) {
         gameRepository.saveUser(
             User(
+                id = id,
                 name = name.trim(),
                 kind = kind,
             ),
