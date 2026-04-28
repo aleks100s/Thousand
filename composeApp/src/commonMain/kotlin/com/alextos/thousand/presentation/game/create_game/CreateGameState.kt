@@ -1,12 +1,14 @@
 package com.alextos.thousand.presentation.game.create_game
 
 import com.alextos.thousand.domain.models.User
+import com.alextos.thousand.domain.models.UserKind
 
 data class CreateGameState(
     val users: List<User> = emptyList(),
     val selectedUsers: Set<User> = emptySet(),
     val step: CreateGameStep = CreateGameStep.Players,
     val newUserName: String = "",
+    val newUserKind: UserKind = UserKind.LocalUser,
     val isAddUserSheetVisible: Boolean = false,
     val isNotificationEnabled: Boolean = true,
     val isVirtualDiceEnabled: Boolean = true,

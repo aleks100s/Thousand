@@ -60,6 +60,7 @@ import com.alextos.thousand.domain.GameConstants.BOLT_FINE
 import com.alextos.thousand.domain.GameConstants.OVERTAKE_FINE
 import com.alextos.thousand.domain.GameConstants.STARTING_LIMIT
 import com.alextos.thousand.domain.models.User
+import com.alextos.thousand.domain.models.UserKind
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -71,6 +72,8 @@ import thousand.composeapp.generated.resources.mobile_hand_24px
 import thousand.composeapp.generated.resources.mobile_vibrate_24px
 import thousand.composeapp.generated.resources.notifications_24px
 import thousand.composeapp.generated.resources.notifications_off_24px
+import thousand.composeapp.generated.resources.person_add_24px
+import thousand.composeapp.generated.resources.robot_24px
 import thousand.composeapp.generated.resources.sports_esports_24px
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -164,6 +167,9 @@ fun CreateGameScreen(
                         onAddUser = {
                             viewModel.onAction(CreateGameAction.ShowAddUserSheet)
                         },
+                        onAddBot = {
+                            viewModel.onAction(CreateGameAction.ShowAddBotSheet)
+                        },
                         onToggleUser = { user ->
                             viewModel.onAction(CreateGameAction.ToggleUserSelection(user))
                         },
@@ -203,7 +209,11 @@ fun CreateGameScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Text(
-                    text = "Новый пользователь",
+                    text = if (state.newUserKind == UserKind.Bot) {
+                        "Новый бот"
+                    } else {
+                        "Новый пользователь"
+                    },
                     style = MaterialTheme.typography.titleMedium,
                 )
 
@@ -239,6 +249,7 @@ private fun PlayersGrid(
     users: List<User>,
     selectedUsers: Set<User>,
     onAddUser: () -> Unit,
+    onAddBot: () -> Unit,
     onToggleUser: (User) -> Unit,
 ) {
     BoxWithConstraints(modifier) {
@@ -257,6 +268,10 @@ private fun PlayersGrid(
         ) {
             item(key = "add_user") {
                 AddUserCard(onClick = onAddUser)
+            }
+
+            item(key = "add_bot") {
+                AddBotCard(onClick = onAddBot)
             }
 
             items(
@@ -305,8 +320,8 @@ private fun AddUserCard(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    painter = painterResource(Res.drawable.add_24px),
-                    contentDescription = "Добавить нового игрока",
+                    painter = painterResource(Res.drawable.person_add_24px),
+                    contentDescription = "Добавить игрока",
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
@@ -314,9 +329,54 @@ private fun AddUserCard(
             Spacer(Modifier.height(12.dp))
 
             Text(
-                text = "Добавить нового",
+                text = "Добавить игрока",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+private fun AddBotCard(
+    onClick: () -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(PLAYER_CARD_HEIGHT)
+            .clickable(onClick = onClick),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.robot_24px),
+                    contentDescription = "Добавить бота",
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            Text(
+                text = "Добавить бота",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center
             )
         }
     }
@@ -362,7 +422,25 @@ private fun PlayerCard(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                UserAvatar(user)
+                Box {
+                    if (user.kind == UserKind.Bot) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.tertiaryContainer)
+                                .size(56.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(Res.drawable.robot_24px),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.tertiary
+                            )
+                        }
+                    } else {
+                        UserAvatar(user)
+                    }
+                }
 
                 Text(
                     text = user.name,

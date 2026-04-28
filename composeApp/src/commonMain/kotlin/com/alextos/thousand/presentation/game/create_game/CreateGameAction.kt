@@ -5,6 +5,7 @@ import com.alextos.thousand.domain.models.User
 sealed interface CreateGameAction {
     data object Initialize : CreateGameAction
     data object ShowAddUserSheet : CreateGameAction
+    data object ShowAddBotSheet : CreateGameAction
     data object HideAddUserSheet : CreateGameAction
     data object OpenPlayersStep : CreateGameAction
     data object OpenSettingsStep : CreateGameAction

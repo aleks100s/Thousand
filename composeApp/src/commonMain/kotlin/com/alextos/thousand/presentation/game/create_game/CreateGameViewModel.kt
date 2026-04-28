@@ -3,8 +3,10 @@ package com.alextos.thousand.presentation.game.create_game
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alextos.thousand.domain.models.User
+import com.alextos.thousand.domain.models.UserKind
 import com.alextos.thousand.domain.service.StorageService
 import com.alextos.thousand.domain.usecase.game.CreateGameUseCase
+import com.alextos.thousand.domain.usecase.game.GenerateBotNameUseCase
 import com.alextos.thousand.domain.usecase.game.GetAllUsersUseCase
 import com.alextos.thousand.domain.usecase.game.SaveUserUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -20,6 +22,7 @@ class CreateGameViewModel(
     private val getAllUsersUseCase: GetAllUsersUseCase,
     private val saveUserUseCase: SaveUserUseCase,
     private val createGameUseCase: CreateGameUseCase,
+    private val generateBotNameUseCase: GenerateBotNameUseCase,
     private val storageService: StorageService,
 ) : ViewModel() {
     private val _state = MutableStateFlow(CreateGameState())
@@ -36,6 +39,7 @@ class CreateGameViewModel(
             CreateGameAction.HideAddUserSheet -> hideAddUserSheet()
             CreateGameAction.SaveNewUser -> saveNewUser()
             CreateGameAction.ShowAddUserSheet -> showAddUserSheet()
+            CreateGameAction.ShowAddBotSheet -> showAddBotSheet()
             CreateGameAction.OpenPlayersStep -> openPlayersStep()
             CreateGameAction.OpenSettingsStep -> openSettingsStep()
             is CreateGameAction.UpdateNewUserName -> updateNewUserName(action.value)
@@ -92,6 +96,17 @@ class CreateGameViewModel(
             it.copy(
                 isAddUserSheetVisible = true,
                 newUserName = "",
+                newUserKind = UserKind.LocalUser,
+            )
+        }
+    }
+
+    private fun showAddBotSheet() {
+        _state.update {
+            it.copy(
+                isAddUserSheetVisible = true,
+                newUserName = generateBotNameUseCase(),
+                newUserKind = UserKind.Bot,
             )
         }
     }
@@ -116,7 +131,8 @@ class CreateGameViewModel(
         _state.update {
             it.copy(
                 isAddUserSheetVisible = false,
-                newUserName = ""
+                newUserName = "",
+                newUserKind = UserKind.LocalUser,
             )
         }
     }
@@ -141,15 +157,20 @@ class CreateGameViewModel(
 
     private fun saveNewUser() {
         val userName = state.value.newUserName.trim()
+        val userKind = state.value.newUserKind
         if (userName.isBlank()) return
 
         viewModelScope.launch {
-            saveUserUseCase(userName)
+            saveUserUseCase(
+                name = userName,
+                kind = userKind,
+            )
 
             _state.update {
                 it.copy(
                     newUserName = "",
-                    isAddUserSheetVisible = false
+                    newUserKind = UserKind.LocalUser,
+                    isAddUserSheetVisible = false,
                 )
             }
         }
