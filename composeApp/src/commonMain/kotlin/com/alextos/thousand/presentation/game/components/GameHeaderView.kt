@@ -2,7 +2,6 @@ package com.alextos.thousand.presentation.game.components
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,16 +21,17 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Player
+import com.alextos.thousand.domain.models.UserKind
 import org.jetbrains.compose.resources.painterResource
 import thousand.composeapp.generated.resources.Res
 import thousand.composeapp.generated.resources.bolt_24px
 import thousand.composeapp.generated.resources.person_24px
+import thousand.composeapp.generated.resources.robot_24px
 import thousand.composeapp.generated.resources.trophy_24px
 
 @Composable
@@ -45,18 +44,6 @@ fun GameHeaderView(
 
     val content: @Composable (Player) -> Unit = { player ->
         PlayerView(player, currentPlayer == player, showBolts && game.isTripleBoltFineActive)
-
-        if (game.players.count() > 1 && game.players.lastOrNull() != player) {
-            Text(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.errorContainer)
-                    .padding(horizontal = 6.dp, vertical = 2.dp),
-                text = "vs",
-                color = MaterialTheme.colorScheme.error
-            )
-        }
     }
 
     if (shouldScroll) {
@@ -71,7 +58,7 @@ fun GameHeaderView(
 
         LazyRow(
             state = scrollState,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
                 Spacer(Modifier.width(16.dp))
@@ -116,7 +103,14 @@ private fun PlayerView(player: Player, isActive: Boolean, showBolts: Boolean) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
-                painter = painterResource(if (player.isWinner) Res.drawable.trophy_24px else Res.drawable.person_24px),
+                painter = painterResource(
+                    if (player.isWinner)
+                        Res.drawable.trophy_24px
+                    else if (player.isBot())
+                        Res.drawable.robot_24px
+                    else
+                        Res.drawable.person_24px
+                ),
                 contentDescription = null,
                 tint = if (player.isWinner) Color.Yellow else if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
             )

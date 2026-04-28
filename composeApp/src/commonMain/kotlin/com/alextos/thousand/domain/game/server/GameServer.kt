@@ -1,10 +1,19 @@
-package com.alextos.thousand.domain.game
+package com.alextos.thousand.domain.game.server
 
+import com.alextos.thousand.domain.game.CalculateDiceRollScoreUseCase
+import com.alextos.thousand.domain.game.FindCurrentPlayerUseCase
+import com.alextos.thousand.domain.game.MakeBotRollUseCase
+import com.alextos.thousand.domain.game.RollTheDiceUseCase
+import com.alextos.thousand.domain.game.SaveTurnUseCase
+import com.alextos.thousand.domain.game.UpdateGameUseCase
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.Die
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.RollAbility
+import com.alextos.thousand.domain.models.Turn
+import com.alextos.thousand.domain.models.UserKind
 import com.alextos.thousand.domain.usecase.game.LoadGameTurnsUseCase
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -19,6 +28,7 @@ class GameServer(
     private val calculateDiceRollScoreUseCase: CalculateDiceRollScoreUseCase,
     private val saveTurnUseCase: SaveTurnUseCase,
     private val updateGameUseCase: UpdateGameUseCase,
+    private val makeBotRollUseCase: MakeBotRollUseCase
 ) {
     private val _state = MutableStateFlow(GameState())
     val state = _state.asStateFlow()
@@ -37,6 +47,9 @@ class GameServer(
                 game = game,
                 currentPlayer = currentPlayer
             )
+        }
+        if (currentPlayer?.isBot() == true) {
+            makeBotTurn()
         }
     }
 
@@ -98,25 +111,47 @@ class GameServer(
         }
 
         val status = updateGameUseCase(game, turn)
-        _state.update {
-            when (status) {
-                GameStatus.ONGOING -> {
-                    it.copy(
-                        rollAbility = RollAbility.REQUIRED,
-                        currentRoll = null,
-                        currentTurn = emptyList(),
-                        currentPlayer = findCurrentPlayerUseCase(game, turn)
-                    )
-                }
-                GameStatus.FINISHED -> {
-                    it.copy(
-                        rollAbility = RollAbility.UNAVAILABLE,
-                        currentRoll = null,
-                        currentTurn = emptyList(),
-                        currentPlayer = null
-                    )
-                }
+        when (status) {
+            GameStatus.ONGOING -> {
+                continueGame(game, turn)
+            }
+            GameStatus.FINISHED -> {
+                finishGame()
             }
         }
+    }
+
+    private suspend fun continueGame(game: Game, turn: Turn) {
+        val nextPlayer = findCurrentPlayerUseCase(game, turn)
+        _state.update {
+            it.copy(
+                rollAbility = RollAbility.REQUIRED,
+                currentRoll = null,
+                currentTurn = emptyList(),
+                currentPlayer = nextPlayer
+            )
+        }
+        if (nextPlayer?.isBot() == true) {
+            makeBotTurn()
+        }
+    }
+
+    private fun finishGame() {
+        _state.update {
+            it.copy(
+                rollAbility = RollAbility.UNAVAILABLE,
+                currentRoll = null,
+                currentTurn = emptyList(),
+                currentPlayer = null
+            )
+        }
+    }
+
+    private suspend fun makeBotTurn() {
+        while (makeBotRollUseCase(state.value.rollAbility)) {
+            rollTheDice()
+        }
+        delay(1000L)
+        finishTurn()
     }
 }

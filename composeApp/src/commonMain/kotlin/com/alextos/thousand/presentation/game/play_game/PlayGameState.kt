@@ -1,6 +1,6 @@
 package com.alextos.thousand.presentation.game.play_game
 
-import com.alextos.thousand.domain.game.GameState
+import com.alextos.thousand.domain.game.server.GameState
 
 data class PlayGameState(
     val isLoading: Boolean = true,

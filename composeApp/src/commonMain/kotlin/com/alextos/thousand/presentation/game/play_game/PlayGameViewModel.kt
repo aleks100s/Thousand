@@ -4,9 +4,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import com.alextos.thousand.domain.game.GameAction
-import com.alextos.thousand.domain.game.GameEvent
-import com.alextos.thousand.domain.game.GameServer
+import com.alextos.thousand.domain.game.server.GameAction
+import com.alextos.thousand.domain.game.server.GameEvent
+import com.alextos.thousand.domain.game.server.GameServer
 import com.alextos.thousand.domain.service.DiceHapticsService
 import com.alextos.thousand.domain.service.ShakeDeviceObserver
 import com.alextos.thousand.domain.service.ShakeDeviceObserverDelegate

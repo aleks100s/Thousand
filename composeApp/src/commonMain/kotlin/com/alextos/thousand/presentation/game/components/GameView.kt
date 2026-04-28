@@ -31,10 +31,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.alextos.thousand.domain.game.GameAction
-import com.alextos.thousand.domain.game.GameState
+import com.alextos.thousand.domain.game.server.GameAction
+import com.alextos.thousand.domain.game.server.GameState
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.RollAbility
+import com.alextos.thousand.domain.models.UserKind
 import com.alextos.thousand.presentation.game.play_game.components.ManualDiceInputView
 import kotlinx.coroutines.delay
 
@@ -47,6 +48,7 @@ fun GameView(
     onAction: (GameAction) -> Unit,
     onFinishGame: () -> Unit
 ) {
+    val isAnimated = isManualInputEnabled.not() || state.currentPlayer?.isBot() == true
     val game = state.game
     if (game == null) {
         Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -58,7 +60,7 @@ fun GameView(
 
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 state.currentRoll?.let { roll ->
-                    CurrentRollView(roll, animate = isManualInputEnabled.not())
+                    CurrentRollView(roll, animate = isAnimated)
                 } ?: run {
                     Text("Вы в игре!")
                 }
@@ -76,7 +78,7 @@ fun GameView(
 
                 LaunchedEffect(state.currentRoll) {
                     val delay = (state.currentRoll?.dice?.count() ?: 0) * 250L
-                    if (delay > 0L) {
+                    if (delay > 0L && isAnimated) {
                         buttonsVisible = false
                         delay(delay)
                         buttonsVisible = true
@@ -215,7 +217,7 @@ private fun ButtonsView(
                     Text("Закончить игру")
                 }
             }
-        } else {
+        } else if (state.currentPlayer?.user?.kind == UserKind.LocalUser) {
             if (state.rollAbility != RollAbility.REQUIRED) {
                 Button(
                     onClick = {

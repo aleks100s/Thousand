@@ -1,4 +1,4 @@
-package com.alextos.thousand.domain.game
+package com.alextos.thousand.domain.game.server
 
 import com.alextos.thousand.domain.models.Game
 

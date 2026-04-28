@@ -1,4 +1,4 @@
-package com.alextos.thousand.domain.game
+package com.alextos.thousand.domain.game.server
 
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.Game
@@ -13,5 +13,4 @@ data class GameState(
     val currentRoll: DiceRoll? = null,
     val rollAbility: RollAbility = RollAbility.REQUIRED,
     val rollBlocked: Boolean = false
-) {
-}
+)

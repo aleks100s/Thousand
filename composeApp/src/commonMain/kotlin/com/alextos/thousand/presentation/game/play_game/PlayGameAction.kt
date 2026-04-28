@@ -1,6 +1,6 @@
 package com.alextos.thousand.presentation.game.play_game
 
-import com.alextos.thousand.domain.game.GameAction
+import com.alextos.thousand.domain.game.server.GameAction
 import com.alextos.thousand.domain.models.Die
 
 sealed interface PlayGameAction {
