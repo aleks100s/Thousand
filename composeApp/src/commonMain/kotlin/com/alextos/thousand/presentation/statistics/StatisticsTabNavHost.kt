@@ -4,6 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.alextos.thousand.common.horizontalTransition
+import com.alextos.thousand.presentation.statistics.dice_statistics.DiceStatisticsScreen
+import com.alextos.thousand.presentation.statistics.games_statistics.GamesStatisticsScreen
+import com.alextos.thousand.presentation.statistics.roll_statistics.RollsStatisticsScreen
+import com.alextos.thousand.presentation.statistics.turn_statistics.TurnsStatisticsScreen
 
 @Composable
 fun StatisticsTabRoot() {

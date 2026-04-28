@@ -1,4 +1,4 @@
-package com.alextos.thousand.presentation.statistics
+package com.alextos.thousand.presentation.statistics.roll_statistics
 
 import com.alextos.thousand.domain.usecase.statistics.PlayerWithRollStatistics
 

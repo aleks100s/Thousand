@@ -217,7 +217,7 @@ private fun ButtonsView(
                     Text("Закончить игру")
                 }
             }
-        } else if (state.currentPlayer?.user?.kind == UserKind.LocalUser) {
+        } else if (state.currentPlayer?.isBot() == false) {
             if (state.rollAbility != RollAbility.REQUIRED) {
                 Button(
                     onClick = {

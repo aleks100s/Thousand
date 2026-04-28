@@ -187,7 +187,7 @@ fun CreateGameScreen(
                             )
                         }
                         item {
-                            Spacer(Modifier.height(16.dp))
+                            Spacer(Modifier.height(100.dp))
                         }
                     }
                 }
@@ -288,7 +288,7 @@ private fun PlayersGrid(
             }
 
             item {
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(100.dp))
             }
         }
     }

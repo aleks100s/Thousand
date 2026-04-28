@@ -1,4 +1,4 @@
-package com.alextos.thousand.presentation.statistics
+package com.alextos.thousand.presentation.statistics.turn_statistics
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,24 +26,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
-import com.alextos.thousand.domain.usecase.statistics.PlayerWithStatistics
+import com.alextos.thousand.domain.usecase.statistics.PlayerWithTurnStatistics
 import org.koin.compose.viewmodel.koinViewModel
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun GamesStatisticsScreen(
+fun TurnsStatisticsScreen(
     goBack: () -> Unit,
 ) {
-    val viewModel: GamesStatisticsViewModel = koinViewModel()
+    val viewModel: TurnsStatisticsViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        viewModel.onAction(GamesStatisticsAction.LoadStatistics)
+        viewModel.onAction(TurnsStatisticsAction.LoadStatistics)
     }
 
     Screen(
         modifier = Modifier,
-        title = "Статистика игр",
+        title = "Статистика ходов",
         goBack = goBack,
     ) { modifier ->
         if (state.isLoading) {
@@ -51,7 +52,7 @@ fun GamesStatisticsScreen(
                 LoadingIndicator()
             }
         } else {
-            GamesStatisticsContent(
+            TurnsStatisticsContent(
                 modifier = modifier,
                 state = state,
             )
@@ -60,9 +61,9 @@ fun GamesStatisticsScreen(
 }
 
 @Composable
-private fun GamesStatisticsContent(
+private fun TurnsStatisticsContent(
     modifier: Modifier,
-    state: GamesStatisticsState,
+    state: TurnsStatisticsState,
 ) {
     LazyColumn(
         modifier = modifier
@@ -71,23 +72,23 @@ private fun GamesStatisticsContent(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
-            FinishedGamesCard(state.finishedGamesCount)
+            CommonTurnsStatisticsCard(state)
         }
 
         item {
-            PlayersStatisticsTableHeader()
+            PlayersTurnsStatisticsTableHeader()
         }
 
         if (state.players.isEmpty()) {
             item {
-                EmptyStatistics()
+                EmptyTurnsStatistics()
             }
         } else {
             items(
                 items = state.players,
                 key = { player -> player.userId },
             ) { player ->
-                PlayerStatisticsRow(player)
+                PlayerTurnsStatisticsRow(player)
             }
         }
 
@@ -98,39 +99,73 @@ private fun GamesStatisticsContent(
 }
 
 @Composable
-private fun FinishedGamesCard(
-    finishedGamesCount: Int,
+private fun CommonTurnsStatisticsCard(
+    state: TurnsStatisticsState,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                text = "Завершенные игры",
+                text = "Все игры",
                 style = MaterialTheme.typography.titleMedium,
             )
-            Text(
-                text = finishedGamesCount.toString(),
-                style = MaterialTheme.typography.displaySmall,
-                color = MaterialTheme.colorScheme.primary,
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                CommonTurnsStatisticsItem(
+                    title = "Ходы",
+                    value = state.totalTurns.toString(),
+                )
+                CommonTurnsStatisticsItem(
+                    title = "Средний",
+                    value = state.averageTurn.toScoreText(),
+                )
+                CommonTurnsStatisticsItem(
+                    title = "Лучший",
+                    value = state.bestTurn.toString(),
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun PlayersStatisticsTableHeader() {
+private fun CommonTurnsStatisticsItem(
+    title: String,
+    value: String,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.primary,
+        )
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun PlayersTurnsStatisticsTableHeader() {
     Column(
         modifier = Modifier.fillMaxWidth(),
     ) {
-        StatisticsTableRow(
+        TurnsStatisticsTableRow(
             userName = "Игрок",
-            games = "Игры",
-            wins = "Победы",
-            losses = "Поражения",
+            turns = "Ходы",
+            averageTurn = "Средний",
+            bestTurn = "Лучший",
             isHeader = true,
         )
         HorizontalDivider()
@@ -138,24 +173,24 @@ private fun PlayersStatisticsTableHeader() {
 }
 
 @Composable
-private fun PlayerStatisticsRow(
-    player: PlayerWithStatistics,
+private fun PlayerTurnsStatisticsRow(
+    player: PlayerWithTurnStatistics,
 ) {
-    StatisticsTableRow(
+    TurnsStatisticsTableRow(
         userName = player.userName,
-        games = player.games.toString(),
-        wins = player.wins.toString(),
-        losses = player.losses.toString(),
+        turns = player.turns.toString(),
+        averageTurn = player.averageTurn.toScoreText(),
+        bestTurn = player.bestTurn.toString(),
         isHeader = false,
     )
 }
 
 @Composable
-private fun StatisticsTableRow(
+private fun TurnsStatisticsTableRow(
     userName: String,
-    games: String,
-    wins: String,
-    losses: String,
+    turns: String,
+    averageTurn: String,
+    bestTurn: String,
     isHeader: Boolean,
 ) {
     val textStyle = if (isHeader) {
@@ -179,19 +214,19 @@ private fun StatisticsTableRow(
         )
         Text(
             modifier = Modifier.weight(0.7f),
-            text = games,
+            text = turns,
+            style = textStyle,
+            fontWeight = fontWeight,
+        )
+        Text(
+            modifier = Modifier.weight(0.9f),
+            text = averageTurn,
             style = textStyle,
             fontWeight = fontWeight,
         )
         Text(
             modifier = Modifier.weight(0.8f),
-            text = wins,
-            style = textStyle,
-            fontWeight = fontWeight,
-        )
-        Text(
-            modifier = Modifier.weight(1f),
-            text = losses,
+            text = bestTurn,
             style = textStyle,
             fontWeight = fontWeight,
         )
@@ -199,11 +234,21 @@ private fun StatisticsTableRow(
 }
 
 @Composable
-private fun EmptyStatistics() {
+private fun EmptyTurnsStatistics() {
     Text(
         modifier = Modifier.padding(vertical = 24.dp),
-        text = "Пока нет данных по игрокам",
+        text = "Пока нет данных по ходам",
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
+}
+
+private fun Double.toScoreText(): String {
+    val rounded = (this * 10).roundToInt() / 10.0
+    val text = rounded.toString()
+    return if (text.endsWith(".0")) {
+        text.dropLast(2)
+    } else {
+        text
+    }
 }

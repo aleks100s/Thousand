@@ -43,10 +43,10 @@ import com.alextos.thousand.presentation.game.game_list.GamesListViewModel
 import com.alextos.thousand.presentation.game.game_score.GameScoreViewModel
 import com.alextos.thousand.presentation.game.play_game.PlayGameViewModel
 import com.alextos.thousand.presentation.onboarding.FirstUserViewModel
-import com.alextos.thousand.presentation.statistics.DiceStatisticsViewModel
-import com.alextos.thousand.presentation.statistics.GamesStatisticsViewModel
-import com.alextos.thousand.presentation.statistics.RollsStatisticsViewModel
-import com.alextos.thousand.presentation.statistics.TurnsStatisticsViewModel
+import com.alextos.thousand.presentation.statistics.dice_statistics.DiceStatisticsViewModel
+import com.alextos.thousand.presentation.statistics.games_statistics.GamesStatisticsViewModel
+import com.alextos.thousand.presentation.statistics.roll_statistics.RollsStatisticsViewModel
+import com.alextos.thousand.presentation.statistics.turn_statistics.TurnsStatisticsViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module

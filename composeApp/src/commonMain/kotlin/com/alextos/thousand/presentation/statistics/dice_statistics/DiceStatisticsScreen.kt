@@ -1,4 +1,4 @@
-package com.alextos.thousand.presentation.statistics
+package com.alextos.thousand.presentation.statistics.dice_statistics
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

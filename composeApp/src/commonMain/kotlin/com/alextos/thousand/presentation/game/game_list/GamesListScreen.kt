@@ -132,7 +132,7 @@ fun GamesListScreen(
                 }
 
                 item {
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(100.dp))
                 }
             }
         }
