@@ -28,7 +28,7 @@ class GameServer(
     private val calculateDiceRollScoreUseCase: CalculateDiceRollScoreUseCase,
     private val saveTurnUseCase: SaveTurnUseCase,
     private val updateGameUseCase: UpdateGameUseCase,
-    private val makeBotRollUseCase: MakeBotRollUseCase
+    private val makeBotRollUseCase: MakeBotRollUseCase,
 ) {
     private val _state = MutableStateFlow(GameState())
     val state = _state.asStateFlow()
@@ -148,10 +148,18 @@ class GameServer(
     }
 
     private suspend fun makeBotTurn() {
-        while (makeBotRollUseCase(state.value.rollAbility)) {
-            rollTheDice()
+        while (true) {
+            val value = state.value
+            val bot = value.currentPlayer ?: return
+            val game = value.game ?: return
+            val turnTotal = value.currentTurn.sumOf { it.result }
+            if (makeBotRollUseCase(state.value.rollAbility, bot, game, turnTotal)) {
+                rollTheDice()
+            } else {
+                break
+            }
         }
-        delay(1000L)
+        delay(2000L)
         finishTurn()
     }
 }
