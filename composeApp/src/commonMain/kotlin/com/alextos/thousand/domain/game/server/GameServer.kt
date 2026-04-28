@@ -11,7 +11,6 @@ import com.alextos.thousand.domain.models.Die
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.RollAbility
 import com.alextos.thousand.domain.models.Turn
-import com.alextos.thousand.domain.models.UserKind
 import com.alextos.thousand.domain.usecase.game.LoadGameTurnsUseCase
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -106,7 +105,7 @@ class GameServer(
 
         if (turn.effects.isNotEmpty()) {
             turn.effects.forEach { effect ->
-                _events.tryEmit(GameEvent.Notification(effect.text(player)))
+                _events.emit(GameEvent.Notification(effect.text(player)))
             }
         }
 

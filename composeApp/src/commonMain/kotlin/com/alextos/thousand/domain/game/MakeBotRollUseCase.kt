@@ -31,9 +31,9 @@ class MakeBotRollUseCase {
 
     private fun Player.isInBarrel(game: Game, turnTotal: Int): Boolean {
         val score = currentScore + turnTotal
-        return game.isBarrel1Active && score in GameConstants.BARREL_1 ||
-            game.isBarrel2Active && score in GameConstants.BARREL_2 ||
-            game.isBarrel3Active && score in GameConstants.BARREL_3
+        return game.isBarrel1Active && score in GameConstants.BARREL_1 && currentScore in GameConstants.BARREL_1 ||
+            game.isBarrel2Active && score in GameConstants.BARREL_2 && currentScore in GameConstants.BARREL_2 ||
+            game.isBarrel3Active && score in GameConstants.BARREL_3 && currentScore in GameConstants.BARREL_3
     }
 
     private companion object {
