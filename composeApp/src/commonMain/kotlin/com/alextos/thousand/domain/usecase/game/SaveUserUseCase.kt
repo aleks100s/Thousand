@@ -11,12 +11,14 @@ class SaveUserUseCase(
         name: String,
         kind: UserKind = UserKind.LocalUser,
         id: Long = 0,
+        multiplayerToken: String? = null,
     ) {
         gameRepository.saveUser(
             User(
                 id = id,
                 name = name.trim(),
                 kind = kind,
+                multiplayerToken = multiplayerToken
             ),
         )
     }

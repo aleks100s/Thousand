@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 class FirstUserViewModel(
     private val getAllUsersUseCase: GetAllUsersUseCase,
@@ -37,7 +39,7 @@ class FirstUserViewModel(
                 _state.update { it ->
                     it.copy(
                         isLoading = false,
-                        isFirstUserRequired = users.none { it.kind == UserKind.MultiplayerUser },
+                        isFirstUserRequired = users.none { it.kind == UserKind.MainUser },
                         localUsers = users.filter { it.kind == UserKind.LocalUser },
                     )
                 }
@@ -51,6 +53,7 @@ class FirstUserViewModel(
         }
     }
 
+    @OptIn(ExperimentalUuidApi::class)
     private fun saveUser() {
         val name = state.value.name.trim()
         if (name.isBlank() || state.value.isSaving) return
@@ -62,7 +65,8 @@ class FirstUserViewModel(
 
             saveUserUseCase(
                 name = name,
-                kind = UserKind.MultiplayerUser,
+                kind = UserKind.MainUser,
+                multiplayerToken = Uuid.random().toHexString()
             )
 
             _state.update {
@@ -74,6 +78,7 @@ class FirstUserViewModel(
         }
     }
 
+    @OptIn(ExperimentalUuidApi::class)
     private fun selectExistingUser(user: User) {
         if (state.value.isSaving) return
 
@@ -85,7 +90,8 @@ class FirstUserViewModel(
             saveUserUseCase(
                 id = user.id,
                 name = user.name,
-                kind = UserKind.MultiplayerUser,
+                kind = UserKind.MainUser,
+                multiplayerToken = Uuid.random().toHexString()
             )
 
             _state.update {

@@ -35,7 +35,6 @@ import com.alextos.thousand.domain.game.server.GameAction
 import com.alextos.thousand.domain.game.server.GameState
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.RollAbility
-import com.alextos.thousand.domain.models.UserKind
 import com.alextos.thousand.presentation.game.play_game.components.ManualDiceInputView
 import kotlinx.coroutines.delay
 

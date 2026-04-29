@@ -3,6 +3,7 @@ package com.alextos.thousand.presentation.game.create_game
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -67,12 +69,14 @@ import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
 import thousand.composeapp.generated.resources.add_24px
 import thousand.composeapp.generated.resources.casino_24px
+import thousand.composeapp.generated.resources.favorite_24px
 import thousand.composeapp.generated.resources.info_24px
 import thousand.composeapp.generated.resources.mobile_hand_24px
 import thousand.composeapp.generated.resources.mobile_vibrate_24px
 import thousand.composeapp.generated.resources.notifications_24px
 import thousand.composeapp.generated.resources.notifications_off_24px
 import thousand.composeapp.generated.resources.person_add_24px
+import thousand.composeapp.generated.resources.person_heart_24px
 import thousand.composeapp.generated.resources.robot_24px
 import thousand.composeapp.generated.resources.sports_esports_24px
 
@@ -422,7 +426,16 @@ private fun PlayerCard(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Box {
+                Box(
+                    modifier = Modifier
+                        .border(
+                            border = BorderStroke(
+                                width = 2.dp,
+                                color = if (user.kind == UserKind.MainUser) MaterialTheme.colorScheme.secondary else Color.Transparent,
+                            ),
+                            shape = CircleShape
+                        )
+                ) {
                     if (user.kind == UserKind.Bot) {
                         Box(
                             contentAlignment = Alignment.Center,
@@ -439,6 +452,17 @@ private fun PlayerCard(
                         }
                     } else {
                         UserAvatar(user)
+
+                        if (user.kind == UserKind.MainUser) {
+                            Icon(
+                                modifier = Modifier
+                                    .offset(x = 8.dp)
+                                    .align(Alignment.BottomEnd),
+                                painter = painterResource(Res.drawable.favorite_24px),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.secondary
+                            )
+                        }
                     }
                 }
 

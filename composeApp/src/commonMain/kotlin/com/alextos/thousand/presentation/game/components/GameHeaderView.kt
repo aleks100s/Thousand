@@ -31,6 +31,7 @@ import org.jetbrains.compose.resources.painterResource
 import thousand.composeapp.generated.resources.Res
 import thousand.composeapp.generated.resources.bolt_24px
 import thousand.composeapp.generated.resources.person_24px
+import thousand.composeapp.generated.resources.person_heart_24px
 import thousand.composeapp.generated.resources.robot_24px
 import thousand.composeapp.generated.resources.trophy_24px
 
@@ -108,6 +109,8 @@ private fun PlayerView(player: Player, isActive: Boolean, showBolts: Boolean) {
                         Res.drawable.trophy_24px
                     else if (player.isBot())
                         Res.drawable.robot_24px
+                    else if (player.isMain())
+                        Res.drawable.person_heart_24px
                     else
                         Res.drawable.person_24px
                 ),
@@ -116,7 +119,7 @@ private fun PlayerView(player: Player, isActive: Boolean, showBolts: Boolean) {
             )
 
             Text(
-                text = player.toString(),
+                text = player.header(),
                 color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
             )
 
