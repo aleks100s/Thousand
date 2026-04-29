@@ -2,6 +2,7 @@ package com.alextos.thousand.domain.game.server
 
 import com.alextos.thousand.domain.game.CalculateDiceRollScoreUseCase
 import com.alextos.thousand.domain.game.FindCurrentPlayerUseCase
+import com.alextos.thousand.domain.game.MakeBotReplyUseCase
 import com.alextos.thousand.domain.game.MakeBotRollUseCase
 import com.alextos.thousand.domain.game.RollTheDiceUseCase
 import com.alextos.thousand.domain.game.SaveTurnUseCase
@@ -21,13 +22,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 class GameServer(
-    private val loadGameTurnsUseCase: LoadGameTurnsUseCase,
-    private val findCurrentPlayerUseCase: FindCurrentPlayerUseCase,
-    private val rollTheDiceUseCase: RollTheDiceUseCase,
-    private val calculateDiceRollScoreUseCase: CalculateDiceRollScoreUseCase,
-    private val saveTurnUseCase: SaveTurnUseCase,
-    private val updateGameUseCase: UpdateGameUseCase,
-    private val makeBotRollUseCase: MakeBotRollUseCase,
+    private val loadGameTurns: LoadGameTurnsUseCase,
+    private val findCurrentPlayer: FindCurrentPlayerUseCase,
+    private val rollTheDice: RollTheDiceUseCase,
+    private val calculateDiceRollScore: CalculateDiceRollScoreUseCase,
+    private val saveTurn: SaveTurnUseCase,
+    private val updateGame: UpdateGameUseCase,
+    private val makeBotRoll: MakeBotRollUseCase,
+    private val makeBotReply: MakeBotReplyUseCase
 ) {
     private val _state = MutableStateFlow(GameState())
     val state = _state.asStateFlow()
@@ -38,8 +40,8 @@ class GameServer(
     private var rollBlocked = false
 
     suspend fun initGame(game: Game?) {
-        val turns = loadGameTurnsUseCase(game?.id ?: return)
-        val currentPlayer = findCurrentPlayerUseCase(game, turns.lastOrNull())
+        val turns = loadGameTurns(game?.id ?: return)
+        val currentPlayer = findCurrentPlayer(game, turns.lastOrNull())
         _state.update {
             GameState(
                 isLoading = false,
@@ -65,13 +67,13 @@ class GameServer(
         if (state.value.rollAbility != RollAbility.UNAVAILABLE && rollBlocked.not()) {
             val count = state.value.rollAbility.count
             _events.emit(GameEvent.HapticFeedback(count))
-            val dice = rollTheDiceUseCase(count)
+            val dice = rollTheDice(count)
             applyDiceRoll(dice)
         }
     }
 
     private fun applyDiceRoll(dice: List<Die>) {
-        val result = calculateDiceRollScoreUseCase(dice)
+        val result = calculateDiceRollScore(dice)
         val roll = DiceRoll(dice = dice, result = result.score)
         val currentTurn = state.value.currentTurn.toMutableList()
         currentTurn.add(roll)
@@ -97,19 +99,23 @@ class GameServer(
         }
 
         val rolls = state.value.currentTurn
-        val turn = saveTurnUseCase(
+        val turn = saveTurn(
             currentPlayer = player,
             rolls = rolls,
             game = game
         )
 
         if (turn.effects.isNotEmpty()) {
-            turn.effects.forEach { effect ->
-                _events.emit(GameEvent.Notification(effect.text(player)))
+            if (state.value.currentPlayer?.isBot() == true) {
+                _events.emit(GameEvent.Reply(makeBotReply(turn.effects.last().effect)))
+            } else {
+                turn.effects.forEach { effect ->
+                    _events.emit(GameEvent.Notification(effect.text(player)))
+                }
             }
         }
 
-        val status = updateGameUseCase(game, turn)
+        val status = updateGame(game, turn)
         when (status) {
             GameStatus.ONGOING -> {
                 continueGame(game, turn)
@@ -121,7 +127,7 @@ class GameServer(
     }
 
     private suspend fun continueGame(game: Game, turn: Turn) {
-        val nextPlayer = findCurrentPlayerUseCase(game, turn)
+        val nextPlayer = findCurrentPlayer(game, turn)
         _state.update {
             it.copy(
                 rollAbility = RollAbility.REQUIRED,
@@ -152,7 +158,7 @@ class GameServer(
             val bot = value.currentPlayer ?: return
             val game = value.game ?: return
             val turnTotal = value.currentTurn.sumOf { it.result }
-            if (makeBotRollUseCase(state.value.rollAbility, bot, game, turnTotal)) {
+            if (makeBotRoll(state.value.rollAbility, bot, game, turnTotal)) {
                 rollTheDice()
             } else {
                 break

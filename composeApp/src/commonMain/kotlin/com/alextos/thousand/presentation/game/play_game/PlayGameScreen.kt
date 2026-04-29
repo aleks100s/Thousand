@@ -65,6 +65,7 @@ fun PlayGameScreen(
                         GameMessageBubble(
                             id = nextMessageId++,
                             text = event.message,
+                            isReply = event.isReply
                         )
                     )
                 }
@@ -182,7 +183,7 @@ private fun FloatingGameMessage(
                 offsetY.animateTo(
                     targetValue = targetOffset,
                     animationSpec = tween(
-                        durationMillis = MESSAGE_ANIMATION_DURATION_MS,
+                        durationMillis = if (message.isReply) REPLY_ANIMATION_DURATION_MS else MESSAGE_ANIMATION_DURATION_MS,
                         easing = FastOutSlowInEasing,
                     ),
                 )
@@ -191,8 +192,8 @@ private fun FloatingGameMessage(
                 alpha.animateTo(
                     targetValue = 0f,
                     animationSpec = tween(
-                        durationMillis = MESSAGE_ANIMATION_DURATION_MS,
-                        delayMillis = MESSAGE_FADE_DELAY_MS,
+                        durationMillis = if (message.isReply) REPLY_ANIMATION_DURATION_MS else MESSAGE_ANIMATION_DURATION_MS,
+                        delayMillis = if (message.isReply) REPLY_FADE_DELAY_MS else MESSAGE_FADE_DELAY_MS,
                     ),
                 )
             }
@@ -209,11 +210,11 @@ private fun FloatingGameMessage(
             .alpha(alpha.value)
             .widthIn(max = 280.dp)
             .background(
-                color = MaterialTheme.colorScheme.inverseSurface,
+                color = if (message.isReply) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.inverseSurface,
                 shape = RoundedCornerShape(18.dp),
             )
             .padding(horizontal = 16.dp, vertical = 10.dp),
-        color = MaterialTheme.colorScheme.inverseOnSurface,
+        color = if (message.isReply) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.inverseOnSurface,
         style = MaterialTheme.typography.bodyMedium,
     )
 }
@@ -221,9 +222,13 @@ private fun FloatingGameMessage(
 private data class GameMessageBubble(
     val id: Long,
     val text: String,
+    val isReply: Boolean = false
 )
 
 private val MESSAGE_FLOAT_DISTANCE = 96.dp
 private val MESSAGE_BUBBLE_SPACING = 8.dp
-private const val MESSAGE_ANIMATION_DURATION_MS = 2600
+private const val MESSAGE_ANIMATION_DURATION_MS = 2500
+
+private const val REPLY_ANIMATION_DURATION_MS = 5000
 private const val MESSAGE_FADE_DELAY_MS = 500
+private const val REPLY_FADE_DELAY_MS = 3000

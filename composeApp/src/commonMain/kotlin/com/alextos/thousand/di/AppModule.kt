@@ -24,6 +24,7 @@ import com.alextos.thousand.domain.usecase.game.CreateRematchUseCase
 import com.alextos.thousand.domain.usecase.game.DeleteGameUseCase
 import com.alextos.thousand.domain.usecase.game.DeleteUserUseCase
 import com.alextos.thousand.domain.game.FindCurrentPlayerUseCase
+import com.alextos.thousand.domain.game.MakeBotReplyUseCase
 import com.alextos.thousand.domain.game.MakeBotRollUseCase
 import com.alextos.thousand.domain.game.server.GameServer
 import com.alextos.thousand.domain.usecase.game.GenerateBotNameUseCase
@@ -98,6 +99,7 @@ fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     factory { DeleteGameUseCase(get()) }
     factory { DeleteUserUseCase(get()) }
     single { shakeDeviceObserver }
-    factory { GameServer(get(), get(), get(), get(), get(), get(), get()) }
+    factory { GameServer(get(), get(), get(), get(), get(), get(), get(), get()) }
     factory { MakeBotRollUseCase() }
+    factory { MakeBotReplyUseCase() }
 }
