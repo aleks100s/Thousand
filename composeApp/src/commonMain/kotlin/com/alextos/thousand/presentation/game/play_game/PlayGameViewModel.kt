@@ -53,7 +53,7 @@ class PlayGameViewModel(
                 .collect { event ->
                     when (event) {
                         is GameEvent.Notification -> {
-                            showSnackbar(event.message)
+                            showMessage(event.message)
                         }
 
                         is GameEvent.FinishGame -> {
@@ -104,13 +104,13 @@ class PlayGameViewModel(
         }
     }
 
-    private fun showSnackbar(message: String) {
+    private fun showMessage(message: String) {
         if (state.value.isNotificationEnabled.not()) {
             return
         }
 
         viewModelScope.launch {
-            _events.emit(PlayGameEvent.ShowSnackbar(message))
+            _events.emit(PlayGameEvent.ShowMessage(message))
         }
     }
 

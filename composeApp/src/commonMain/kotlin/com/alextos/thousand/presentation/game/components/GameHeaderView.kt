@@ -26,7 +26,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Player
-import com.alextos.thousand.domain.models.UserKind
 import org.jetbrains.compose.resources.painterResource
 import thousand.composeapp.generated.resources.Res
 import thousand.composeapp.generated.resources.bolt_24px
@@ -59,7 +58,7 @@ fun GameHeaderView(
 
         LazyRow(
             state = scrollState,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(32.dp)
         ) {
             item {
                 Spacer(Modifier.width(16.dp))
