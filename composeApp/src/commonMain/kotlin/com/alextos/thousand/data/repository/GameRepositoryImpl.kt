@@ -43,6 +43,10 @@ class GameRepositoryImpl(
         userDao.upsert(user.toEntity())
     }
 
+    override suspend fun deleteUser(userId: Long) {
+        userDao.delete(userId)
+    }
+
     override suspend fun createGame(game: Game): Game {
         val gameId = gameDao.insert(game.toEntity())
         playerDao.upsert(game.players.map { it.toEntity(gameId = gameId) })

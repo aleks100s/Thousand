@@ -576,6 +576,8 @@ class SaveTurnUseCaseTest {
 
         override suspend fun saveUser(user: User) = Unit
 
+        override suspend fun deleteUser(userId: Long) = Unit
+
         override suspend fun createGame(game: Game): Game = game.copy(id = 1L)
 
         override suspend fun saveGame(game: Game) = Unit

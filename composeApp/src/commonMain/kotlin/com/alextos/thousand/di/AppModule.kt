@@ -22,6 +22,7 @@ import com.alextos.thousand.domain.game.CalculateDiceRollScoreUseCase
 import com.alextos.thousand.domain.usecase.game.CreateGameUseCase
 import com.alextos.thousand.domain.usecase.game.CreateRematchUseCase
 import com.alextos.thousand.domain.usecase.game.DeleteGameUseCase
+import com.alextos.thousand.domain.usecase.game.DeleteUserUseCase
 import com.alextos.thousand.domain.game.FindCurrentPlayerUseCase
 import com.alextos.thousand.domain.game.MakeBotRollUseCase
 import com.alextos.thousand.domain.game.server.GameServer
@@ -95,6 +96,7 @@ fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     factory { SaveTurnUseCase(get()) }
     factory { UpdateGameUseCase(get()) }
     factory { DeleteGameUseCase(get()) }
+    factory { DeleteUserUseCase(get()) }
     single { shakeDeviceObserver }
     factory { GameServer(get(), get(), get(), get(), get(), get(), get()) }
     factory { MakeBotRollUseCase() }
