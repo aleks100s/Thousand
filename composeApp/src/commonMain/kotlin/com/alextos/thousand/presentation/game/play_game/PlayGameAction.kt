@@ -8,4 +8,5 @@ sealed interface PlayGameAction {
     data class SendGameAction(val action: GameAction): PlayGameAction
     data object FinishGame: PlayGameAction
     data class ApplyDiceRoll(val dice: List<Die>): PlayGameAction
+    data class SetNotificationEnabled(val isEnabled: Boolean) : PlayGameAction
 }

@@ -37,7 +37,6 @@ class PlayGameViewModel(
     val events: SharedFlow<PlayGameEvent> = _events.asSharedFlow()
 
     private var isShakeEnabled: Boolean = true
-    private var isNotificationEnabled: Boolean = true
 
     init {
         shakeDeviceObserver.delegate = this
@@ -81,6 +80,7 @@ class PlayGameViewModel(
             PlayGameAction.FinishGame -> finishGame()
             is PlayGameAction.SendGameAction -> sendGameAction(action.action)
             is PlayGameAction.ApplyDiceRoll -> sendGameAction(GameAction.ApplyRoll(action.dice))
+            is PlayGameAction.SetNotificationEnabled -> setNotificationEnabled(action.isEnabled)
         }
     }
 
@@ -88,11 +88,12 @@ class PlayGameViewModel(
         viewModelScope.launch {
             val game = loadGameUseCase(route.gameId)
             _state.update {
-                it.copy(isManualInputEnabled = game?.isVirtualDiceEnabled?.not() ?: false)
+                it.copy(
+                    isManualInputEnabled = game?.isVirtualDiceEnabled?.not() ?: false,
+                    isNotificationEnabled = game?.isNotificationEnabled ?: true,
+                )
             }
             isShakeEnabled = game?.isShakeEnabled ?: true
-            isNotificationEnabled = game?.isNotificationEnabled ?: true
-
             gameServer.initGame(game)
         }
     }
@@ -104,7 +105,7 @@ class PlayGameViewModel(
     }
 
     private fun showSnackbar(message: String) {
-        if (isNotificationEnabled.not()) {
+        if (state.value.isNotificationEnabled.not()) {
             return
         }
 
@@ -118,6 +119,12 @@ class PlayGameViewModel(
             _state.value.gameState.game?.let {
                 _events.emit(PlayGameEvent.FinishGame(it))
             }
+        }
+    }
+
+    private fun setNotificationEnabled(isEnabled: Boolean) {
+        _state.update {
+            it.copy(isNotificationEnabled = isEnabled)
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.alextos.thousand.presentation.game.components
+package com.alextos.thousand.presentation.game.play_game.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.alextos.thousand.domain.GameConstants.BARREL_1
@@ -19,14 +21,23 @@ import com.alextos.thousand.domain.GameConstants.STARTING_LIMIT
 import com.alextos.thousand.domain.models.Game
 
 @Composable
-fun GameRulesView(game: Game) {
+fun GameRulesView(
+    game: Game,
+    isNotificationEnabled: Boolean,
+    onNotificationEnabledChange: (Boolean) -> Unit,
+) {
     Column(Modifier.padding(horizontal = 16.dp)) {
         Text(
-            text = "Правила игры",
+            text = "Настройки игры",
             style = MaterialTheme.typography.titleLarge,
         )
 
-        Column {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            SwitchRow(
+                title = "Уведомления",
+                checked = isNotificationEnabled,
+                onCheckedChange = onNotificationEnabledChange,
+            )
             RuleRow(
                 title = "Открытие игры",
                 value = if (game.hasStartLimit) "$STARTING_LIMIT очков" else "Отключено",
@@ -52,6 +63,28 @@ fun GameRulesView(game: Game) {
                 value = if (game.isOvertakeFineActive) "$OVERTAKE_FINE" else "Отключено",
             )
         }
+    }
+}
+
+@Composable
+private fun SwitchRow(
+    title: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = title,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+        )
     }
 }
 

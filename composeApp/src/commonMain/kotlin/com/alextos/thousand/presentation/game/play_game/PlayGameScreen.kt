@@ -3,10 +3,12 @@ package com.alextos.thousand.presentation.game.play_game
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -17,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.domain.models.Game
-import com.alextos.thousand.presentation.game.components.GameRulesView
+import com.alextos.thousand.presentation.game.play_game.components.GameRulesView
 import com.alextos.thousand.presentation.game.components.GameView
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -64,7 +66,7 @@ fun PlayGameScreen(
                         isRulesSheetVisible = true
                     }
                 ) {
-                    Text("Правила")
+                    Text("Настройки")
                 }
 
                 state.gameState.game?.let {
@@ -92,12 +94,19 @@ fun PlayGameScreen(
 
     if (isRulesSheetVisible) {
         ModalBottomSheet(
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             onDismissRequest = {
                 isRulesSheetVisible = false
             }
         ) {
             state.gameState.game?.let { game ->
-                GameRulesView(game = game)
+                GameRulesView(
+                    game = game,
+                    isNotificationEnabled = state.isNotificationEnabled,
+                    onNotificationEnabledChange = { isEnabled ->
+                        viewModel.onAction(PlayGameAction.SetNotificationEnabled(isEnabled))
+                    },
+                )
             }
         }
     }
