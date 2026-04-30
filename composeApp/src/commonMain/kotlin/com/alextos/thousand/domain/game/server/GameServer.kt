@@ -106,12 +106,11 @@ class GameServer(
         )
 
         if (turn.effects.isNotEmpty()) {
+            turn.effects.forEach { effect ->
+                _events.emit(GameEvent.Notification(effect.text(player)))
+            }
             if (state.value.currentPlayer?.isBot() == true) {
                 _events.emit(GameEvent.Reply(makeBotReply(turn.effects.last().effect)))
-            } else {
-                turn.effects.forEach { effect ->
-                    _events.emit(GameEvent.Notification(effect.text(player)))
-                }
             }
         }
 

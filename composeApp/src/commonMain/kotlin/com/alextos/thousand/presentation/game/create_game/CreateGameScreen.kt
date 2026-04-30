@@ -74,7 +74,6 @@ import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
 import thousand.composeapp.generated.resources.add_24px
 import thousand.composeapp.generated.resources.casino_24px
-import thousand.composeapp.generated.resources.favorite_24px
 import thousand.composeapp.generated.resources.info_24px
 import thousand.composeapp.generated.resources.mobile_hand_24px
 import thousand.composeapp.generated.resources.mobile_vibrate_24px
@@ -475,17 +474,6 @@ private fun PlayerCard(
                             }
                         } else {
                             UserAvatar(user)
-
-                            if (user.kind == UserKind.MainUser) {
-                                Icon(
-                                    modifier = Modifier
-                                        .offset(x = 8.dp)
-                                        .align(Alignment.BottomEnd),
-                                    painter = painterResource(Res.drawable.favorite_24px),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.secondary
-                                )
-                            }
                         }
                     }
 

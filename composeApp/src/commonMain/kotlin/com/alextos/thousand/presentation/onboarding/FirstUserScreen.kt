@@ -43,6 +43,7 @@ fun FirstUserScreen(
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center,
             )
+
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = state.name,
