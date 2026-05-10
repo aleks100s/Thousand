@@ -11,14 +11,18 @@ import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.RollAbility
 import kotlinx.coroutines.delay
 
-class MakeBotRollUseCase {
+class MakeBotRollUseCase(
+    private val decisionDelayMs: Long = 1500L,
+) {
     suspend operator fun invoke(
         rollAbility: RollAbility,
         bot: Player,
         game: Game,
         turnTotal: Int
     ): Boolean {
-        delay(1500L)
+        if (decisionDelayMs > 0) {
+            delay(decisionDelayMs)
+        }
         when (rollAbility) {
             RollAbility.UNAVAILABLE -> return false
             RollAbility.REQUIRED -> return true
@@ -29,6 +33,7 @@ class MakeBotRollUseCase {
                 if (bot.isInBarrel(game, turnTotal)) return true
                 if (bot.boltCount == DANGEROUS_BOLT_COUNT) return false
                 if (rollAbility.count <= SAFE_STOP_DICE_COUNT) return false
+                if (bot.currentScore + turnTotal >= 100) return false
 
                 return true
             }
