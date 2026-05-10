@@ -46,6 +46,7 @@ import com.alextos.thousand.presentation.game.game_list.GamesListViewModel
 import com.alextos.thousand.presentation.game.game_rules.GameRulesViewModel
 import com.alextos.thousand.presentation.game.game_score.GameScoreViewModel
 import com.alextos.thousand.presentation.game.play_game.PlayGameViewModel
+import com.alextos.thousand.presentation.game.tutorial_game.TutorialGameViewModel
 import com.alextos.thousand.presentation.onboarding.FirstUserViewModel
 import com.alextos.thousand.presentation.statistics.dice_statistics.DiceStatisticsViewModel
 import com.alextos.thousand.presentation.statistics.games_statistics.GamesStatisticsViewModel
@@ -85,6 +86,7 @@ fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     viewModelOf(::FirstUserViewModel)
     viewModelOf(::GamesListViewModel)
     viewModelOf(::GameRulesViewModel)
+    viewModelOf(::TutorialGameViewModel)
     viewModelOf(::PlayGameViewModel)
     viewModelOf(::GameScoreViewModel)
     viewModelOf(::DiceStatisticsViewModel)

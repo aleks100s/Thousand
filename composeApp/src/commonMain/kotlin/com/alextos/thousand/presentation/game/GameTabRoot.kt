@@ -9,6 +9,7 @@ import com.alextos.thousand.presentation.game.play_game.PlayGameScreen
 import com.alextos.thousand.presentation.game.game_list.GamesListScreen
 import com.alextos.thousand.presentation.game.game_rules.GameRulesScreen
 import com.alextos.thousand.presentation.game.game_score.GameScoreScreen
+import com.alextos.thousand.presentation.game.tutorial_game.TutorialGameScreen
 
 @Composable
 fun GameTabRoot() {
@@ -73,6 +74,11 @@ fun GameTabRoot() {
         }
         horizontalTransition<GameRoute.GameRules> { _ ->
             GameRulesScreen(
+                onGoBack = navController::popBackStack,
+            )
+        }
+        horizontalTransition<GameRoute.TutorialGame> { _ ->
+            TutorialGameScreen(
                 onGoBack = navController::popBackStack,
             )
         }
