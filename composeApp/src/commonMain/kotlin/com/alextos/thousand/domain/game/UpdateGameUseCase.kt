@@ -12,7 +12,8 @@ class UpdateGameUseCase(
 ) {
     suspend operator fun invoke(
         game: Game,
-        currentTurn: Turn
+        currentTurn: Turn,
+        isTutorial: Boolean
     ): GameStatus {
         var status = GameStatus.ONGOING
         game.players.forEach { player ->
@@ -27,7 +28,9 @@ class UpdateGameUseCase(
             }
         }
         game.finishedAt = if (status == GameStatus.FINISHED) Clock.System.now() else null
-        repository.saveGame(game)
+        if (isTutorial.not()) {
+            repository.saveGame(game)
+        }
         return status
     }
 }

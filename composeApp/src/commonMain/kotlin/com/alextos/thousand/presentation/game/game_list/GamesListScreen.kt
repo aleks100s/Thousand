@@ -104,11 +104,12 @@ fun GamesListScreen(
                     )
                 },
                 onClick = {
-                    if (state.isFirstLaunch) {
-                        isTutorialSheetVisible = true
-                    } else {
-                        onCreateGame()
-                    }
+                    isTutorialSheetVisible = true
+//                    if (state.isFirstLaunch) {
+//                        isTutorialSheetVisible = true
+//                    } else {
+//                        onCreateGame()
+//                    }
                 },
             )
         },

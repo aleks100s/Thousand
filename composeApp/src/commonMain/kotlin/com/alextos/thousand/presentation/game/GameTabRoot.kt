@@ -83,6 +83,7 @@ fun GameTabRoot() {
         horizontalTransition<GameRoute.TutorialGame> { _ ->
             TutorialGameScreen(
                 onGoBack = navController::popBackStack,
+                onFinish = navController::popBackStack
             )
         }
     }

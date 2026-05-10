@@ -40,8 +40,10 @@ class GameServer(
     val events: SharedFlow<GameEvent> = _events.asSharedFlow()
 
     private var rollBlocked = false
+    private var isTutorial = false
 
-    suspend fun initGame(game: Game?) {
+    suspend fun initGame(game: Game?, isTutorial: Boolean = false) {
+        this.isTutorial = isTutorial
         val turns = loadGameTurns(game?.id ?: return)
         val currentPlayer = findCurrentPlayer(game, turns.lastOrNull())
         _state.update {
@@ -119,7 +121,8 @@ class GameServer(
         val turn = saveTurn(
             currentPlayer = player,
             rolls = rolls,
-            game = game
+            game = game,
+            isTutorial = isTutorial
         )
 
         if (turn.effects.isNotEmpty()) {
@@ -131,7 +134,7 @@ class GameServer(
             }
         }
 
-        val status = updateGame(game, turn)
+        val status = updateGame(game, turn, isTutorial)
         when (status) {
             GameStatus.ONGOING -> {
                 continueGame(game, turn)

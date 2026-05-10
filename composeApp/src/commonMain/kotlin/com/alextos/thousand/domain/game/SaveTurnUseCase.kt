@@ -16,28 +16,29 @@ class SaveTurnUseCase(
     suspend operator fun invoke(
         currentPlayer: Player,
         rolls: List<DiceRoll>,
-        game: Game
+        game: Game,
+        isTutorial: Boolean
     ): Turn {
         val turnTotal = calculateTurnResult(rolls)
 
         checkStartingLimit(currentPlayer, turnTotal, game)?.let {
-            return saveTurn(currentPlayer, rolls, turnTotal, it.first, listOf(it.second), game)
+            return saveTurn(currentPlayer, rolls, turnTotal, it.first, listOf(it.second), game, isTutorial)
         }
 
         checkGameGoal(currentPlayer, turnTotal)?.let {
-            return saveTurn(currentPlayer, rolls, turnTotal, listOf(it.first), listOf(it.second), game)
+            return saveTurn(currentPlayer, rolls, turnTotal, listOf(it.first), listOf(it.second), game, isTutorial)
         }
 
         checkPitFall(currentPlayer, turnTotal)?.let {
-            return saveTurn(currentPlayer, rolls, turnTotal, listOf(it.first), listOf(it.second), game)
+            return saveTurn(currentPlayer, rolls, turnTotal, listOf(it.first), listOf(it.second), game, isTutorial)
         }
 
         checkBarrels(currentPlayer, turnTotal, game)?.let {
-            return saveTurn(currentPlayer, rolls, turnTotal, it.first, it.second, game)
+            return saveTurn(currentPlayer, rolls, turnTotal, it.first, it.second, game, isTutorial)
         }
 
         val (effects, results) = calculateResults(game, currentPlayer, turnTotal)
-        return saveTurn(currentPlayer, rolls, turnTotal, effects, results, game)
+        return saveTurn(currentPlayer, rolls, turnTotal, effects, results, game, isTutorial)
     }
 
     private fun calculateTurnResult(
@@ -251,7 +252,8 @@ class SaveTurnUseCase(
         turnTotal: Int,
         effects: List<TurnEffect>,
         results: List<TurnResult>,
-        game: Game
+        game: Game,
+        isTutorial: Boolean
     ): Turn {
         val turn = Turn(
             player = currentPlayer,
@@ -260,6 +262,10 @@ class SaveTurnUseCase(
             effects = effects,
             results = results
         )
-        return repository.saveTurn(turn, game)
+        return if (isTutorial) {
+            turn
+        } else {
+            repository.saveTurn(turn, game)
+        }
     }
 }
