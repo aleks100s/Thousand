@@ -32,6 +32,7 @@ import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -63,7 +64,8 @@ import thousand.composeapp.generated.resources.sports_esports_24px
 fun GamesListScreen(
     onGameClick: (GameUi) -> Unit,
     openGame: (Long) -> Unit,
-    onCreateGame: () -> Unit
+    onCreateGame: () -> Unit,
+    onRulesClick: () -> Unit,
 ) {
     val viewModel: GamesListViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -96,7 +98,14 @@ fun GamesListScreen(
                 },
                 onClick = onCreateGame
             )
-        }
+        },
+        actions = {
+            {
+                TextButton(onClick = onRulesClick) {
+                    Text("Правила")
+                }
+            }
+        },
     ) { modifier ->
         if (state.isLoading) {
             Box(modifier.fillMaxSize(), Alignment.Center) {

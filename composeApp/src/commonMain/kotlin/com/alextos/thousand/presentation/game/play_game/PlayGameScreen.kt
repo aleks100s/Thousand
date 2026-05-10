@@ -45,6 +45,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun PlayGameScreen(
     onGoBack: () -> Unit,
     onScoreClick: (Game) -> Unit,
+    onRulesClick: () -> Unit,
     onFinishGame: (Game) -> Unit
 ) {
     val viewModel: PlayGameViewModel = koinViewModel()
@@ -82,6 +83,12 @@ fun PlayGameScreen(
         goBack = onGoBack,
         actions = {
             {
+                TextButton(
+                    onClick = onRulesClick,
+                ) {
+                    Text("Правила")
+                }
+
                 TextButton(
                     onClick = {
                         isRulesSheetVisible = true

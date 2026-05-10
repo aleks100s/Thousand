@@ -7,6 +7,7 @@ import com.alextos.thousand.common.horizontalTransition
 import com.alextos.thousand.presentation.game.create_game.CreateGameScreen
 import com.alextos.thousand.presentation.game.play_game.PlayGameScreen
 import com.alextos.thousand.presentation.game.game_list.GamesListScreen
+import com.alextos.thousand.presentation.game.game_rules.GameRulesScreen
 import com.alextos.thousand.presentation.game.game_score.GameScoreScreen
 
 @Composable
@@ -33,6 +34,9 @@ fun GameTabRoot() {
                 },
                 onCreateGame = {
                     navController.navigate(GameRoute.CreateGame)
+                },
+                onRulesClick = {
+                    navController.navigate(GameRoute.GameRules)
                 }
             )
         }
@@ -52,6 +56,9 @@ fun GameTabRoot() {
                 onScoreClick = {
                     navController.navigate(GameRoute.GameScore(it.id))
                 },
+                onRulesClick = {
+                    navController.navigate(GameRoute.GameRules)
+                },
                 onFinishGame = {
                     navController.navigate(GameRoute.GameScore(it.id)) {
                         popUpTo(GameRoute.GamesList)
@@ -61,6 +68,11 @@ fun GameTabRoot() {
         }
         horizontalTransition<GameRoute.GameScore> { _ ->
             GameScoreScreen(
+                onGoBack = navController::popBackStack,
+            )
+        }
+        horizontalTransition<GameRoute.GameRules> { _ ->
+            GameRulesScreen(
                 onGoBack = navController::popBackStack,
             )
         }

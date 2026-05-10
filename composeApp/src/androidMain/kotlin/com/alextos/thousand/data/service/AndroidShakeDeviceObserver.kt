@@ -5,10 +5,13 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.alextos.thousand.domain.service.ShakeDeviceObserver
 import com.alextos.thousand.domain.service.ShakeDeviceObserverDelegate
 import kotlin.math.sqrt
 
+@RequiresApi(Build.VERSION_CODES.CUPCAKE)
 class AndroidShakeDeviceObserver(
     context: Context,
 ) : ShakeDeviceObserver, SensorEventListener {
