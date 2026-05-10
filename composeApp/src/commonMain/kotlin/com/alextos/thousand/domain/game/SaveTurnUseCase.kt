@@ -17,7 +17,7 @@ class SaveTurnUseCase(
         currentPlayer: Player,
         rolls: List<DiceRoll>,
         game: Game,
-        isTutorial: Boolean
+        isTutorial: Boolean = false,
     ): Turn {
         val turnTotal = calculateTurnResult(rolls)
 

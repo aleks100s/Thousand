@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
+import com.alextos.thousand.domain.game.FormatTurnEffectUseCase
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.Die
 import com.alextos.thousand.domain.models.Player
@@ -36,6 +37,7 @@ import com.alextos.thousand.domain.models.TurnEffect
 import com.alextos.thousand.domain.models.TurnResult
 import com.alextos.thousand.presentation.game.components.GameHeaderView
 import com.alextos.thousand.presentation.game.components.SingleDieView
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -44,6 +46,7 @@ fun GameScoreScreen(
     onGoBack: () -> Unit,
 ) {
     val viewModel: GameScoreViewModel = koinViewModel()
+    val formatTurnEffect: FormatTurnEffectUseCase = koinInject()
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
@@ -68,7 +71,10 @@ fun GameScoreScreen(
 
                 items(state.turns) { turn ->
                     TurnHeaderView(player = game.players.first { it == turn.player })
-                    TurnView(turn)
+                    TurnView(
+                        turn = turn,
+                        formatTurnEffect = formatTurnEffect,
+                    )
                 }
             }
         }
@@ -106,7 +112,10 @@ private fun TurnHeaderView(player: Player) {
 }
 
 @Composable
-private fun TurnView(turn: Turn) {
+private fun TurnView(
+    turn: Turn,
+    formatTurnEffect: FormatTurnEffectUseCase,
+) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.Start
@@ -132,7 +141,11 @@ private fun TurnView(turn: Turn) {
         }
 
         turn.effects.forEach {
-            TurnEffectView(it, currentPlayer = turn.player)
+            TurnEffectView(
+                effect = it,
+                currentPlayer = turn.player,
+                formatTurnEffect = formatTurnEffect,
+            )
         }
 
         TurnResultView(turn.results)
@@ -185,14 +198,18 @@ private fun RowScope.ResultCell(result: Int, tint: Color, textColor: Color) {
 }
 
 @Composable
-private fun TurnEffectView(effect: TurnEffect, currentPlayer: Player) {
+private fun TurnEffectView(
+    effect: TurnEffect,
+    currentPlayer: Player,
+    formatTurnEffect: FormatTurnEffectUseCase,
+) {
     Row(modifier = Modifier
         .background(MaterialTheme.colorScheme.secondaryContainer)
         .padding(vertical = 8.dp, horizontal = 16.dp)
         .fillMaxWidth()
     ) {
         Text(
-            text = effect.text(currentPlayer),
+            text = formatTurnEffect(effect, currentPlayer),
             color = MaterialTheme.colorScheme.secondary,
             style = MaterialTheme.typography.bodyMedium
         )

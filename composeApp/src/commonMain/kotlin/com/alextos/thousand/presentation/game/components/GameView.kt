@@ -88,7 +88,7 @@ fun GameView(
                     onAction(GameAction.FinishRoll)
                 }
 
-                if (buttonsVisible) {
+                if (buttonsVisible && state.showButtons) {
                     ButtonsView(
                         Modifier.align(Alignment.BottomCenter),
                         state,

@@ -3,6 +3,7 @@ package com.alextos.thousand.domain.game.server
 import com.alextos.thousand.domain.game.ApplyDiceRollRestrictionsUseCase
 import com.alextos.thousand.domain.game.CalculateDiceRollScoreUseCase
 import com.alextos.thousand.domain.game.FindCurrentPlayerUseCase
+import com.alextos.thousand.domain.game.FormatTurnEffectUseCase
 import com.alextos.thousand.domain.game.MakeBotReplyUseCase
 import com.alextos.thousand.domain.game.MakeBotRollUseCase
 import com.alextos.thousand.domain.game.RollTheDiceUseCase
@@ -31,7 +32,8 @@ class GameServer(
     private val saveTurn: SaveTurnUseCase,
     private val updateGame: UpdateGameUseCase,
     private val makeBotRoll: MakeBotRollUseCase,
-    private val makeBotReply: MakeBotReplyUseCase
+    private val makeBotReply: MakeBotReplyUseCase,
+    private val formatTurnEffect: FormatTurnEffectUseCase,
 ) {
     private val _state = MutableStateFlow(GameState())
     val state = _state.asStateFlow()
@@ -50,11 +52,18 @@ class GameServer(
             GameState(
                 isLoading = false,
                 game = game,
-                currentPlayer = currentPlayer
+                currentPlayer = currentPlayer,
+                isTutorial = isTutorial
             )
         }
         if (currentPlayer?.isBot() == true) {
             makeBotTurn()
+        }
+        if (isTutorial) {
+            val message = "Начнем игру! Цель игры - первым набрать 1000 очков.\n" +
+                    "Очки приносят комбинации выброшенных кубиков, полный перечень комбинаций можно найти в разделе правил.\n" +
+                    "Первый ход за тобой, бросай кубики!"
+            _events.emit(GameEvent.Notification(message))
         }
     }
 
@@ -127,7 +136,7 @@ class GameServer(
 
         if (turn.effects.isNotEmpty()) {
             turn.effects.forEach { effect ->
-                _events.emit(GameEvent.Notification(effect.text(player)))
+                _events.emit(GameEvent.Notification(formatTurnEffect(effect, player, isTutorial)))
             }
             if (state.value.currentPlayer?.isBot() == true) {
                 _events.emit(GameEvent.Reply(makeBotReply(turn.effects.last().effect)))
