@@ -12,5 +12,6 @@ data class GameState(
     val currentTurn: List<DiceRoll> = emptyList(),
     val currentRoll: DiceRoll? = null,
     val rollAbility: RollAbility = RollAbility.REQUIRED,
+    val isFinishTurnBlocked: Boolean = false,
     val rollBlocked: Boolean = false
 )

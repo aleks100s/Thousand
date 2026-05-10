@@ -1,5 +1,6 @@
 package com.alextos.thousand.domain.game.server
 
+import com.alextos.thousand.domain.game.ApplyDiceRollRestrictionsUseCase
 import com.alextos.thousand.domain.game.CalculateDiceRollScoreUseCase
 import com.alextos.thousand.domain.game.FindCurrentPlayerUseCase
 import com.alextos.thousand.domain.game.MakeBotReplyUseCase
@@ -26,6 +27,7 @@ class GameServer(
     private val findCurrentPlayer: FindCurrentPlayerUseCase,
     private val rollTheDice: RollTheDiceUseCase,
     private val calculateDiceRollScore: CalculateDiceRollScoreUseCase,
+    private val applyDiceRollRestrictions: ApplyDiceRollRestrictionsUseCase,
     private val saveTurn: SaveTurnUseCase,
     private val updateGame: UpdateGameUseCase,
     private val makeBotRoll: MakeBotRollUseCase,
@@ -73,8 +75,22 @@ class GameServer(
     }
 
     private fun applyDiceRoll(dice: List<Die>) {
-        val result = calculateDiceRollScore(dice)
-        val roll = DiceRoll(dice = dice, result = result.score)
+        val rawResult = calculateDiceRollScore(dice)
+        val currentState = state.value
+        val currentPlayer = currentState.currentPlayer
+        val game = currentState.game
+        val turnTotal = currentState.currentTurn.sumOf { it.result } + rawResult.score
+        val isFinishTurnBlocked = if (currentPlayer != null && game != null) {
+            applyDiceRollRestrictions(
+                rerollAbility = rawResult.rerollAbility,
+                currentPlayer = currentPlayer,
+                game = game,
+                turnTotal = turnTotal,
+            )
+        } else {
+            false
+        }
+        val roll = DiceRoll(dice = dice, result = rawResult.score)
         val currentTurn = state.value.currentTurn.toMutableList()
         currentTurn.add(roll)
         rollBlocked = true
@@ -82,7 +98,8 @@ class GameServer(
             it.copy(
                 currentTurn = currentTurn,
                 currentRoll = roll,
-                rollAbility = result.rerollAbility,
+                rollAbility = rawResult.rerollAbility,
+                isFinishTurnBlocked = isFinishTurnBlocked,
             )
         }
     }
@@ -130,6 +147,7 @@ class GameServer(
         _state.update {
             it.copy(
                 rollAbility = RollAbility.REQUIRED,
+                isFinishTurnBlocked = false,
                 currentRoll = null,
                 currentTurn = emptyList(),
                 currentPlayer = nextPlayer
@@ -144,6 +162,7 @@ class GameServer(
         _state.update {
             it.copy(
                 rollAbility = RollAbility.UNAVAILABLE,
+                isFinishTurnBlocked = false,
                 currentRoll = null,
                 currentTurn = emptyList(),
                 currentPlayer = null

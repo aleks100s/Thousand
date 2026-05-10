@@ -18,6 +18,7 @@ import com.alextos.thousand.domain.repository.GameRepository
 import com.alextos.thousand.domain.repository.StatisticsRepository
 import com.alextos.thousand.domain.service.ShakeDeviceObserver
 import com.alextos.thousand.domain.service.StorageService
+import com.alextos.thousand.domain.game.ApplyDiceRollRestrictionsUseCase
 import com.alextos.thousand.domain.game.CalculateDiceRollScoreUseCase
 import com.alextos.thousand.domain.usecase.game.CreateGameUseCase
 import com.alextos.thousand.domain.usecase.game.CreateRematchUseCase
@@ -91,6 +92,7 @@ fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     viewModelOf(::RollsStatisticsViewModel)
     viewModelOf(::TurnsStatisticsViewModel)
     factory { CalculateDiceRollScoreUseCase() }
+    factory { ApplyDiceRollRestrictionsUseCase() }
     factory { CreateGameUseCase(get()) }
     factory { CreateRematchUseCase(get()) }
     factory { GenerateBotNameUseCase() }
@@ -101,7 +103,7 @@ fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     factory { DeleteGameUseCase(get()) }
     factory { DeleteUserUseCase(get()) }
     single { shakeDeviceObserver }
-    factory { GameServer(get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { GameServer(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     factory { MakeBotRollUseCase() }
     factory { MakeBotReplyUseCase() }
 }

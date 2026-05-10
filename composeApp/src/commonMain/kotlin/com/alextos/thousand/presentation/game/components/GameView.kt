@@ -217,7 +217,7 @@ private fun ButtonsView(
                 }
             }
         } else if (state.currentPlayer?.isBot() == false) {
-            if (state.rollAbility != RollAbility.REQUIRED) {
+            if (state.rollAbility != RollAbility.REQUIRED && state.isFinishTurnBlocked.not()) {
                 Button(
                     onClick = {
                         onAction(GameAction.FinishTurn)
