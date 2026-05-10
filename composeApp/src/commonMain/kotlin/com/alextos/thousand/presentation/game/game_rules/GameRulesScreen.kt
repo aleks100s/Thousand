@@ -36,38 +36,45 @@ import org.koin.compose.viewmodel.koinViewModel
 fun GameRulesScreen(
     onGoBack: () -> Unit,
 ) {
-    val viewModel: GameRulesViewModel = koinViewModel()
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val lazyListState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
-
     Screen(
         modifier = Modifier,
         title = "Правила игры",
         goBack = onGoBack,
     ) { modifier ->
-        LazyColumn(
-            modifier = modifier.fillMaxSize(),
-            state = lazyListState,
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            item {
-                GameRulesTableOfContents(
-                    items = state.tableOfContents,
-                    onItemClick = { item ->
-                        coroutineScope.launch {
-                            lazyListState.animateScrollToItem(item.itemIndex + 1)
-                        }
-                    },
-                )
-            }
-            items(state.items) { item ->
-                when (item) {
-                    is GameRulesItem.TextRule -> GameRuleItem(item)
-                    is GameRulesItem.DiceCombinations -> DiceCombinationsRulesBlock(item)
-                    is GameRulesItem.RerollRules -> RerollRulesBlock(item)
-                }
+        GameRulesContent(modifier = modifier.fillMaxSize())
+    }
+}
+
+@Composable
+fun GameRulesContent(
+    modifier: Modifier = Modifier,
+) {
+    val viewModel: GameRulesViewModel = koinViewModel()
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val lazyListState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+
+    LazyColumn(
+        modifier = modifier,
+        state = lazyListState,
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        item {
+            GameRulesTableOfContents(
+                items = state.tableOfContents,
+                onItemClick = { item ->
+                    coroutineScope.launch {
+                        lazyListState.animateScrollToItem(item.itemIndex + 1)
+                    }
+                },
+            )
+        }
+        items(state.items) { item ->
+            when (item) {
+                is GameRulesItem.TextRule -> GameRuleItem(item)
+                is GameRulesItem.DiceCombinations -> DiceCombinationsRulesBlock(item)
+                is GameRulesItem.RerollRules -> RerollRulesBlock(item)
             }
         }
     }

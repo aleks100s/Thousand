@@ -10,15 +10,21 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.presentation.game.components.GameView
+import com.alextos.thousand.presentation.game.game_rules.GameRulesContent
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -29,6 +35,7 @@ fun TutorialGameScreen(
 ) {
     val viewModel: TutorialGameViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
+    var isRulesSheetVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.onAction(TutorialGameAction.Initialize)
@@ -65,6 +72,17 @@ fun TutorialGameScreen(
         modifier = Modifier,
         title = state.title,
         goBack = onGoBack,
+        actions = {
+            {
+                TextButton(
+                    onClick = {
+                        isRulesSheetVisible = true
+                    },
+                ) {
+                    Text("Правила")
+                }
+            }
+        },
     ) { modifier ->
         Column(
             modifier = modifier.fillMaxSize(),
@@ -80,6 +98,17 @@ fun TutorialGameScreen(
                     onFinish()
                 }
             )
+        }
+    }
+
+    if (isRulesSheetVisible) {
+        ModalBottomSheet(
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            onDismissRequest = {
+                isRulesSheetVisible = false
+            },
+        ) {
+            GameRulesContent(modifier = Modifier.fillMaxSize())
         }
     }
 }

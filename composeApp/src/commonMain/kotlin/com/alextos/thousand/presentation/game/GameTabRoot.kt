@@ -60,9 +60,6 @@ fun GameTabRoot() {
                 onScoreClick = {
                     navController.navigate(GameRoute.GameScore(it.id))
                 },
-                onRulesClick = {
-                    navController.navigate(GameRoute.GameRules)
-                },
                 onFinishGame = {
                     navController.navigate(GameRoute.GameScore(it.id)) {
                         popUpTo(GameRoute.GamesList)
