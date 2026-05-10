@@ -2,6 +2,7 @@ package com.alextos.thousand.presentation.game.game_list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alextos.thousand.domain.service.StorageService
 import com.alextos.thousand.domain.usecase.game.CreateRematchUseCase
 import com.alextos.thousand.domain.usecase.game.DeleteGameUseCase
 import com.alextos.thousand.domain.usecase.game.GetAllGamesUseCase
@@ -19,6 +20,7 @@ class GamesListViewModel(
     private val getAllGamesUseCase: GetAllGamesUseCase,
     private val deleteGameUseCase: DeleteGameUseCase,
     private val createRematchUseCase: CreateRematchUseCase,
+    private val storageService: StorageService,
 ) : ViewModel() {
     private val _state = MutableStateFlow(GamesListState())
     val state: StateFlow<GamesListState> = _state.asStateFlow()
@@ -31,6 +33,7 @@ class GamesListViewModel(
             is GamesListAction.DeleteGame -> deleteGame(action.gameId)
             is GamesListAction.CreateRematch -> createRematch(action.gameId)
             GamesListAction.LoadGames -> observeGames()
+            GamesListAction.CompleteFirstLaunch -> completeFirstLaunch()
         }
     }
 
@@ -42,6 +45,13 @@ class GamesListViewModel(
                         isLoading = false,
                         games = games.map { game -> game.toUi() },
                     )
+                }
+            }
+        }
+        viewModelScope.launch {
+            storageService.isFirstLaunch.collect { isFirstLaunch ->
+                _state.update {
+                    it.copy(isFirstLaunch = isFirstLaunch)
                 }
             }
         }
@@ -57,6 +67,12 @@ class GamesListViewModel(
         viewModelScope.launch {
             val game = createRematchUseCase(gameId) ?: return@launch
             _events.emit(GamesListEvent.OpenGame(game.id))
+        }
+    }
+
+    private fun completeFirstLaunch() {
+        viewModelScope.launch {
+            storageService.setFirstLaunch(false)
         }
     }
 }

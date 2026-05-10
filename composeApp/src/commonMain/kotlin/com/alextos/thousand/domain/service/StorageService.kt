@@ -9,9 +9,13 @@ interface StorageService {
 
     val isNotificationEnabled: Flow<Boolean>
 
+    val isFirstLaunch: Flow<Boolean>
+
     suspend fun setManualInputEnabled(isEnabled: Boolean)
 
     suspend fun setShakeEnabled(isEnabled: Boolean)
 
     suspend fun setNotificationEnabled(isEnabled: Boolean)
+
+    suspend fun setFirstLaunch(isFirstLaunch: Boolean)
 }

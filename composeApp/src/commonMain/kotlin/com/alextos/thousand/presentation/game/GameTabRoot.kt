@@ -38,6 +38,9 @@ fun GameTabRoot() {
                 },
                 onRulesClick = {
                     navController.navigate(GameRoute.GameRules)
+                },
+                onTutorialGame = {
+                    navController.navigate(GameRoute.TutorialGame)
                 }
             )
         }

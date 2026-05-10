@@ -23,16 +23,21 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -59,16 +64,18 @@ import thousand.composeapp.generated.resources.notifications_24px
 import thousand.composeapp.generated.resources.notifications_off_24px
 import thousand.composeapp.generated.resources.sports_esports_24px
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun GamesListScreen(
     onGameClick: (GameUi) -> Unit,
     openGame: (Long) -> Unit,
     onCreateGame: () -> Unit,
     onRulesClick: () -> Unit,
+    onTutorialGame: () -> Unit,
 ) {
     val viewModel: GamesListViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
+    var isTutorialSheetVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.onAction(GamesListAction.LoadGames)
@@ -96,13 +103,21 @@ fun GamesListScreen(
                         contentDescription = null
                     )
                 },
-                onClick = onCreateGame
+                onClick = {
+                    if (state.isFirstLaunch) {
+                        isTutorialSheetVisible = true
+                    } else {
+                        onCreateGame()
+                    }
+                },
             )
         },
         actions = {
             {
-                TextButton(onClick = onRulesClick) {
-                    Text("Правила")
+                if (state.isFirstLaunch.not()) {
+                    TextButton(onClick = onRulesClick) {
+                        Text("Правила")
+                    }
                 }
             }
         },
@@ -142,6 +157,49 @@ fun GamesListScreen(
 
                 item {
                     Spacer(Modifier.height(100.dp))
+                }
+            }
+        }
+    }
+
+    if (isTutorialSheetVisible) {
+        ModalBottomSheet(
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            onDismissRequest = {
+                isTutorialSheetVisible = false
+            },
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Text(
+                    text = "Хотите пройти обучение и сыграть тестовую игру?",
+                    style = MaterialTheme.typography.titleMedium,
+                )
+
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        isTutorialSheetVisible = false
+                        viewModel.onAction(GamesListAction.CompleteFirstLaunch)
+                        onTutorialGame()
+                    },
+                ) {
+                    Text("Да, хочу научиться")
+                }
+
+                OutlinedButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        isTutorialSheetVisible = false
+                        viewModel.onAction(GamesListAction.CompleteFirstLaunch)
+                        onCreateGame()
+                    },
+                ) {
+                    Text("Нет, я умею играть")
                 }
             }
         }

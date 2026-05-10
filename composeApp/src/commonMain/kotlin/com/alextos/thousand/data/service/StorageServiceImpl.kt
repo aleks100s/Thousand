@@ -20,6 +20,10 @@ class StorageServiceImpl(
         keyValueStorage.getBoolean(KEY_IS_NOTIFICATION_ENABLED)
             .map { it ?: DEFAULT_IS_NOTIFICATION_ENABLED }
 
+    override val isFirstLaunch: Flow<Boolean> =
+        keyValueStorage.getBoolean(KEY_IS_FIRST_LAUNCH)
+            .map { it ?: DEFAULT_IS_FIRST_LAUNCH }
+
     override suspend fun setManualInputEnabled(isEnabled: Boolean) {
         keyValueStorage.saveBoolean(KEY_IS_MANUAL_INPUT_ENABLED, isEnabled)
     }
@@ -32,13 +36,19 @@ class StorageServiceImpl(
         keyValueStorage.saveBoolean(KEY_IS_NOTIFICATION_ENABLED, isEnabled)
     }
 
+    override suspend fun setFirstLaunch(isFirstLaunch: Boolean) {
+        keyValueStorage.saveBoolean(KEY_IS_FIRST_LAUNCH, isFirstLaunch)
+    }
+
     private companion object {
         const val KEY_IS_MANUAL_INPUT_ENABLED = "is_manual_input_enabled"
         const val KEY_IS_SHAKE_ENABLED = "is_shake_enabled"
         const val KEY_IS_NOTIFICATION_ENABLED = "is_notification_enabled"
+        const val KEY_IS_FIRST_LAUNCH = "is_first_launch"
 
         const val DEFAULT_IS_MANUAL_INPUT_ENABLED = false
         const val DEFAULT_IS_SHAKE_ENABLED = true
         const val DEFAULT_IS_NOTIFICATION_ENABLED = true
+        const val DEFAULT_IS_FIRST_LAUNCH = true
     }
 }
