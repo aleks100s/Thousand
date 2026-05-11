@@ -8,6 +8,7 @@ import com.alextos.thousand.domain.game.MakeBotReplyUseCase
 import com.alextos.thousand.domain.game.MakeBotRollUseCase
 import com.alextos.thousand.domain.game.RollTheDiceUseCase
 import com.alextos.thousand.domain.game.SaveTurnUseCase
+import com.alextos.thousand.domain.game.TutorialNextAction
 import com.alextos.thousand.domain.game.TutorialRollUseCase
 import com.alextos.thousand.domain.game.UpdateGameUseCase
 import com.alextos.thousand.domain.models.DiceRoll
@@ -85,16 +86,25 @@ class GameServer(
         if (state.value.rollAbility != RollAbility.UNAVAILABLE && rollBlocked.not()) {
             val count = state.value.rollAbility.count
             _events.emit(GameEvent.HapticFeedback(count))
-            val dice = if (isTutorial) {
+            val tutorialRollResult = if (isTutorial) {
                 tutorialRoll()
             } else {
-                rollTheDice(count)
+                null
             }
-            applyDiceRoll(dice)
+            val dice = tutorialRollResult?.dice ?: rollTheDice(count)
+            applyDiceRoll(
+                dice = dice,
+                tutorialNextAction = tutorialRollResult?.nextAction,
+                tutorialAdvice = tutorialRollResult?.advice,
+            )
         }
     }
 
-    private fun applyDiceRoll(dice: List<Die>) {
+    private fun applyDiceRoll(
+        dice: List<Die>,
+        tutorialNextAction: TutorialNextAction? = null,
+        tutorialAdvice: String? = null,
+    ) {
         val rawResult = calculateDiceRollScore(dice)
         val currentState = state.value
         val currentPlayer = currentState.currentPlayer
@@ -113,7 +123,7 @@ class GameServer(
         val roll = DiceRoll(
             dice = dice,
             result = rawResult.score,
-            rollDescription = if (isTutorial) rawResult.rollDescription else null
+            rollDescription = if (isTutorial && currentPlayer?.isBot() == false) rawResult.rollDescription else null
         )
         val currentTurn = state.value.currentTurn.toMutableList()
         currentTurn.add(roll)
@@ -124,6 +134,8 @@ class GameServer(
                 currentRoll = roll,
                 rollAbility = rawResult.rerollAbility,
                 isFinishTurnBlocked = isFinishTurnBlocked,
+                tutorialNextAction = tutorialNextAction,
+                tutorialAdvice = tutorialAdvice,
             )
         }
     }
@@ -148,9 +160,18 @@ class GameServer(
         )
 
         if (turn.effects.isNotEmpty()) {
-            turn.effects.forEach { effect ->
-                _events.emit(GameEvent.Notification(formatTurnEffect(effect, player, isTutorial)))
+            if (isTutorial) {
+                if (state.value.currentPlayer?.isBot() == true) {
+                    _events.emit(GameEvent.Notification(turn.effects.map {
+                        formatTurnEffect(it, player, isTutorial)
+                    }.joinToString()))
+                }
+            } else {
+                turn.effects.forEach { effect ->
+                    _events.emit(GameEvent.Notification(formatTurnEffect(effect, player, isTutorial)))
+                }
             }
+
             if (state.value.currentPlayer?.isBot() == true) {
                 _events.emit(GameEvent.Reply(makeBotReply(turn.effects.last().effect)))
             }
@@ -175,7 +196,9 @@ class GameServer(
                 isFinishTurnBlocked = false,
                 currentRoll = null,
                 currentTurn = emptyList(),
-                currentPlayer = nextPlayer
+                currentPlayer = nextPlayer,
+                tutorialNextAction = null,
+                tutorialAdvice = null,
             )
         }
         if (nextPlayer?.isBot() == true) {
@@ -190,7 +213,9 @@ class GameServer(
                 isFinishTurnBlocked = false,
                 currentRoll = null,
                 currentTurn = emptyList(),
-                currentPlayer = null
+                currentPlayer = null,
+                tutorialNextAction = null,
+                tutorialAdvice = null,
             )
         }
     }
@@ -201,7 +226,18 @@ class GameServer(
             val bot = value.currentPlayer ?: return
             val game = value.game ?: return
             val turnTotal = value.currentTurn.sumOf { it.result }
-            if (makeBotRoll(state.value.rollAbility, bot, game, turnTotal)) {
+            val shouldRoll = if (isTutorial) {
+                delay(3000L)
+                when (value.tutorialNextAction) {
+                    TutorialNextAction.Reroll -> true
+                    TutorialNextAction.FinishTurn -> false
+                    null -> makeBotRoll(value.rollAbility, bot, game, turnTotal)
+                }
+            } else {
+                delay(1500L)
+                makeBotRoll(value.rollAbility, bot, game, turnTotal)
+            }
+            if (shouldRoll) {
                 rollTheDice()
             } else {
                 break

@@ -13,7 +13,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class MakeBotRollUseCaseTest {
-    private val useCase = MakeBotRollUseCase(decisionDelayMs = 0L)
+    private val useCase = MakeBotRollUseCase()
 
     @Test
     fun botStopsWhenRerollIsUnavailable() = runSuspend {

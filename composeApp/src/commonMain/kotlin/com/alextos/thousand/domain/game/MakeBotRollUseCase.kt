@@ -9,20 +9,14 @@ import com.alextos.thousand.domain.GameConstants.STARTING_LIMIT
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.RollAbility
-import kotlinx.coroutines.delay
 
-class MakeBotRollUseCase(
-    private val decisionDelayMs: Long = 1500L,
-) {
-    suspend operator fun invoke(
+class MakeBotRollUseCase() {
+    operator fun invoke(
         rollAbility: RollAbility,
         bot: Player,
         game: Game,
         turnTotal: Int
     ): Boolean {
-        if (decisionDelayMs > 0) {
-            delay(decisionDelayMs)
-        }
         when (rollAbility) {
             RollAbility.UNAVAILABLE -> return false
             RollAbility.REQUIRED -> return true
