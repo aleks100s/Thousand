@@ -4,9 +4,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import com.alextos.thousand.domain.game.server.DefaultGameServer
 import com.alextos.thousand.domain.game.server.GameAction
 import com.alextos.thousand.domain.game.server.GameEvent
-import com.alextos.thousand.domain.game.server.GameServer
 import com.alextos.thousand.domain.service.DiceHapticsService
 import com.alextos.thousand.domain.service.ShakeDeviceObserver
 import com.alextos.thousand.domain.service.ShakeDeviceObserverDelegate
@@ -24,7 +24,7 @@ import kotlinx.coroutines.launch
 class PlayGameViewModel(
     savedStateHandle: SavedStateHandle,
     private val loadGameUseCase: LoadGameUseCase,
-    private val gameServer: GameServer,
+    private val gameServer: DefaultGameServer,
     private val hapticsService: DiceHapticsService,
     shakeDeviceObserver: ShakeDeviceObserver
 ) : ViewModel(), ShakeDeviceObserverDelegate {

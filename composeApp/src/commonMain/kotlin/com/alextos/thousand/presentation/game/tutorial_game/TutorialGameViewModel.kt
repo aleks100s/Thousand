@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alextos.thousand.domain.game.server.GameAction
 import com.alextos.thousand.domain.game.server.GameEvent
-import com.alextos.thousand.domain.game.server.GameServer
+import com.alextos.thousand.domain.game.server.TutorialGameServer
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.User
@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 
 class TutorialGameViewModel(
     private val getAllUsersUseCase: GetAllUsersUseCase,
-    private val gameServer: GameServer,
+    private val gameServer: TutorialGameServer,
     private val hapticsService: DiceHapticsService,
 ) : ViewModel() {
     private val _state = MutableStateFlow(TutorialGameState())
@@ -79,7 +79,7 @@ class TutorialGameViewModel(
             val user = User(name = "Оппонент", kind = UserKind.Bot)
             val player = Player(user = user)
             val game = Game(players = listOf(currentPlayer, player))
-            gameServer.initGame(game, isTutorial = true)
+            gameServer.initGame(game)
         }
     }
 

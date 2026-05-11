@@ -28,7 +28,8 @@ import com.alextos.thousand.domain.game.FindCurrentPlayerUseCase
 import com.alextos.thousand.domain.game.FormatTurnEffectUseCase
 import com.alextos.thousand.domain.game.MakeBotReplyUseCase
 import com.alextos.thousand.domain.game.MakeBotRollUseCase
-import com.alextos.thousand.domain.game.server.GameServer
+import com.alextos.thousand.domain.game.server.DefaultGameServer
+import com.alextos.thousand.domain.game.server.TutorialGameServer
 import com.alextos.thousand.domain.usecase.game.GenerateBotNameUseCase
 import com.alextos.thousand.domain.usecase.game.GetAllGamesUseCase
 import com.alextos.thousand.domain.usecase.game.GetAllUsersUseCase
@@ -109,7 +110,8 @@ fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     factory { DeleteGameUseCase(get()) }
     factory { DeleteUserUseCase(get()) }
     single { shakeDeviceObserver }
-    factory { GameServer(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { DefaultGameServer(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { TutorialGameServer(get(), get(), get(), get(), get(), get(), get(), get()) }
     factory { MakeBotRollUseCase() }
     factory { MakeBotReplyUseCase() }
 }
