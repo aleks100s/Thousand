@@ -22,8 +22,11 @@ class CalculateDiceRollScoreUseCase {
         list.add("результат хода: $result очков")
         if (rerollDiceCount == 0) {
             rerollDiceCount = 5
+            list.add("надо перебросить все кубики")
         } else if (result == 0) {
             rerollDiceCount = 0
+        } else {
+            list.add("можно перебросить $rerollDiceCount кубика")
         }
         return DiceRollResult(
             score = result,

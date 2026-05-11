@@ -8,6 +8,7 @@ import com.alextos.thousand.domain.game.server.GameServer
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.User
+import com.alextos.thousand.domain.models.UserKind
 import com.alextos.thousand.domain.service.DiceHapticsService
 import com.alextos.thousand.domain.usecase.game.GetAllUsersUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -75,7 +76,7 @@ class TutorialGameViewModel(
         viewModelScope.launch {
             val currentUser = getAllUsersUseCase().firstOrNull()?.firstOrNull() ?: return@launch
             val currentPlayer = Player(user = currentUser)
-            val user = User(name = "Оппонент")
+            val user = User(name = "Оппонент", kind = UserKind.Bot)
             val player = Player(user = user)
             val game = Game(players = listOf(currentPlayer, player))
             gameServer.initGame(game, isTutorial = true)

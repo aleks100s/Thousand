@@ -8,6 +8,7 @@ import com.alextos.thousand.domain.game.MakeBotReplyUseCase
 import com.alextos.thousand.domain.game.MakeBotRollUseCase
 import com.alextos.thousand.domain.game.RollTheDiceUseCase
 import com.alextos.thousand.domain.game.SaveTurnUseCase
+import com.alextos.thousand.domain.game.TutorialRollUseCase
 import com.alextos.thousand.domain.game.UpdateGameUseCase
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.Die
@@ -27,6 +28,7 @@ class GameServer(
     private val loadGameTurns: LoadGameTurnsUseCase,
     private val findCurrentPlayer: FindCurrentPlayerUseCase,
     private val rollTheDice: RollTheDiceUseCase,
+    private val tutorialRoll: TutorialRollUseCase,
     private val calculateDiceRollScore: CalculateDiceRollScoreUseCase,
     private val applyDiceRollRestrictions: ApplyDiceRollRestrictionsUseCase,
     private val saveTurn: SaveTurnUseCase,
@@ -46,6 +48,9 @@ class GameServer(
 
     suspend fun initGame(game: Game?, isTutorial: Boolean = false) {
         this.isTutorial = isTutorial
+        if (isTutorial) {
+            tutorialRoll.reset()
+        }
         val turns = loadGameTurns(game?.id ?: return)
         val currentPlayer = findCurrentPlayer(game, turns.lastOrNull())
         _state.update {
@@ -80,7 +85,11 @@ class GameServer(
         if (state.value.rollAbility != RollAbility.UNAVAILABLE && rollBlocked.not()) {
             val count = state.value.rollAbility.count
             _events.emit(GameEvent.HapticFeedback(count))
-            val dice = rollTheDice(count)
+            val dice = if (isTutorial) {
+                tutorialRoll()
+            } else {
+                rollTheDice(count)
+            }
             applyDiceRoll(dice)
         }
     }
