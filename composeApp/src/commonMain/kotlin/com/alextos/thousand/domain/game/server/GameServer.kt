@@ -101,7 +101,11 @@ class GameServer(
         } else {
             false
         }
-        val roll = DiceRoll(dice = dice, result = rawResult.score)
+        val roll = DiceRoll(
+            dice = dice,
+            result = rawResult.score,
+            rollDescription = if (isTutorial) rawResult.rollDescription else null
+        )
         val currentTurn = state.value.currentTurn.toMutableList()
         currentTurn.add(roll)
         rollBlocked = true

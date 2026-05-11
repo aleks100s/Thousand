@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.alextos.thousand.domain.game.server.GameAction
 import com.alextos.thousand.domain.game.server.GameState
@@ -138,7 +139,15 @@ private fun CurrentRollView(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     HorizontalDivider(Modifier.width(220.dp))
 
-                    Text(roll.result.toString())
+                    if (roll.rollDescription != null) {
+                        Text(
+                            text = roll.rollDescription,
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    } else {
+                        Text(roll.result.toString())
+                    }
                 }
             }
         }
