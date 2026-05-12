@@ -19,6 +19,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,6 +32,7 @@ import com.alextos.thousand.common.Screen
 import com.alextos.thousand.domain.game.FormatTurnEffectUseCase
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.Die
+import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.models.TurnEffect
@@ -44,6 +46,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun GameScoreScreen(
     onGoBack: () -> Unit,
+    onResultsClick: (Game) -> Unit,
 ) {
     val viewModel: GameScoreViewModel = koinViewModel()
     val formatTurnEffect: FormatTurnEffectUseCase = koinInject()
@@ -57,6 +60,19 @@ fun GameScoreScreen(
         modifier = Modifier,
         title = state.title,
         goBack = onGoBack,
+        actions = {
+            {
+                state.game?.takeIf { it.isFinished() }?.let { game ->
+                    TextButton(
+                        onClick = {
+                            onResultsClick(game)
+                        }
+                    ) {
+                        Text("Итоги")
+                    }
+                }
+            }
+        }
     ) { modifier ->
         val game = state.game
         if (game == null) {

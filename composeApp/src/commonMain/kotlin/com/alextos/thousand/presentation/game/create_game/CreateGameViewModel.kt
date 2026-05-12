@@ -159,9 +159,10 @@ class CreateGameViewModel(
     }
 
     private fun saveNewUser() {
-        val userName = state.value.newUserName.trim()
-        val userKind = state.value.newUserKind
-        if (userName.isBlank()) return
+        val state = state.value
+        if (state.canSaveNewUser.not()) return
+        val userName = state.newUserName.trim()
+        val userKind = state.newUserKind
 
         viewModelScope.launch {
             saveUserUseCase(

@@ -21,14 +21,14 @@ class MakeBotRollUseCase {
             RollAbility.UNAVAILABLE -> return false
             RollAbility.REQUIRED -> return true
             else -> {
-                if (bot.hasPassedStartLimit.not() && turnTotal < STARTING_LIMIT) return true
-                if (bot.hasPassedStartLimit.not() && turnTotal >= STARTING_LIMIT) return false
+                if (game.hasStartLimit && bot.hasPassedStartLimit.not() && turnTotal < STARTING_LIMIT) return true
+                if (game.hasStartLimit && bot.hasPassedStartLimit.not() && turnTotal >= STARTING_LIMIT) return false
                 if (bot.currentScore + turnTotal >= GAME_GOAL) return false
                 if (bot.currentScore + turnTotal == PIT_SCORE) return true
                 if (bot.isInBarrel(game, turnTotal)) return true
                 if (bot.boltCount == DANGEROUS_BOLT_COUNT) return false
                 if (rollAbility.count <= SAFE_STOP_DICE_COUNT) return false
-                if (bot.currentScore + turnTotal >= 100) return false
+                if (turnTotal >= 100) return false
 
                 return true
             }

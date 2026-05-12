@@ -236,6 +236,12 @@ fun CreateGameScreen(
                     label = {
                         Text("Имя пользователя")
                     },
+                    isError = state.newUserNameError != null,
+                    supportingText = state.newUserNameError?.let { error ->
+                        {
+                            Text(error)
+                        }
+                    },
                     singleLine = true,
                 )
 
@@ -243,7 +249,7 @@ fun CreateGameScreen(
                     onClick = {
                         viewModel.onAction(CreateGameAction.SaveNewUser)
                     },
-                    enabled = state.newUserName.isNotBlank(),
+                    enabled = state.canSaveNewUser,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text("Сохранить")

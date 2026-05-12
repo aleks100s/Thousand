@@ -104,7 +104,7 @@ class MakeBotRollUseCaseTest {
         val bot = createBot(currentScore = 220)
 
         val shouldRoll = useCase(
-            rollAbility = RollAbility.AVAILABLE_4,
+            rollAbility = RollAbility.AVAILABLE_2,
             bot = bot,
             game = createGame(bot, isBarrel1Active = false),
             turnTotal = 25,
