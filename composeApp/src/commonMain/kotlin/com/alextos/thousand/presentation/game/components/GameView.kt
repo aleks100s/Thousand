@@ -36,7 +36,7 @@ import com.alextos.thousand.domain.game.TutorialNextAction
 import com.alextos.thousand.domain.game.server.GameAction
 import com.alextos.thousand.domain.game.server.GameState
 import com.alextos.thousand.domain.models.DiceRoll
-import com.alextos.thousand.domain.models.RollAbility
+import com.alextos.thousand.domain.models.GameButton
 import com.alextos.thousand.presentation.game.play_game.components.ManualDiceInputView
 import kotlinx.coroutines.delay
 
@@ -196,31 +196,8 @@ private fun ButtonsView(
     var isManualInputShown by remember { mutableStateOf(false) }
     val shouldUseManualInput = isManualInputEnabled && state.isTutorial.not()
     val tutorialNextAction = state.tutorialNextAction
-    val hasTutorialAction = state.isTutorial && tutorialNextAction != null
-    val isFinishTurnVisible = if (state.isTutorial) {
-        state.rollAbility != RollAbility.REQUIRED
-    } else {
-        state.rollAbility != RollAbility.REQUIRED && state.isFinishTurnBlocked.not()
-    }
-    val isRollVisible = state.rollAbility != RollAbility.UNAVAILABLE
-    val isFinishTurnEnabled = if (hasTutorialAction) {
-        tutorialNextAction == TutorialNextAction.FinishTurn && state.isFinishTurnBlocked.not()
-    } else {
-        state.isFinishTurnBlocked.not()
-    }
-    val isRollEnabled = if (hasTutorialAction) {
-        tutorialNextAction == TutorialNextAction.Reroll
-    } else {
-        true
-    }
-    val tutorialAdvice = when {
-        state.isTutorial.not() -> null
-        isFinishTurnVisible && isFinishTurnEnabled.not() -> state.tutorialAdvice
-        isRollVisible && isRollEnabled.not() -> state.tutorialAdvice
-        isFinishTurnVisible && isRollVisible.not() && tutorialNextAction == TutorialNextAction.FinishTurn -> state.tutorialAdvice
-        isRollVisible && isFinishTurnVisible.not() && tutorialNextAction == TutorialNextAction.Reroll -> state.tutorialAdvice
-        else -> null
-    }
+    val isFinishTurnEnabled = if (state.isTutorial && tutorialNextAction != null) tutorialNextAction == TutorialNextAction.FinishTurn else true
+    val isRollEnabled = if (state.isTutorial && tutorialNextAction != null) tutorialNextAction == TutorialNextAction.Reroll else true
 
     if (isManualInputShown) {
         ModalBottomSheet(
@@ -244,69 +221,98 @@ private fun ButtonsView(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            if (state.game?.isFinished() == true) {
-                if (state.rollAbility != RollAbility.REQUIRED) {
-                    Button(
-                        modifier = Modifier.weight(1f),
-                        onClick = {
-                            onFinishGame()
-                        },
-                        colors = ButtonDefaults.elevatedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        )
-                    ) {
-                        Text("Закончить игру")
-                    }
-                }
-            } else if (state.currentPlayer?.isBot() == false) {
-                if (isFinishTurnVisible) {
-                    Button(
-                        modifier = Modifier.weight(1f),
-                        enabled = isFinishTurnEnabled,
-                        onClick = {
-                            onAction(GameAction.FinishTurn)
-                        },
-                        colors = ButtonDefaults.elevatedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer
-                        )
-                    ) {
-                        Text("Закончить ход")
-                    }
-                }
-
-                if (isRollVisible) {
-                    Button(
-                        modifier = Modifier.weight(1f),
-                        enabled = isRollEnabled,
-                        onClick = {
-                            if (shouldUseManualInput) {
-                                isManualInputShown = true
-                            } else {
-                                onAction(GameAction.RollDice)
-                            }
-                        },
-                        colors = ButtonDefaults.elevatedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
-                        )
-                    ) {
-                        val text = when (state.rollAbility) {
-                            RollAbility.UNAVAILABLE -> ""
-                            RollAbility.REQUIRED -> "Бросить кубики"
-                            else -> "Перебросить (${state.rollAbility.count})"
+            state.buttons.forEach { button ->
+                when (button) {
+                    GameButton.FINISH_GAME -> {
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            onClick = {
+                                onFinishGame()
+                            },
+                            colors = ButtonDefaults.elevatedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            )
+                        ) {
+                            Text("Закончить игру")
                         }
-                        Text(text)
+                    }
+                    GameButton.FINISH_TURN -> {
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            enabled = isFinishTurnEnabled,
+                            onClick = {
+                                onAction(GameAction.FinishTurn)
+                            },
+                            colors = ButtonDefaults.elevatedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer
+                            )
+                        ) {
+                            Text("Закончить ход")
+                        }
+                    }
+                    GameButton.ROLL_THE_DICE -> {
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            enabled = isRollEnabled,
+                            onClick = {
+                                if (shouldUseManualInput) {
+                                    isManualInputShown = true
+                                } else {
+                                    onAction(GameAction.RollDice)
+                                }
+                            },
+                            colors = ButtonDefaults.elevatedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                containerColor = MaterialTheme.colorScheme.primaryContainer
+                            )
+                        ) {
+                            Text("Бросить кубики")
+                        }
+                    }
+                    GameButton.ROLL_AGAIN -> {
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            enabled = isRollEnabled,
+                            onClick = {
+                                if (shouldUseManualInput) {
+                                    isManualInputShown = true
+                                } else {
+                                    onAction(GameAction.RollDice)
+                                }
+                            },
+                            colors = ButtonDefaults.elevatedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                containerColor = MaterialTheme.colorScheme.primaryContainer
+                            )
+                        ) {
+                            Text("Перебросить (${state.rollAbility.count})")
+                        }
+                    }
+                    GameButton.BOT_TURN -> {
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            onClick = {
+                                onAction(GameAction.BotTurn)
+                            },
+                            colors = ButtonDefaults.elevatedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            )
+                        ) {
+                            Text("Ход бота")
+                        }
                     }
                 }
             }
         }
 
-        AnimatedVisibility(tutorialAdvice != null) {
+
+        AnimatedVisibility(state.tutorialAdvice != null) {
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = tutorialAdvice ?: "",
+                text = state.tutorialAdvice ?: "",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall,
                 textAlign = TextAlign.Center

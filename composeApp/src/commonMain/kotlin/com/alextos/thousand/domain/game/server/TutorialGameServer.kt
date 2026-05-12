@@ -2,9 +2,9 @@ package com.alextos.thousand.domain.game.server
 
 import com.alextos.thousand.domain.game.ApplyDiceRollRestrictionsUseCase
 import com.alextos.thousand.domain.game.CalculateDiceRollScoreUseCase
+import com.alextos.thousand.domain.game.DetermineAvailableButtonsUseCase
 import com.alextos.thousand.domain.game.FindCurrentPlayerUseCase
 import com.alextos.thousand.domain.game.FormatTurnEffectUseCase
-import com.alextos.thousand.domain.game.MakeBotReplyUseCase
 import com.alextos.thousand.domain.game.SaveTurnUseCase
 import com.alextos.thousand.domain.game.TutorialNextAction
 import com.alextos.thousand.domain.game.TutorialRollUseCase
@@ -12,6 +12,7 @@ import com.alextos.thousand.domain.game.UpdateGameUseCase
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.Die
 import com.alextos.thousand.domain.models.Game
+import com.alextos.thousand.domain.models.GameButton
 import com.alextos.thousand.domain.models.RollAbility
 import com.alextos.thousand.domain.models.Turn
 import kotlinx.coroutines.delay
@@ -29,8 +30,8 @@ class TutorialGameServer(
     private val applyDiceRollRestrictions: ApplyDiceRollRestrictionsUseCase,
     private val saveTurn: SaveTurnUseCase,
     private val updateGame: UpdateGameUseCase,
-    private val makeBotReply: MakeBotReplyUseCase,
     private val formatTurnEffect: FormatTurnEffectUseCase,
+    private val determineAvailableButtons: DetermineAvailableButtonsUseCase
 ) : GameServer {
     private val _state = MutableStateFlow(GameState())
     override val state = _state.asStateFlow()
@@ -49,6 +50,7 @@ class TutorialGameServer(
                 game = game,
                 currentPlayer = currentPlayer,
                 isTutorial = true,
+                buttons = listOf(GameButton.ROLL_THE_DICE)
             )
         }
         if (currentPlayer?.isBot() == true) {
@@ -69,6 +71,7 @@ class TutorialGameServer(
             is GameAction.ApplyRoll -> applyDiceRoll(action.dice)
             GameAction.FinishRoll -> finishRoll()
             GameAction.FinishTurn -> finishTurn()
+            GameAction.BotTurn -> makeBotTurn()
         }
     }
 
@@ -92,19 +95,7 @@ class TutorialGameServer(
     ) {
         val rawResult = calculateDiceRollScore(dice)
         val currentState = state.value
-        val currentPlayer = currentState.currentPlayer
-        val game = currentState.game
-        val turnTotal = currentState.currentTurn.sumOf { it.result } + rawResult.score
-        val isFinishTurnBlocked = if (currentPlayer != null && game != null) {
-            applyDiceRollRestrictions(
-                rerollAbility = rawResult.rerollAbility,
-                currentPlayer = currentPlayer,
-                game = game,
-                turnTotal = turnTotal,
-            )
-        } else {
-            false
-        }
+        val currentPlayer = currentState.currentPlayer ?: return
         val roll = DiceRoll(
             dice = dice,
             result = rawResult.score,
@@ -118,9 +109,9 @@ class TutorialGameServer(
                 currentTurn = currentTurn,
                 currentRoll = roll,
                 rollAbility = rawResult.rerollAbility,
-                isFinishTurnBlocked = isFinishTurnBlocked,
                 tutorialNextAction = tutorialNextAction,
                 tutorialAdvice = tutorialAdvice,
+                buttons = determineAvailableButtons(currentPlayer, isFirstRoll = false, isGameOver = false, rollAbility = rawResult.rerollAbility)
             )
         }
     }
@@ -161,21 +152,18 @@ class TutorialGameServer(
         }
     }
 
-    private suspend fun continueGame(game: Game, turn: Turn) {
-        val nextPlayer = findCurrentPlayer(game, turn)
+    private fun continueGame(game: Game, turn: Turn) {
+        val nextPlayer = findCurrentPlayer(game, turn) ?: return
         _state.update {
             it.copy(
                 rollAbility = RollAbility.REQUIRED,
-                isFinishTurnBlocked = false,
                 currentRoll = null,
                 currentTurn = emptyList(),
                 currentPlayer = nextPlayer,
                 tutorialNextAction = null,
                 tutorialAdvice = null,
+                buttons = determineAvailableButtons(nextPlayer, isFirstRoll = true, isGameOver = false, rollAbility = RollAbility.REQUIRED)
             )
-        }
-        if (nextPlayer?.isBot() == true) {
-            makeBotTurn()
         }
     }
 
@@ -183,24 +171,24 @@ class TutorialGameServer(
         _state.update {
             it.copy(
                 rollAbility = RollAbility.UNAVAILABLE,
-                isFinishTurnBlocked = false,
                 currentRoll = null,
                 currentTurn = emptyList(),
                 currentPlayer = null,
                 tutorialNextAction = null,
                 tutorialAdvice = null,
+                buttons = determineAvailableButtons(isFirstRoll = false, isGameOver = true, rollAbility = RollAbility.REQUIRED, currentPlayer = null)
             )
         }
     }
 
     private suspend fun makeBotTurn() {
         while (true) {
-            delay(3000L)
             when (state.value.tutorialNextAction) {
                 TutorialNextAction.Reroll -> rollTheDice()
                 TutorialNextAction.FinishTurn -> break
                 null -> rollTheDice()
             }
+            delay(3000L)
         }
         delay(2000L)
         finishTurn()

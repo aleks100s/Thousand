@@ -20,6 +20,7 @@ import com.alextos.thousand.domain.service.ShakeDeviceObserver
 import com.alextos.thousand.domain.service.StorageService
 import com.alextos.thousand.domain.game.ApplyDiceRollRestrictionsUseCase
 import com.alextos.thousand.domain.game.CalculateDiceRollScoreUseCase
+import com.alextos.thousand.domain.game.DetermineAvailableButtonsUseCase
 import com.alextos.thousand.domain.usecase.game.CreateGameUseCase
 import com.alextos.thousand.domain.usecase.game.CreateRematchUseCase
 import com.alextos.thousand.domain.usecase.game.DeleteGameUseCase
@@ -114,4 +115,5 @@ fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     factory { TutorialGameServer(get(), get(), get(), get(), get(), get(), get(), get()) }
     factory { MakeBotRollUseCase() }
     factory { MakeBotReplyUseCase() }
+    factory { DetermineAvailableButtonsUseCase() }
 }

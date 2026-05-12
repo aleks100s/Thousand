@@ -7,4 +7,5 @@ sealed interface GameAction {
     data class ApplyRoll(val dice: List<Die>): GameAction
     data object FinishRoll: GameAction
     data object FinishTurn: GameAction
+    data object BotTurn: GameAction
 }
