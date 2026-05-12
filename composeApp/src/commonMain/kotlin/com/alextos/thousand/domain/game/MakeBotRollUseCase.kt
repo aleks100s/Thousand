@@ -10,7 +10,7 @@ import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.RollAbility
 
-class MakeBotRollUseCase() {
+class MakeBotRollUseCase {
     operator fun invoke(
         rollAbility: RollAbility,
         bot: Player,
@@ -22,6 +22,7 @@ class MakeBotRollUseCase() {
             RollAbility.REQUIRED -> return true
             else -> {
                 if (bot.hasPassedStartLimit.not() && turnTotal < STARTING_LIMIT) return true
+                if (bot.hasPassedStartLimit.not() && turnTotal >= STARTING_LIMIT) return false
                 if (bot.currentScore + turnTotal >= GAME_GOAL) return false
                 if (bot.currentScore + turnTotal == PIT_SCORE) return true
                 if (bot.isInBarrel(game, turnTotal)) return true

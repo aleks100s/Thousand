@@ -132,7 +132,7 @@ fun CreateGameScreen(
         floatingActionButton = {
             when (state.step) {
                 CreateGameStep.Players -> {
-                    AnimatedVisibility(state.selectedUsers.isNotEmpty()) {
+                    AnimatedVisibility(state.selectedUsers.count() > 1) {
                         ExtendedFloatingActionButton(
                             onClick = {
                                 viewModel.onAction(CreateGameAction.OpenSettingsStep)
