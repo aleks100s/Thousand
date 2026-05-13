@@ -122,7 +122,7 @@ private fun CurrentRollView(
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             roll.dice.forEachIndexed { index, die ->
-                RollingDiceView(die, delay = if (animate) (index + 1) * 250L else 0L)
+                RollingDieView(die, delay = if (animate) (index + 1) * 250L else 0L)
             }
         }
 

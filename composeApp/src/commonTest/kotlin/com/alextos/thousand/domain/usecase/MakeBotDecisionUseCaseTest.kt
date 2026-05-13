@@ -1,6 +1,7 @@
 package com.alextos.thousand.domain.usecase
 
-import com.alextos.thousand.domain.game.MakeBotRollUseCase
+import com.alextos.thousand.domain.game.BotDecision
+import com.alextos.thousand.domain.game.MakeBotDecisionUseCase
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.RollAbility
@@ -12,8 +13,8 @@ import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class MakeBotRollUseCaseTest {
-    private val useCase = MakeBotRollUseCase()
+class MakeBotDecisionUseCaseTest {
+    private val useCase = MakeBotDecisionUseCase()
 
     @Test
     fun botStopsWhenRerollIsUnavailable() = runSuspend {
@@ -24,7 +25,7 @@ class MakeBotRollUseCaseTest {
             bot = bot,
             game = createGame(bot),
             turnTotal = 0,
-        )
+        ) == BotDecision.CONTINUE
 
         assertFalse(shouldRoll)
     }
@@ -38,7 +39,7 @@ class MakeBotRollUseCaseTest {
             bot = bot,
             game = createGame(bot),
             turnTotal = 0,
-        )
+        ) == BotDecision.CONTINUE
 
         assertTrue(shouldRoll)
     }
@@ -52,7 +53,7 @@ class MakeBotRollUseCaseTest {
             bot = bot,
             game = createGame(bot),
             turnTotal = 45,
-        )
+        ) == BotDecision.CONTINUE
 
         assertTrue(shouldRoll)
     }
@@ -66,7 +67,7 @@ class MakeBotRollUseCaseTest {
             bot = bot,
             game = createGame(bot),
             turnTotal = 10,
-        )
+        ) == BotDecision.CONTINUE
 
         assertFalse(shouldRoll)
     }
@@ -80,7 +81,7 @@ class MakeBotRollUseCaseTest {
             bot = bot,
             game = createGame(bot),
             turnTotal = 55,
-        )
+        ) == BotDecision.CONTINUE
 
         assertTrue(shouldRoll)
     }
@@ -94,7 +95,7 @@ class MakeBotRollUseCaseTest {
             bot = bot,
             game = createGame(bot, isBarrel1Active = true),
             turnTotal = 25,
-        )
+        ) == BotDecision.CONTINUE
 
         assertTrue(shouldRoll)
     }
@@ -108,7 +109,7 @@ class MakeBotRollUseCaseTest {
             bot = bot,
             game = createGame(bot, isBarrel1Active = false),
             turnTotal = 25,
-        )
+        ) == BotDecision.CONTINUE
 
         assertFalse(shouldRoll)
     }
@@ -122,7 +123,7 @@ class MakeBotRollUseCaseTest {
             bot = bot,
             game = createGame(bot, isBarrel2Active = true),
             turnTotal = 25,
-        )
+        ) == BotDecision.CONTINUE
 
         assertTrue(shouldRoll)
     }
@@ -136,7 +137,7 @@ class MakeBotRollUseCaseTest {
             bot = bot,
             game = createGame(bot, isBarrel3Active = true),
             turnTotal = 25,
-        )
+        ) == BotDecision.CONTINUE
 
         assertTrue(shouldRoll)
     }
@@ -150,7 +151,7 @@ class MakeBotRollUseCaseTest {
             bot = bot,
             game = createGame(bot),
             turnTotal = 50,
-        )
+        ) == BotDecision.CONTINUE
 
         assertFalse(shouldRoll)
     }
@@ -164,7 +165,7 @@ class MakeBotRollUseCaseTest {
             bot = bot,
             game = createGame(bot),
             turnTotal = 50,
-        )
+        ) == BotDecision.CONTINUE
 
         assertFalse(shouldRoll)
     }
@@ -178,7 +179,7 @@ class MakeBotRollUseCaseTest {
             bot = bot,
             game = createGame(bot),
             turnTotal = 100,
-        )
+        ) == BotDecision.CONTINUE
 
         assertFalse(shouldRoll)
     }
@@ -192,7 +193,7 @@ class MakeBotRollUseCaseTest {
             bot = bot,
             game = createGame(bot),
             turnTotal = 50,
-        )
+        ) == BotDecision.CONTINUE
 
         assertTrue(shouldRoll)
     }

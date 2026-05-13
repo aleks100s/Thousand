@@ -101,11 +101,10 @@ fun PlayGameScreen(
                 }
 
                 state.gameState.game
-                    ?.takeIf { state.gameState.currentTurn.isEmpty() }
                     ?.let {
                     TextButton(onClick = {
                         onScoreClick(it)
-                    }) {
+                    }, enabled = state.gameState.currentTurn.isNotEmpty()) {
                         Text("Счет")
                     }
                 }

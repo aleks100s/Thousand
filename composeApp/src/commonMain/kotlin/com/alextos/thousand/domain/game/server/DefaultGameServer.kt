@@ -1,11 +1,12 @@
 package com.alextos.thousand.domain.game.server
 
+import com.alextos.thousand.domain.game.BotDecision
 import com.alextos.thousand.domain.game.CalculateDiceRollScoreUseCase
 import com.alextos.thousand.domain.game.DetermineAvailableButtonsUseCase
 import com.alextos.thousand.domain.game.FindCurrentPlayerUseCase
 import com.alextos.thousand.domain.game.FormatTurnEffectUseCase
 import com.alextos.thousand.domain.game.MakeBotReplyUseCase
-import com.alextos.thousand.domain.game.MakeBotRollUseCase
+import com.alextos.thousand.domain.game.MakeBotDecisionUseCase
 import com.alextos.thousand.domain.game.RollTheDiceUseCase
 import com.alextos.thousand.domain.game.SaveTurnUseCase
 import com.alextos.thousand.domain.game.UpdateGameUseCase
@@ -31,7 +32,7 @@ class DefaultGameServer(
     private val calculateDiceRollScore: CalculateDiceRollScoreUseCase,
     private val saveTurn: SaveTurnUseCase,
     private val updateGame: UpdateGameUseCase,
-    private val makeBotRoll: MakeBotRollUseCase,
+    private val makeBotRoll: MakeBotDecisionUseCase,
     private val makeBotReply: MakeBotReplyUseCase,
     private val formatTurnEffect: FormatTurnEffectUseCase,
     private val determineAvailableButtons: DetermineAvailableButtonsUseCase
@@ -158,7 +159,7 @@ class DefaultGameServer(
             val bot = value.currentPlayer ?: return
             val game = value.game ?: return
             val turnTotal = value.currentTurn.sumOf { it.result }
-            if (makeBotRoll(value.rollAbility, bot, game, turnTotal)) {
+            if (makeBotRoll(value.rollAbility, bot, game, turnTotal) == BotDecision.CONTINUE) {
                 rollTheDice()
             } else {
                 break

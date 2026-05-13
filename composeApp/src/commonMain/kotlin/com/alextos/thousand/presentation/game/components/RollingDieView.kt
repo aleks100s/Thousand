@@ -14,7 +14,7 @@ import com.alextos.thousand.domain.models.DieValue
 import kotlinx.coroutines.delay
 
 @Composable
-fun RollingDiceView(die: Die, delay: Long) {
+fun RollingDieView(die: Die, delay: Long) {
     var currentDie by remember { mutableStateOf(DieValue.entries.random()) }
     var currentDelay by remember { mutableStateOf(0L) }
 
@@ -30,5 +30,5 @@ fun RollingDiceView(die: Die, delay: Long) {
         currentDie = die.value
     }
 
-    SingleDieView(dieValue = currentDie, modifier = Modifier.size(40.dp))
+    SingleDieView(dieValue = currentDie, modifier = Modifier.size(48.dp))
 }

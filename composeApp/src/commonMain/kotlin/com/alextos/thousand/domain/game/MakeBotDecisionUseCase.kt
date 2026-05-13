@@ -10,27 +10,27 @@ import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.RollAbility
 
-class MakeBotRollUseCase {
+class MakeBotDecisionUseCase {
     operator fun invoke(
         rollAbility: RollAbility,
         bot: Player,
         game: Game,
         turnTotal: Int
-    ): Boolean {
+    ): BotDecision {
         when (rollAbility) {
-            RollAbility.UNAVAILABLE -> return false
-            RollAbility.REQUIRED -> return true
+            RollAbility.UNAVAILABLE -> return BotDecision.FINISH
+            RollAbility.REQUIRED -> return BotDecision.CONTINUE
             else -> {
-                if (game.hasStartLimit && bot.hasPassedStartLimit.not() && turnTotal < STARTING_LIMIT) return true
-                if (game.hasStartLimit && bot.hasPassedStartLimit.not() && turnTotal >= STARTING_LIMIT) return false
-                if (bot.currentScore + turnTotal >= GAME_GOAL) return false
-                if (bot.currentScore + turnTotal == PIT_SCORE) return true
-                if (bot.isInBarrel(game, turnTotal)) return true
-                if (bot.boltCount == DANGEROUS_BOLT_COUNT) return false
-                if (rollAbility.count <= SAFE_STOP_DICE_COUNT) return false
-                if (turnTotal >= 100) return false
+                if (game.hasStartLimit && bot.hasPassedStartLimit.not() && turnTotal < STARTING_LIMIT) return BotDecision.CONTINUE
+                if (game.hasStartLimit && bot.hasPassedStartLimit.not() && turnTotal >= STARTING_LIMIT) return BotDecision.FINISH
+                if (bot.currentScore + turnTotal >= GAME_GOAL) return BotDecision.FINISH
+                if (bot.currentScore + turnTotal == PIT_SCORE) return BotDecision.CONTINUE
+                if (bot.isInBarrel(game, turnTotal)) return BotDecision.CONTINUE
+                if (bot.boltCount == DANGEROUS_BOLT_COUNT) return BotDecision.FINISH
+                if (rollAbility.count <= SAFE_STOP_DICE_COUNT) return BotDecision.FINISH
+                if (turnTotal >= 100) return BotDecision.FINISH
 
-                return true
+                return BotDecision.CONTINUE
             }
         }
     }
@@ -46,4 +46,9 @@ class MakeBotRollUseCase {
         const val DANGEROUS_BOLT_COUNT = 2
         const val SAFE_STOP_DICE_COUNT = 2
     }
+}
+
+enum class BotDecision {
+    FINISH,
+    CONTINUE
 }
