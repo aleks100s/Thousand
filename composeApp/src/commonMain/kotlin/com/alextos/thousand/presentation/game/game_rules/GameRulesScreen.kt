@@ -23,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -225,7 +226,8 @@ private fun RerollExampleDie(
 ) {
     SingleDieView(
         modifier = Modifier
-            .size(42.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .size(48.dp)
             .border(
                 border = BorderStroke(2.dp, borderColor),
                 shape = RoundedCornerShape(10.dp),

@@ -1,6 +1,7 @@
 package com.alextos.thousand.presentation.game.components
 
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -8,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.alextos.thousand.domain.models.Die
 import com.alextos.thousand.domain.models.DieValue
@@ -30,5 +32,5 @@ fun RollingDieView(die: Die, delay: Long) {
         currentDie = die.value
     }
 
-    SingleDieView(dieValue = currentDie, modifier = Modifier.size(48.dp))
+    SingleDieView(dieValue = currentDie, modifier = Modifier.clip(RoundedCornerShape(4.dp)).size(48.dp))
 }

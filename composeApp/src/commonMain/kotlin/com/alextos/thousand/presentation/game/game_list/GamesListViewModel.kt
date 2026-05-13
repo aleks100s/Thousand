@@ -43,7 +43,7 @@ class GamesListViewModel(
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        games = games.map { game -> game.toUi() },
+                        games = games.reversed().map { game -> game.toUi() },
                     )
                 }
             }

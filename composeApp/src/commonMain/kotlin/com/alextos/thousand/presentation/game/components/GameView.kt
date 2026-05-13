@@ -138,7 +138,7 @@ private fun CurrentRollView(
         isResultVisible?.let {
             AnimatedVisibility(it) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    HorizontalDivider(Modifier.width(220.dp))
+                    HorizontalDivider(Modifier.width(256.dp))
 
                     if (roll.rollDescription != null) {
                         Text(
