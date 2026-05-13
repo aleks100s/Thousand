@@ -28,7 +28,7 @@ class MakeBotDecisionUseCase {
                 if (bot.isInBarrel(game, turnTotal)) return BotDecision.CONTINUE
                 if (bot.boltCount == DANGEROUS_BOLT_COUNT) return BotDecision.FINISH
                 if (rollAbility.count <= SAFE_STOP_DICE_COUNT) return BotDecision.FINISH
-                if (turnTotal >= 100) return BotDecision.FINISH
+                if (turnTotal >= 50) return BotDecision.FINISH
 
                 return BotDecision.CONTINUE
             }

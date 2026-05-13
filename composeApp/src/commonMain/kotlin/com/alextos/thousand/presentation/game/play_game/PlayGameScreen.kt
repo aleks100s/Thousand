@@ -104,7 +104,7 @@ fun PlayGameScreen(
                     ?.let {
                     TextButton(onClick = {
                         onScoreClick(it)
-                    }, enabled = state.gameState.currentTurn.isNotEmpty()) {
+                    }, enabled = state.gameState.currentTurn.isEmpty()) {
                         Text("Счет")
                     }
                 }

@@ -8,6 +8,7 @@ class DetermineAvailableButtonsUseCase {
     operator fun invoke(
         currentPlayer: Player?,
         isFirstRoll: Boolean,
+        isTutorial: Boolean,
         isGameOver: Boolean,
         rollAbility: RollAbility
     ): List<GameButton> {
@@ -16,7 +17,7 @@ class DetermineAvailableButtonsUseCase {
         }
 
         if (currentPlayer?.isBot() == true) {
-            return if (isFirstRoll) listOf(GameButton.BOT_TURN) else emptyList()
+            return if (isFirstRoll && isTutorial) listOf(GameButton.BOT_TURN) else emptyList()
         }
 
         if (isFirstRoll) {

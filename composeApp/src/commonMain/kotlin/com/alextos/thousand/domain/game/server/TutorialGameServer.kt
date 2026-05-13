@@ -111,7 +111,7 @@ class TutorialGameServer(
                 rollAbility = rawResult.rerollAbility,
                 tutorialNextAction = tutorialNextAction,
                 tutorialAdvice = tutorialAdvice,
-                buttons = determineAvailableButtons(currentPlayer, isFirstRoll = false, isGameOver = false, rollAbility = rawResult.rerollAbility)
+                buttons = determineAvailableButtons(currentPlayer, isFirstRoll = false, isGameOver = false, rollAbility = rawResult.rerollAbility, isTutorial = true)
             )
         }
     }
@@ -162,7 +162,7 @@ class TutorialGameServer(
                 currentPlayer = nextPlayer,
                 tutorialNextAction = null,
                 tutorialAdvice = null,
-                buttons = determineAvailableButtons(nextPlayer, isFirstRoll = true, isGameOver = false, rollAbility = RollAbility.REQUIRED)
+                buttons = determineAvailableButtons(nextPlayer, isFirstRoll = true, isGameOver = false, rollAbility = RollAbility.REQUIRED, isTutorial = true)
             )
         }
     }
@@ -176,7 +176,7 @@ class TutorialGameServer(
                 currentPlayer = null,
                 tutorialNextAction = null,
                 tutorialAdvice = null,
-                buttons = determineAvailableButtons(isFirstRoll = false, isGameOver = true, rollAbility = RollAbility.REQUIRED, currentPlayer = null)
+                buttons = determineAvailableButtons(isFirstRoll = false, isGameOver = true, rollAbility = RollAbility.REQUIRED, currentPlayer = null, isTutorial = true)
             )
         }
     }

@@ -53,8 +53,11 @@ class DefaultGameServer(
                 isLoading = false,
                 game = game,
                 currentPlayer = currentPlayer,
-                buttons = listOf(if (currentPlayer?.isBot() == true) GameButton.BOT_TURN else GameButton.ROLL_THE_DICE)
+                buttons = listOf(GameButton.ROLL_THE_DICE)
             )
+        }
+        if (currentPlayer?.isBot() == true) {
+            makeBotTurn()
         }
     }
 
@@ -92,7 +95,7 @@ class DefaultGameServer(
                 currentTurn = currentTurn,
                 currentRoll = roll,
                 rollAbility = rawResult.rerollAbility,
-                buttons = determineAvailableButtons(currentPlayer, isFirstRoll = false, isGameOver = false, rollAbility = rawResult.rerollAbility)
+                buttons = determineAvailableButtons(currentPlayer, isFirstRoll = false, isGameOver = false, rollAbility = rawResult.rerollAbility, isTutorial = false)
             )
         }
     }
@@ -128,7 +131,7 @@ class DefaultGameServer(
         }
     }
 
-    private fun continueGame(game: Game, turn: Turn) {
+    private suspend fun continueGame(game: Game, turn: Turn) {
         val nextPlayer = findCurrentPlayer(game, turn) ?: return
         _state.update {
             it.copy(
@@ -136,8 +139,12 @@ class DefaultGameServer(
                 currentRoll = null,
                 currentTurn = emptyList(),
                 currentPlayer = nextPlayer,
-                buttons = determineAvailableButtons(nextPlayer, isFirstRoll = true, isGameOver = false, rollAbility = RollAbility.REQUIRED)
+                buttons = determineAvailableButtons(nextPlayer, isFirstRoll = true, isGameOver = false, rollAbility = RollAbility.REQUIRED, isTutorial = false)
             )
+        }
+
+        if (nextPlayer.isBot()) {
+            makeBotTurn()
         }
     }
 
@@ -148,13 +155,14 @@ class DefaultGameServer(
                 currentRoll = null,
                 currentTurn = emptyList(),
                 currentPlayer = null,
-                buttons = determineAvailableButtons(isFirstRoll = false, isGameOver = true, rollAbility = RollAbility.REQUIRED, currentPlayer = null)
+                buttons = determineAvailableButtons(isFirstRoll = false, isGameOver = true, rollAbility = RollAbility.REQUIRED, currentPlayer = null, isTutorial = false)
             )
         }
     }
 
     private suspend fun makeBotTurn() {
         while (true) {
+            delay(1500L)
             val value = state.value
             val bot = value.currentPlayer ?: return
             val game = value.game ?: return
@@ -164,7 +172,6 @@ class DefaultGameServer(
             } else {
                 break
             }
-            delay(1500L)
         }
         delay(2000L)
         finishTurn()
