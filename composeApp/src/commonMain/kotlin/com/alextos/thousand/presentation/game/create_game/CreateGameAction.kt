@@ -11,7 +11,6 @@ sealed interface CreateGameAction {
     data object OpenSettingsStep : CreateGameAction
     data class UpdateNewUserName(val value: String) : CreateGameAction
     data class ToggleUserSelection(val user: User) : CreateGameAction
-    data class DeleteUser(val user: User) : CreateGameAction
     data class SetNotificationEnabled(val isEnabled: Boolean) : CreateGameAction
     data class SetVirtualDiceEnabled(val isEnabled: Boolean) : CreateGameAction
     data class SetShakeEnabled(val isEnabled: Boolean) : CreateGameAction

@@ -6,7 +6,6 @@ import com.alextos.thousand.domain.models.User
 import com.alextos.thousand.domain.models.UserKind
 import com.alextos.thousand.domain.service.StorageService
 import com.alextos.thousand.domain.usecase.game.crud.CreateGameUseCase
-import com.alextos.thousand.domain.usecase.user.DeleteUserUseCase
 import com.alextos.thousand.domain.usecase.user.GenerateBotNameUseCase
 import com.alextos.thousand.domain.usecase.user.GetAllUsersUseCase
 import com.alextos.thousand.domain.usecase.user.SaveUserUseCase
@@ -22,7 +21,6 @@ import kotlinx.coroutines.launch
 class CreateGameViewModel(
     private val getAllUsersUseCase: GetAllUsersUseCase,
     private val saveUserUseCase: SaveUserUseCase,
-    private val deleteUserUseCase: DeleteUserUseCase,
     private val createGameUseCase: CreateGameUseCase,
     private val generateBotNameUseCase: GenerateBotNameUseCase,
     private val storageService: StorageService,
@@ -46,7 +44,6 @@ class CreateGameViewModel(
             CreateGameAction.OpenSettingsStep -> openSettingsStep()
             is CreateGameAction.UpdateNewUserName -> updateNewUserName(action.value)
             is CreateGameAction.ToggleUserSelection -> toggleUserSelection(action.user)
-            is CreateGameAction.DeleteUser -> deleteUser(action.user)
             is CreateGameAction.SetNotificationEnabled -> setNotificationEnabled(action.isEnabled)
             is CreateGameAction.SetVirtualDiceEnabled -> setVirtualDiceEnabled(action.isEnabled)
             is CreateGameAction.SetShakeEnabled -> setShakeEnabled(action.isEnabled)
@@ -176,15 +173,6 @@ class CreateGameViewModel(
                     newUserKind = UserKind.LocalUser,
                     isAddUserSheetVisible = false,
                 )
-            }
-        }
-    }
-
-    private fun deleteUser(user: User) {
-        viewModelScope.launch {
-            deleteUserUseCase(user.id)
-            _state.update { state ->
-                state.copy(selectedUsers = state.selectedUsers - user)
             }
         }
     }

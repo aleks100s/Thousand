@@ -2,11 +2,9 @@ package com.alextos.thousand.presentation.game.create_game
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -28,8 +26,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -37,7 +33,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
@@ -180,9 +175,6 @@ fun CreateGameScreen(
                         onToggleUser = { user ->
                             viewModel.onAction(CreateGameAction.ToggleUserSelection(user))
                         },
-                        onDeleteUser = { user ->
-                            viewModel.onAction(CreateGameAction.DeleteUser(user))
-                        },
                     )
                 }
                 CreateGameStep.Settings -> {
@@ -267,7 +259,6 @@ private fun PlayersGrid(
     onAddUser: () -> Unit,
     onAddBot: () -> Unit,
     onToggleUser: (User) -> Unit,
-    onDeleteUser: (User) -> Unit,
 ) {
     BoxWithConstraints(modifier) {
         val columns = if (maxHeight >= maxWidth) {
@@ -300,9 +291,6 @@ private fun PlayersGrid(
                     isSelected = selectedUsers.contains(user),
                     onClick = {
                         onToggleUser(user)
-                    },
-                    onDelete = {
-                        onDeleteUser(user)
                     },
                 )
             }
@@ -402,113 +390,82 @@ private fun AddBotCard(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun PlayerCard(
     user: User,
     isSelected: Boolean,
     onClick: () -> Unit,
-    onDelete: () -> Unit,
 ) {
-    var isMenuExpanded by remember { mutableStateOf(false) }
-
-    Box {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(PLAYER_CARD_HEIGHT)
-                .combinedClickable(
-                    onClick = onClick,
-                    onLongClick = {
-                        if (user.kind != UserKind.MainUser) {
-                            isMenuExpanded = true
-                        }
-                    },
-                ),
-            border = BorderStroke(
-                width = if (isSelected) 2.dp else 1.dp,
-                color = if (isSelected) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.outlineVariant
-                },
-            ),
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(12.dp),
-            ) {
-                Checkbox(
-                    modifier = Modifier
-                        .offset(x = 8.dp, y = (-8).dp)
-                        .align(Alignment.TopEnd),
-                    checked = isSelected,
-                    onCheckedChange = {
-                        onClick()
-                    },
-                )
-
-                Column(
-                    modifier = Modifier.align(Alignment.Center),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .border(
-                                border = BorderStroke(
-                                    width = 2.dp,
-                                    color = if (user.kind == UserKind.MainUser) MaterialTheme.colorScheme.secondary else Color.Transparent,
-                                ),
-                                shape = CircleShape
-                            )
-                    ) {
-                        if (user.kind == UserKind.Bot) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.tertiaryContainer)
-                                    .size(56.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(Res.drawable.robot_24px),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.tertiary
-                                )
-                            }
-                        } else {
-                            UserAvatar(user)
-                        }
-                    }
-
-                    Text(
-                        text = user.name,
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-            }
-        }
-
-        DropdownMenu(
-            expanded = isMenuExpanded,
-            onDismissRequest = {
-                isMenuExpanded = false
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(PLAYER_CARD_HEIGHT)
+            .clickable(onClick = onClick),
+        border = BorderStroke(
+            width = if (isSelected) 2.dp else 1.dp,
+            color = if (isSelected) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.outlineVariant
             },
+        ),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
         ) {
-            DropdownMenuItem(
-                text = {
-                    Text("Удалить")
+            Checkbox(
+                modifier = Modifier
+                    .offset(x = 8.dp, y = (-8).dp)
+                    .align(Alignment.TopEnd),
+                checked = isSelected,
+                onCheckedChange = {
+                    onClick()
                 },
-                onClick = {
-                    isMenuExpanded = false
-                    onDelete()
-                },
-                colors = MenuDefaults.itemColors(textColor = MaterialTheme.colorScheme.error)
             )
+
+            Column(
+                modifier = Modifier.align(Alignment.Center),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .border(
+                            border = BorderStroke(
+                                width = 2.dp,
+                                color = if (user.kind == UserKind.MainUser) MaterialTheme.colorScheme.secondary else Color.Transparent,
+                            ),
+                            shape = CircleShape
+                        )
+                ) {
+                    if (user.kind == UserKind.Bot) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.tertiaryContainer)
+                                .size(56.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(Res.drawable.robot_24px),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.tertiary
+                            )
+                        }
+                    } else {
+                        UserAvatar(user)
+                    }
+                }
+
+                Text(
+                    text = user.name,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
         }
     }
 }

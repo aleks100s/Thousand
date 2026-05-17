@@ -44,6 +44,7 @@ import com.alextos.thousand.domain.usecase.game.RollTheDiceUseCase
 import com.alextos.thousand.domain.usecase.game.SaveTurnUseCase
 import com.alextos.thousand.domain.usecase.game.TutorialRollUseCase
 import com.alextos.thousand.domain.usecase.user.SaveUserUseCase
+import com.alextos.thousand.domain.usecase.user.UpdateUserUseCase
 import com.alextos.thousand.domain.usecase.game.crud.UpdateGameUseCase
 import com.alextos.thousand.presentation.game.create_game.CreateGameViewModel
 import com.alextos.thousand.presentation.game.game_list.GamesListViewModel
@@ -114,6 +115,7 @@ fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     factory { UpdateGameUseCase(get()) }
     factory { DeleteGameUseCase(get()) }
     factory { DeleteUserUseCase(get()) }
+    factory { UpdateUserUseCase(get()) }
     single { shakeDeviceObserver }
     factory { DefaultGameServer(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     factory { TutorialGameServer(get(), get(), get(), get(), get(), get(), get(), get()) }

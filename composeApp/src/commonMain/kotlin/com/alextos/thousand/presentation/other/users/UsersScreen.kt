@@ -13,14 +13,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,7 +44,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
 import thousand.composeapp.generated.resources.person_24px
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun UsersScreen(
     onGoBack: () -> Unit,
@@ -78,6 +83,9 @@ fun UsersScreen(
                     ) { user ->
                         UserItem(
                             user = user,
+                            onRename = {
+                                viewModel.onAction(UsersAction.StartRenameUser(user))
+                            },
                             onDelete = {
                                 viewModel.onAction(UsersAction.DeleteUser(user))
                             },
@@ -91,12 +99,62 @@ fun UsersScreen(
             }
         }
     }
+
+    if (state.editingUser != null) {
+        ModalBottomSheet(
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            onDismissRequest = {
+                viewModel.onAction(UsersAction.HideRenameUserSheet)
+            },
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Text(
+                    text = "Переименовать пользователя",
+                    style = MaterialTheme.typography.titleMedium,
+                )
+
+                OutlinedTextField(
+                    value = state.editingUserName,
+                    onValueChange = { value ->
+                        viewModel.onAction(UsersAction.UpdateEditingUserName(value))
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = {
+                        Text("Имя пользователя")
+                    },
+                    isError = state.editingUserNameError != null,
+                    supportingText = state.editingUserNameError?.let { error ->
+                        {
+                            Text(error)
+                        }
+                    },
+                    singleLine = true,
+                )
+
+                Button(
+                    onClick = {
+                        viewModel.onAction(UsersAction.SaveEditingUser)
+                    },
+                    enabled = state.canSaveEditingUser,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Сохранить")
+                }
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun UserItem(
     user: User,
+    onRename: () -> Unit,
     onDelete: () -> Unit,
 ) {
     var isMenuExpanded by remember { mutableStateOf(false) }
@@ -144,14 +202,25 @@ private fun UserItem(
         ) {
             DropdownMenuItem(
                 text = {
-                    Text("Удалить")
+                    Text("Переименовать")
                 },
                 onClick = {
                     isMenuExpanded = false
-                    onDelete()
+                    onRename()
                 },
-                colors = MenuDefaults.itemColors(textColor = MaterialTheme.colorScheme.error),
             )
+            if (user.kind != UserKind.MainUser) {
+                DropdownMenuItem(
+                    text = {
+                        Text("Удалить")
+                    },
+                    onClick = {
+                        isMenuExpanded = false
+                        onDelete()
+                    },
+                    colors = MenuDefaults.itemColors(textColor = MaterialTheme.colorScheme.error),
+                )
+            }
         }
     }
 }
