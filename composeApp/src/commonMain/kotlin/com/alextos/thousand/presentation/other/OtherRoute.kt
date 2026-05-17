@@ -14,4 +14,7 @@ sealed interface OtherRoute {
 
     @Serializable
     data object Statistics : OtherRoute
+
+    @Serializable
+    data object Users : OtherRoute
 }

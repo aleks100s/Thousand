@@ -22,6 +22,7 @@ fun OtherScreen(
     openRules: () -> Unit,
     openTutorial: () -> Unit,
     openStatistics: () -> Unit,
+    openUsers: () -> Unit,
 ) {
     Screen(
         modifier = Modifier,
@@ -48,6 +49,11 @@ fun OtherScreen(
                 title = "Статистика",
                 description = "Игры, ходы, броски и кубики",
                 onClick = openStatistics,
+            )
+            OtherTile(
+                title = "Пользователи",
+                description = "Список локальных игроков и ботов",
+                onClick = openUsers,
             )
         }
     }

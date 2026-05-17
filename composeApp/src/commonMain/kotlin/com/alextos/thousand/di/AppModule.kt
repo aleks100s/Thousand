@@ -47,16 +47,17 @@ import com.alextos.thousand.domain.usecase.user.SaveUserUseCase
 import com.alextos.thousand.domain.usecase.game.crud.UpdateGameUseCase
 import com.alextos.thousand.presentation.game.create_game.CreateGameViewModel
 import com.alextos.thousand.presentation.game.game_list.GamesListViewModel
-import com.alextos.thousand.presentation.game.game_rules.GameRulesViewModel
+import com.alextos.thousand.presentation.other.game_rules.GameRulesViewModel
 import com.alextos.thousand.presentation.game.game_results.GameResultsViewModel
 import com.alextos.thousand.presentation.game.game_score.GameScoreViewModel
 import com.alextos.thousand.presentation.game.play_game.PlayGameViewModel
-import com.alextos.thousand.presentation.game.tutorial_game.TutorialGameViewModel
+import com.alextos.thousand.presentation.other.tutorial_game.TutorialGameViewModel
 import com.alextos.thousand.presentation.onboarding.FirstUserViewModel
-import com.alextos.thousand.presentation.statistics.dice_statistics.DiceStatisticsViewModel
-import com.alextos.thousand.presentation.statistics.games_statistics.GamesStatisticsViewModel
-import com.alextos.thousand.presentation.statistics.roll_statistics.RollsStatisticsViewModel
-import com.alextos.thousand.presentation.statistics.turn_statistics.TurnsStatisticsViewModel
+import com.alextos.thousand.presentation.other.users.UsersViewModel
+import com.alextos.thousand.presentation.other.statistics.dice_statistics.DiceStatisticsViewModel
+import com.alextos.thousand.presentation.other.statistics.games_statistics.GamesStatisticsViewModel
+import com.alextos.thousand.presentation.other.statistics.roll_statistics.RollsStatisticsViewModel
+import com.alextos.thousand.presentation.other.statistics.turn_statistics.TurnsStatisticsViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
@@ -95,6 +96,7 @@ fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     viewModelOf(::PlayGameViewModel)
     viewModelOf(::GameScoreViewModel)
     viewModelOf(::GameResultsViewModel)
+    viewModelOf(::UsersViewModel)
     viewModelOf(::DiceStatisticsViewModel)
     viewModelOf(::GamesStatisticsViewModel)
     viewModelOf(::RollsStatisticsViewModel)

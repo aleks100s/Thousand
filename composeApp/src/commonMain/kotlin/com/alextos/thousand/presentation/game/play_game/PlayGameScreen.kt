@@ -35,7 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.presentation.game.components.GameView
-import com.alextos.thousand.presentation.game.game_rules.GameRulesContent
+import com.alextos.thousand.presentation.other.game_rules.GameRulesContent
 import com.alextos.thousand.presentation.game.play_game.components.GameRulesView
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch

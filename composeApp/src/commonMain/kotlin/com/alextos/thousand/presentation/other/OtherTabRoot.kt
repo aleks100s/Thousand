@@ -4,9 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.alextos.thousand.common.horizontalTransition
-import com.alextos.thousand.presentation.game.game_rules.GameRulesScreen
-import com.alextos.thousand.presentation.game.tutorial_game.TutorialGameScreen
-import com.alextos.thousand.presentation.statistics.StatisticsTabRoot
+import com.alextos.thousand.presentation.other.game_rules.GameRulesScreen
+import com.alextos.thousand.presentation.other.tutorial_game.TutorialGameScreen
+import com.alextos.thousand.presentation.other.users.UsersScreen
 
 @Composable
 fun OtherTabRoot() {
@@ -27,6 +27,9 @@ fun OtherTabRoot() {
                 openStatistics = {
                     navController.navigate(OtherRoute.Statistics)
                 },
+                openUsers = {
+                    navController.navigate(OtherRoute.Users)
+                },
             )
         }
         horizontalTransition<OtherRoute.Rules> {
@@ -41,8 +44,13 @@ fun OtherTabRoot() {
             )
         }
         horizontalTransition<OtherRoute.Statistics> {
-            StatisticsTabRoot(
+            com.alextos.thousand.presentation.other.statistics.StatisticsTabRoot(
                 goBack = navController::popBackStack,
+            )
+        }
+        horizontalTransition<OtherRoute.Users> {
+            UsersScreen(
+                onGoBack = navController::popBackStack,
             )
         }
     }
