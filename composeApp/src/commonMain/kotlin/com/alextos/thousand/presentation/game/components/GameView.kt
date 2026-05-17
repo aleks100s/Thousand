@@ -32,9 +32,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.alextos.thousand.domain.game.TutorialNextAction
-import com.alextos.thousand.domain.game.server.GameAction
-import com.alextos.thousand.domain.game.server.GameState
+import com.alextos.thousand.domain.usecase.game.TutorialNextAction
+import com.alextos.thousand.domain.usecase.game.server.GameAction
+import com.alextos.thousand.domain.usecase.game.server.GameState
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.GameButton
 import com.alextos.thousand.presentation.game.play_game.components.ManualDiceInputView

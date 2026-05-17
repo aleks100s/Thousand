@@ -1,7 +1,7 @@
 package com.alextos.thousand.presentation.game.game_rules
 
 import androidx.lifecycle.ViewModel
-import com.alextos.thousand.domain.game.CalculateDiceRollScoreUseCase
+import com.alextos.thousand.domain.usecase.game.CalculateDiceRollScoreUseCase
 import com.alextos.thousand.domain.models.Die
 import com.alextos.thousand.domain.models.DieValue
 import kotlinx.coroutines.flow.MutableStateFlow

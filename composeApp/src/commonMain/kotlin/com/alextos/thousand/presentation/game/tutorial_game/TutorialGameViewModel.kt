@@ -2,15 +2,15 @@ package com.alextos.thousand.presentation.game.tutorial_game
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.alextos.thousand.domain.game.server.GameAction
-import com.alextos.thousand.domain.game.server.GameEvent
-import com.alextos.thousand.domain.game.server.TutorialGameServer
+import com.alextos.thousand.domain.usecase.game.server.GameAction
+import com.alextos.thousand.domain.usecase.game.server.GameEvent
+import com.alextos.thousand.domain.usecase.game.server.TutorialGameServer
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.User
 import com.alextos.thousand.domain.models.UserKind
 import com.alextos.thousand.domain.service.DiceHapticsService
-import com.alextos.thousand.domain.usecase.game.GetAllUsersUseCase
+import com.alextos.thousand.domain.usecase.user.GetAllUsersUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow

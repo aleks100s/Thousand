@@ -10,7 +10,9 @@ import com.alextos.thousand.presentation.statistics.roll_statistics.RollsStatist
 import com.alextos.thousand.presentation.statistics.turn_statistics.TurnsStatisticsScreen
 
 @Composable
-fun StatisticsTabRoot() {
+fun StatisticsTabRoot(
+    goBack: (() -> Unit)? = null,
+) {
     val navController = rememberNavController()
 
     NavHost(
@@ -19,6 +21,7 @@ fun StatisticsTabRoot() {
     ) {
         horizontalTransition<StatisticsRoute.Statistics> {
             StatisticsScreen(
+                goBack = goBack,
                 openGamesStatistics = {
                     navController.navigate(StatisticsRoute.GamesStatistics)
                 },

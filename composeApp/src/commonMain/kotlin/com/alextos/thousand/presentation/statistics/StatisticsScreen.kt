@@ -18,6 +18,7 @@ import com.alextos.thousand.common.Screen
 
 @Composable
 fun StatisticsScreen(
+    goBack: (() -> Unit)? = null,
     openGamesStatistics: () -> Unit,
     openTurnsStatistics: () -> Unit,
     openRollsStatistics: () -> Unit,
@@ -26,6 +27,7 @@ fun StatisticsScreen(
     Screen(
         modifier = Modifier,
         title = "Статистика",
+        goBack = goBack,
     ) { modifier ->
         Column(
             modifier = modifier

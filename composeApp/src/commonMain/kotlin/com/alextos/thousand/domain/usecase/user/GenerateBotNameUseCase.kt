@@ -1,4 +1,4 @@
-package com.alextos.thousand.domain.usecase.game
+package com.alextos.thousand.domain.usecase.user
 
 import kotlin.random.Random
 
@@ -39,6 +39,6 @@ class GenerateBotNameUseCase {
     }
 
     private fun List<BotNameTemplate>.random(): BotNameTemplate {
-        return this[Random.nextInt(size)]
+        return this[Random.Default.nextInt(size)]
     }
 }

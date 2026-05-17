@@ -1,10 +1,10 @@
-package com.alextos.thousand.domain.game
+package com.alextos.thousand.domain.usecase.game.crud
 
 import com.alextos.thousand.domain.GameConstants
-import com.alextos.thousand.domain.game.server.GameStatus
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.repository.GameRepository
+import com.alextos.thousand.domain.usecase.game.server.GameStatus
 import kotlin.time.Clock
 
 class UpdateGameUseCase(

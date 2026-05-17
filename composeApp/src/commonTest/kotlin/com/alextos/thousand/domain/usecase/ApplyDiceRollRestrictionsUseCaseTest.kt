@@ -1,6 +1,6 @@
 package com.alextos.thousand.domain.usecase
 
-import com.alextos.thousand.domain.game.ApplyDiceRollRestrictionsUseCase
+import com.alextos.thousand.domain.usecase.game.ApplyDiceRollRestrictionsUseCase
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.RollAbility

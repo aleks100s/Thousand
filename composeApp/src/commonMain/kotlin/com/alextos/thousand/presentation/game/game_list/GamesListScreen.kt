@@ -36,7 +36,6 @@ import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -70,7 +69,6 @@ fun GamesListScreen(
     onGameClick: (GameUi) -> Unit,
     openGame: (Long) -> Unit,
     onCreateGame: () -> Unit,
-    onRulesClick: () -> Unit,
     onTutorialGame: () -> Unit,
 ) {
     val viewModel: GamesListViewModel = koinViewModel()
@@ -111,15 +109,6 @@ fun GamesListScreen(
                     }
                 },
             )
-        },
-        actions = {
-            {
-                if (state.isFirstLaunch.not()) {
-                    TextButton(onClick = onRulesClick) {
-                        Text("Правила")
-                    }
-                }
-            }
         },
     ) { modifier ->
         if (state.isLoading) {

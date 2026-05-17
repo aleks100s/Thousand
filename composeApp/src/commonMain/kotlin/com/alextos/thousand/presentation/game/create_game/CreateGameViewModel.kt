@@ -5,11 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.alextos.thousand.domain.models.User
 import com.alextos.thousand.domain.models.UserKind
 import com.alextos.thousand.domain.service.StorageService
-import com.alextos.thousand.domain.usecase.game.CreateGameUseCase
-import com.alextos.thousand.domain.usecase.game.DeleteUserUseCase
-import com.alextos.thousand.domain.usecase.game.GenerateBotNameUseCase
-import com.alextos.thousand.domain.usecase.game.GetAllUsersUseCase
-import com.alextos.thousand.domain.usecase.game.SaveUserUseCase
+import com.alextos.thousand.domain.usecase.game.crud.CreateGameUseCase
+import com.alextos.thousand.domain.usecase.user.DeleteUserUseCase
+import com.alextos.thousand.domain.usecase.user.GenerateBotNameUseCase
+import com.alextos.thousand.domain.usecase.user.GetAllUsersUseCase
+import com.alextos.thousand.domain.usecase.user.SaveUserUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow

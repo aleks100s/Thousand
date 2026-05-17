@@ -37,9 +37,6 @@ fun GameTabRoot() {
                 onCreateGame = {
                     navController.navigate(GameRoute.CreateGame)
                 },
-                onRulesClick = {
-                    navController.navigate(GameRoute.GameRules)
-                },
                 onTutorialGame = {
                     navController.navigate(GameRoute.TutorialGame)
                 }

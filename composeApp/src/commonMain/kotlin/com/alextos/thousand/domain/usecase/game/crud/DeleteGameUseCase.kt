@@ -1,4 +1,4 @@
-package com.alextos.thousand.domain.usecase.game
+package com.alextos.thousand.domain.usecase.game.crud
 
 import com.alextos.thousand.domain.repository.GameRepository
 

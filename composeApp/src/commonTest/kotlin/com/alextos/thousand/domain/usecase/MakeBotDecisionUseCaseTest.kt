@@ -1,7 +1,7 @@
 package com.alextos.thousand.domain.usecase
 
-import com.alextos.thousand.domain.game.BotDecision
-import com.alextos.thousand.domain.game.MakeBotDecisionUseCase
+import com.alextos.thousand.domain.usecase.game.BotDecision
+import com.alextos.thousand.domain.usecase.game.MakeBotDecisionUseCase
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.RollAbility
@@ -192,7 +192,7 @@ class MakeBotDecisionUseCaseTest {
             rollAbility = RollAbility.AVAILABLE_4,
             bot = bot,
             game = createGame(bot),
-            turnTotal = 50,
+            turnTotal = 45,
         ) == BotDecision.CONTINUE
 
         assertTrue(shouldRoll)

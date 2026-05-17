@@ -3,9 +3,9 @@ package com.alextos.thousand.presentation.game.game_list
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alextos.thousand.domain.service.StorageService
-import com.alextos.thousand.domain.usecase.game.CreateRematchUseCase
-import com.alextos.thousand.domain.usecase.game.DeleteGameUseCase
-import com.alextos.thousand.domain.usecase.game.GetAllGamesUseCase
+import com.alextos.thousand.domain.usecase.game.crud.CreateRematchUseCase
+import com.alextos.thousand.domain.usecase.game.crud.DeleteGameUseCase
+import com.alextos.thousand.domain.usecase.game.crud.GetAllGamesUseCase
 import com.alextos.thousand.presentation.models.toUi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow

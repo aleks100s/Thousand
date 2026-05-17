@@ -1,14 +1,14 @@
-package com.alextos.thousand.domain.game.server
+package com.alextos.thousand.domain.usecase.game.server
 
-import com.alextos.thousand.domain.game.ApplyDiceRollRestrictionsUseCase
-import com.alextos.thousand.domain.game.CalculateDiceRollScoreUseCase
-import com.alextos.thousand.domain.game.DetermineAvailableButtonsUseCase
-import com.alextos.thousand.domain.game.FindCurrentPlayerUseCase
-import com.alextos.thousand.domain.game.FormatTurnEffectUseCase
-import com.alextos.thousand.domain.game.SaveTurnUseCase
-import com.alextos.thousand.domain.game.TutorialNextAction
-import com.alextos.thousand.domain.game.TutorialRollUseCase
-import com.alextos.thousand.domain.game.UpdateGameUseCase
+import com.alextos.thousand.domain.usecase.game.ApplyDiceRollRestrictionsUseCase
+import com.alextos.thousand.domain.usecase.game.CalculateDiceRollScoreUseCase
+import com.alextos.thousand.domain.usecase.game.DetermineAvailableButtonsUseCase
+import com.alextos.thousand.domain.usecase.game.FindCurrentPlayerUseCase
+import com.alextos.thousand.domain.usecase.game.FormatTurnEffectUseCase
+import com.alextos.thousand.domain.usecase.game.SaveTurnUseCase
+import com.alextos.thousand.domain.usecase.game.TutorialNextAction
+import com.alextos.thousand.domain.usecase.game.TutorialRollUseCase
+import com.alextos.thousand.domain.usecase.game.crud.UpdateGameUseCase
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.Die
 import com.alextos.thousand.domain.models.Game

@@ -1,4 +1,4 @@
-package com.alextos.thousand.domain.game
+package com.alextos.thousand.domain.usecase.game
 
 import com.alextos.thousand.domain.GameConstants.BOLT_FINE
 import com.alextos.thousand.domain.GameConstants.OVERTAKE_FINE

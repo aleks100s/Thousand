@@ -1,15 +1,15 @@
-package com.alextos.thousand.domain.game.server
+package com.alextos.thousand.domain.usecase.game.server
 
-import com.alextos.thousand.domain.game.BotDecision
-import com.alextos.thousand.domain.game.CalculateDiceRollScoreUseCase
-import com.alextos.thousand.domain.game.DetermineAvailableButtonsUseCase
-import com.alextos.thousand.domain.game.FindCurrentPlayerUseCase
-import com.alextos.thousand.domain.game.FormatTurnEffectUseCase
-import com.alextos.thousand.domain.game.MakeBotReplyUseCase
-import com.alextos.thousand.domain.game.MakeBotDecisionUseCase
-import com.alextos.thousand.domain.game.RollTheDiceUseCase
-import com.alextos.thousand.domain.game.SaveTurnUseCase
-import com.alextos.thousand.domain.game.UpdateGameUseCase
+import com.alextos.thousand.domain.usecase.game.BotDecision
+import com.alextos.thousand.domain.usecase.game.CalculateDiceRollScoreUseCase
+import com.alextos.thousand.domain.usecase.game.DetermineAvailableButtonsUseCase
+import com.alextos.thousand.domain.usecase.game.FindCurrentPlayerUseCase
+import com.alextos.thousand.domain.usecase.game.FormatTurnEffectUseCase
+import com.alextos.thousand.domain.usecase.game.MakeBotReplyUseCase
+import com.alextos.thousand.domain.usecase.game.MakeBotDecisionUseCase
+import com.alextos.thousand.domain.usecase.game.RollTheDiceUseCase
+import com.alextos.thousand.domain.usecase.game.SaveTurnUseCase
+import com.alextos.thousand.domain.usecase.game.crud.UpdateGameUseCase
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.Die
 import com.alextos.thousand.domain.models.Game
