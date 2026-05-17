@@ -37,6 +37,7 @@ import com.alextos.thousand.domain.usecase.user.GetAllUsersUseCase
 import com.alextos.thousand.domain.usecase.game.LoadGameUseCase
 import com.alextos.thousand.domain.usecase.game.LoadGameTurnsUseCase
 import com.alextos.thousand.domain.usecase.statistics.DiceStatisticsUseCase
+import com.alextos.thousand.domain.usecase.statistics.EventsStatisticsUseCase
 import com.alextos.thousand.domain.usecase.statistics.GamesStatisticsUseCase
 import com.alextos.thousand.domain.usecase.statistics.RollsStatisticsUseCase
 import com.alextos.thousand.domain.usecase.statistics.TurnsStatisticsUseCase
@@ -56,6 +57,7 @@ import com.alextos.thousand.presentation.other.tutorial_game.TutorialGameViewMod
 import com.alextos.thousand.presentation.onboarding.FirstUserViewModel
 import com.alextos.thousand.presentation.other.users.UsersViewModel
 import com.alextos.thousand.presentation.other.statistics.dice_statistics.DiceStatisticsViewModel
+import com.alextos.thousand.presentation.other.statistics.events_statistics.EventsStatisticsViewModel
 import com.alextos.thousand.presentation.other.statistics.games_statistics.GamesStatisticsViewModel
 import com.alextos.thousand.presentation.other.statistics.roll_statistics.RollsStatisticsViewModel
 import com.alextos.thousand.presentation.other.statistics.turn_statistics.TurnsStatisticsViewModel
@@ -79,10 +81,11 @@ fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     single<KeyValueStorage> { DataStoreKeyValueStorage(get()) }
     single<StorageService> { StorageServiceImpl(get()) }
     single<GameRepository> { GameRepositoryImpl(get(), get(), get(), get(), get(), get(), get(), get()) }
-    single<StatisticsRepository> { StatisticsRepositoryImpl(get(), get()) }
+    single<StatisticsRepository> { StatisticsRepositoryImpl(get(), get(), get(), get()) }
     factory { GetAllGamesUseCase(get()) }
     factory { GetAllUsersUseCase(get()) }
     factory { DiceStatisticsUseCase(get()) }
+    factory { EventsStatisticsUseCase(get()) }
     factory { GamesStatisticsUseCase(get()) }
     factory { RollsStatisticsUseCase(get()) }
     factory { TurnsStatisticsUseCase(get()) }
@@ -99,6 +102,7 @@ fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     viewModelOf(::GameResultsViewModel)
     viewModelOf(::UsersViewModel)
     viewModelOf(::DiceStatisticsViewModel)
+    viewModelOf(::EventsStatisticsViewModel)
     viewModelOf(::GamesStatisticsViewModel)
     viewModelOf(::RollsStatisticsViewModel)
     viewModelOf(::TurnsStatisticsViewModel)

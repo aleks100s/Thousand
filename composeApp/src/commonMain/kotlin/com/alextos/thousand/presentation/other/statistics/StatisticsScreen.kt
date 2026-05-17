@@ -23,6 +23,7 @@ fun StatisticsScreen(
     openTurnsStatistics: () -> Unit,
     openRollsStatistics: () -> Unit,
     openDiceStatistics: () -> Unit,
+    openEventsStatistics: () -> Unit,
 ) {
     Screen(
         modifier = Modifier,
@@ -51,6 +52,10 @@ fun StatisticsScreen(
             StatisticsItem(
                 title = "Статистика кубиков",
                 onClick = openDiceStatistics,
+            )
+            StatisticsItem(
+                title = "Статистика событий",
+                onClick = openEventsStatistics,
             )
         }
     }

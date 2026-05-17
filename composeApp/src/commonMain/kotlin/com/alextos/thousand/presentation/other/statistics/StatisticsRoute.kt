@@ -17,4 +17,7 @@ sealed interface StatisticsRoute {
 
     @Serializable
     data object DiceStatistics : StatisticsRoute
+
+    @Serializable
+    data object EventsStatistics : StatisticsRoute
 }

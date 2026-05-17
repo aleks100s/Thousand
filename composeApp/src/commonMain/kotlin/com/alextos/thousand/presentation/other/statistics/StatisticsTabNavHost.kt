@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.alextos.thousand.common.horizontalTransition
 import com.alextos.thousand.presentation.other.statistics.dice_statistics.DiceStatisticsScreen
+import com.alextos.thousand.presentation.other.statistics.events_statistics.EventsStatisticsScreen
 import com.alextos.thousand.presentation.other.statistics.games_statistics.GamesStatisticsScreen
 import com.alextos.thousand.presentation.other.statistics.roll_statistics.RollsStatisticsScreen
 import com.alextos.thousand.presentation.other.statistics.turn_statistics.TurnsStatisticsScreen
@@ -34,6 +35,9 @@ fun StatisticsTabRoot(
                 openDiceStatistics = {
                     navController.navigate(StatisticsRoute.DiceStatistics)
                 },
+                openEventsStatistics = {
+                    navController.navigate(StatisticsRoute.EventsStatistics)
+                },
             )
         }
         horizontalTransition<StatisticsRoute.GamesStatistics> {
@@ -53,6 +57,11 @@ fun StatisticsTabRoot(
         }
         horizontalTransition<StatisticsRoute.DiceStatistics> {
             DiceStatisticsScreen(
+                goBack = navController::popBackStack,
+            )
+        }
+        horizontalTransition<StatisticsRoute.EventsStatistics> {
+            EventsStatisticsScreen(
                 goBack = navController::popBackStack,
             )
         }
