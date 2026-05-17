@@ -6,6 +6,10 @@ import com.alextos.thousand.domain.models.Turn
 
 class FindCurrentPlayerUseCase {
     operator fun invoke(game: Game?, lastTurn: Turn?): Player? {
+        if (game?.isFinished() == true) {
+            return null
+        }
+
         val players = game?.players.orEmpty()
         val index = players.lastIndexOf(lastTurn?.player)
         if (index == -1) {

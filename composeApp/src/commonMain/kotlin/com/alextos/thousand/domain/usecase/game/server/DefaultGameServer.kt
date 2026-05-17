@@ -53,7 +53,13 @@ class DefaultGameServer(
                 isLoading = false,
                 game = game,
                 currentPlayer = currentPlayer,
-                buttons = listOf(GameButton.ROLL_THE_DICE)
+                buttons = determineAvailableButtons(
+                    isFirstRoll = true,
+                    isGameOver = game.players.any { it.isWinner },
+                    rollAbility = RollAbility.REQUIRED,
+                    currentPlayer = currentPlayer,
+                    isTutorial = false
+                )
             )
         }
         if (currentPlayer?.isBot() == true) {
