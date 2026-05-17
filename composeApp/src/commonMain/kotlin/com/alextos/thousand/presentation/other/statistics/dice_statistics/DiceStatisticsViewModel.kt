@@ -12,12 +12,12 @@ import kotlinx.coroutines.launch
 class DiceStatisticsViewModel(
     private val diceStatisticsUseCase: DiceStatisticsUseCase,
 ) : ViewModel() {
-    private val _state = MutableStateFlow(_root_ide_package_.com.alextos.thousand.presentation.other.statistics.dice_statistics.DiceStatisticsState())
-    val state: StateFlow<com.alextos.thousand.presentation.other.statistics.dice_statistics.DiceStatisticsState> = _state.asStateFlow()
+    private val _state = MutableStateFlow(DiceStatisticsState())
+    val state: StateFlow<DiceStatisticsState> = _state.asStateFlow()
 
-    fun onAction(action: com.alextos.thousand.presentation.other.statistics.dice_statistics.DiceStatisticsAction) {
+    fun onAction(action: DiceStatisticsAction) {
         when (action) {
-            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.dice_statistics.DiceStatisticsAction.LoadStatistics -> observeStatistics()
+            DiceStatisticsAction.LoadStatistics -> observeStatistics()
         }
     }
 

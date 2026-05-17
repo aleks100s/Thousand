@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.domain.usecase.statistics.PlayerWithTurnStatistics
-import com.alextos.thousand.presentation.other.statistics.turn_statistics.toScoreText
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.math.roundToInt
 
@@ -36,11 +35,11 @@ import kotlin.math.roundToInt
 fun TurnsStatisticsScreen(
     goBack: () -> Unit,
 ) {
-    val viewModel: com.alextos.thousand.presentation.other.statistics.turn_statistics.TurnsStatisticsViewModel = koinViewModel()
+    val viewModel: TurnsStatisticsViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        viewModel.onAction(_root_ide_package_.com.alextos.thousand.presentation.other.statistics.turn_statistics.TurnsStatisticsAction.LoadStatistics)
+        viewModel.onAction(TurnsStatisticsAction.LoadStatistics)
     }
 
     Screen(
@@ -53,7 +52,7 @@ fun TurnsStatisticsScreen(
                 LoadingIndicator()
             }
         } else {
-            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.turn_statistics.TurnsStatisticsContent(
+            TurnsStatisticsContent(
                 modifier = modifier,
                 state = state,
             )
@@ -64,7 +63,7 @@ fun TurnsStatisticsScreen(
 @Composable
 private fun TurnsStatisticsContent(
     modifier: Modifier,
-    state: com.alextos.thousand.presentation.other.statistics.turn_statistics.TurnsStatisticsState,
+    state: TurnsStatisticsState,
 ) {
     LazyColumn(
         modifier = modifier
@@ -73,25 +72,25 @@ private fun TurnsStatisticsContent(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
-            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.turn_statistics.CommonTurnsStatisticsCard(
+            CommonTurnsStatisticsCard(
                 state
             )
         }
 
         item {
-            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.turn_statistics.PlayersTurnsStatisticsTableHeader()
+            PlayersTurnsStatisticsTableHeader()
         }
 
         if (state.players.isEmpty()) {
             item {
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.turn_statistics.EmptyTurnsStatistics()
+                EmptyTurnsStatistics()
             }
         } else {
             items(
                 items = state.players,
                 key = { player -> player.userId },
             ) { player ->
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.turn_statistics.PlayerTurnsStatisticsRow(
+                PlayerTurnsStatisticsRow(
                     player
                 )
             }
@@ -105,7 +104,7 @@ private fun TurnsStatisticsContent(
 
 @Composable
 private fun CommonTurnsStatisticsCard(
-    state: com.alextos.thousand.presentation.other.statistics.turn_statistics.TurnsStatisticsState,
+    state: TurnsStatisticsState,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -122,15 +121,15 @@ private fun CommonTurnsStatisticsCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.turn_statistics.CommonTurnsStatisticsItem(
+                CommonTurnsStatisticsItem(
                     title = "Ходы",
                     value = state.totalTurns.toString(),
                 )
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.turn_statistics.CommonTurnsStatisticsItem(
+                CommonTurnsStatisticsItem(
                     title = "Средний",
                     value = state.averageTurn.toScoreText(),
                 )
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.turn_statistics.CommonTurnsStatisticsItem(
+                CommonTurnsStatisticsItem(
                     title = "Лучший",
                     value = state.bestTurn.toString(),
                 )
@@ -166,7 +165,7 @@ private fun PlayersTurnsStatisticsTableHeader() {
     Column(
         modifier = Modifier.fillMaxWidth(),
     ) {
-        _root_ide_package_.com.alextos.thousand.presentation.other.statistics.turn_statistics.TurnsStatisticsTableRow(
+        TurnsStatisticsTableRow(
             userName = "Игрок",
             turns = "Ходы",
             averageTurn = "Средний",
@@ -181,7 +180,7 @@ private fun PlayersTurnsStatisticsTableHeader() {
 private fun PlayerTurnsStatisticsRow(
     player: PlayerWithTurnStatistics,
 ) {
-    _root_ide_package_.com.alextos.thousand.presentation.other.statistics.turn_statistics.TurnsStatisticsTableRow(
+    TurnsStatisticsTableRow(
         userName = player.userName,
         turns = player.turns.toString(),
         averageTurn = player.averageTurn.toScoreText(),

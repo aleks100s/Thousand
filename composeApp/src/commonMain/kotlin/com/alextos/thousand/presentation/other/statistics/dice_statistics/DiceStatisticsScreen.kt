@@ -40,7 +40,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.domain.usecase.statistics.DieValueDistribution
 import com.alextos.thousand.domain.usecase.statistics.PlayerWithDiceStatistics
-import com.alextos.thousand.presentation.other.statistics.dice_statistics.toScoreText
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.math.roundToInt
 
@@ -49,12 +48,12 @@ import kotlin.math.roundToInt
 fun DiceStatisticsScreen(
     goBack: () -> Unit,
 ) {
-    val viewModel: com.alextos.thousand.presentation.other.statistics.dice_statistics.DiceStatisticsViewModel = koinViewModel()
+    val viewModel: DiceStatisticsViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
-    var histogram by remember { mutableStateOf<com.alextos.thousand.presentation.other.statistics.dice_statistics.HistogramState?>(null) }
+    var histogram by remember { mutableStateOf<HistogramState?>(null) }
 
     LaunchedEffect(Unit) {
-        viewModel.onAction(_root_ide_package_.com.alextos.thousand.presentation.other.statistics.dice_statistics.DiceStatisticsAction.LoadStatistics)
+        viewModel.onAction(DiceStatisticsAction.LoadStatistics)
     }
 
     Screen(
@@ -67,7 +66,7 @@ fun DiceStatisticsScreen(
                 LoadingIndicator()
             }
         } else {
-            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.dice_statistics.DiceStatisticsContent(
+            DiceStatisticsContent(
                 modifier = modifier,
                 state = state,
                 showHistogram = { histogram = it },
@@ -81,7 +80,7 @@ fun DiceStatisticsScreen(
                 histogram = null
             },
         ) {
-            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.dice_statistics.DiceDistributionHistogram(
+            DiceDistributionHistogram(
                 title = histogramState.title,
                 distribution = histogramState.distribution,
             )
@@ -92,8 +91,8 @@ fun DiceStatisticsScreen(
 @Composable
 private fun DiceStatisticsContent(
     modifier: Modifier,
-    state: com.alextos.thousand.presentation.other.statistics.dice_statistics.DiceStatisticsState,
-    showHistogram: (com.alextos.thousand.presentation.other.statistics.dice_statistics.HistogramState) -> Unit,
+    state: DiceStatisticsState,
+    showHistogram: (HistogramState) -> Unit,
 ) {
     LazyColumn(
         modifier = modifier
@@ -102,7 +101,7 @@ private fun DiceStatisticsContent(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
-            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.dice_statistics.CommonDiceStatisticsCard(
+            CommonDiceStatisticsCard(
                 state = state,
                 showHistogram = showHistogram,
             )
@@ -110,9 +109,9 @@ private fun DiceStatisticsContent(
 
         item {
             if (state.players.isEmpty()) {
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.dice_statistics.EmptyDiceStatistics()
+                EmptyDiceStatistics()
             } else {
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.dice_statistics.PlayersDiceStatisticsTable(
+                PlayersDiceStatisticsTable(
                     players = state.players,
                     showHistogram = showHistogram,
                 )
@@ -127,8 +126,8 @@ private fun DiceStatisticsContent(
 
 @Composable
 private fun CommonDiceStatisticsCard(
-    state: com.alextos.thousand.presentation.other.statistics.dice_statistics.DiceStatisticsState,
-    showHistogram: (com.alextos.thousand.presentation.other.statistics.dice_statistics.HistogramState) -> Unit,
+    state: DiceStatisticsState,
+    showHistogram: (HistogramState) -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -149,7 +148,7 @@ private fun CommonDiceStatisticsCard(
                 TextButton(
                     onClick = {
                         showHistogram(
-                            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.dice_statistics.HistogramState(
+                            HistogramState(
                                 title = "Распределение кубиков",
                                 distribution = state.distribution,
                             )
@@ -166,11 +165,11 @@ private fun CommonDiceStatisticsCard(
                     .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.dice_statistics.CommonDiceStatisticsItem(
+                CommonDiceStatisticsItem(
                     title = "Кубики",
                     value = state.totalDice.toString(),
                 )
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.dice_statistics.CommonDiceStatisticsItem(
+                CommonDiceStatisticsItem(
                     title = "Средний",
                     value = state.averageDie.toScoreText(),
                 )
@@ -205,7 +204,7 @@ private fun CommonDiceStatisticsItem(
 @Composable
 private fun PlayersDiceStatisticsTable(
     players: List<PlayerWithDiceStatistics>,
-    showHistogram: (com.alextos.thousand.presentation.other.statistics.dice_statistics.HistogramState) -> Unit,
+    showHistogram: (HistogramState) -> Unit,
 ) {
     val horizontalScrollState = rememberScrollState()
 
@@ -214,10 +213,10 @@ private fun PlayersDiceStatisticsTable(
             .fillMaxWidth()
             .horizontalScroll(horizontalScrollState),
     ) {
-        _root_ide_package_.com.alextos.thousand.presentation.other.statistics.dice_statistics.PlayersDiceStatisticsTableHeader()
+        PlayersDiceStatisticsTableHeader()
 
         players.forEach { player ->
-            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.dice_statistics.PlayerDiceStatisticsRow(
+            PlayerDiceStatisticsRow(
                 player = player,
                 showHistogram = showHistogram,
             )
@@ -227,31 +226,31 @@ private fun PlayersDiceStatisticsTable(
 
 @Composable
 private fun PlayersDiceStatisticsTableHeader() {
-    _root_ide_package_.com.alextos.thousand.presentation.other.statistics.dice_statistics.DiceStatisticsTableRow(
+    DiceStatisticsTableRow(
         userName = "Игрок",
         dice = "Кубики",
         averageDie = "Средний",
         isHeader = true,
         onHistogramClick = null,
     )
-    HorizontalDivider(modifier = _root_ide_package_.androidx.compose.ui.Modifier.Companion.width(
-        _root_ide_package_.com.alextos.thousand.presentation.other.statistics.dice_statistics.TABLE_WIDTH
+    HorizontalDivider(modifier = Modifier.width(
+        TABLE_WIDTH
     ))
 }
 
 @Composable
 private fun PlayerDiceStatisticsRow(
     player: PlayerWithDiceStatistics,
-    showHistogram: (com.alextos.thousand.presentation.other.statistics.dice_statistics.HistogramState) -> Unit,
+    showHistogram: (HistogramState) -> Unit,
 ) {
-    _root_ide_package_.com.alextos.thousand.presentation.other.statistics.dice_statistics.DiceStatisticsTableRow(
+    DiceStatisticsTableRow(
         userName = player.userName,
         dice = player.dice.toString(),
         averageDie = player.averageDie.toScoreText(),
         isHeader = false,
         onHistogramClick = {
             showHistogram(
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.dice_statistics.HistogramState(
+                HistogramState(
                     title = "Распределение: ${player.userName}",
                     distribution = player.distribution,
                 )
@@ -276,14 +275,14 @@ private fun DiceStatisticsTableRow(
     val fontWeight = if (isHeader) FontWeight.Bold else FontWeight.Normal
 
     Row(
-        modifier = _root_ide_package_.androidx.compose.ui.Modifier.Companion
-            .width(_root_ide_package_.com.alextos.thousand.presentation.other.statistics.dice_statistics.TABLE_WIDTH)
+        modifier = Modifier
+            .width(TABLE_WIDTH)
             .padding(vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            modifier = _root_ide_package_.androidx.compose.ui.Modifier.Companion
-                .width(_root_ide_package_.com.alextos.thousand.presentation.other.statistics.dice_statistics.USER_COLUMN_WIDTH)
+            modifier = Modifier
+                .width(USER_COLUMN_WIDTH)
                 .then(
                     if (onHistogramClick == null) {
                         Modifier
@@ -301,16 +300,16 @@ private fun DiceStatisticsTableRow(
             },
         )
         Text(
-            modifier = _root_ide_package_.androidx.compose.ui.Modifier.Companion.width(
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.dice_statistics.METRIC_COLUMN_WIDTH
+            modifier = Modifier.width(
+                METRIC_COLUMN_WIDTH
             ),
             text = dice,
             style = textStyle,
             fontWeight = fontWeight,
         )
         Text(
-            modifier = _root_ide_package_.androidx.compose.ui.Modifier.Companion.width(
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.dice_statistics.METRIC_COLUMN_WIDTH
+            modifier = Modifier.width(
+                METRIC_COLUMN_WIDTH
             ),
             text = averageDie,
             style = textStyle,
@@ -338,7 +337,7 @@ private fun DiceDistributionHistogram(
         )
 
         distribution.forEach { item ->
-            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.dice_statistics.DiceDistributionRow(
+            DiceDistributionRow(
                 item = item,
                 maxCount = maxCount,
             )

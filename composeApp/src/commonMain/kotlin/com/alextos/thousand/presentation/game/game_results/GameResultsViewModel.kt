@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.Turn
@@ -117,7 +118,7 @@ class GameResultsViewModel(
         return sumOf { turn -> turn.total }.toDouble() / size
     }
 
-    private fun List<com.alextos.thousand.domain.models.DiceRoll>.averageResult(): Double {
+    private fun List<DiceRoll>.averageResult(): Double {
         if (isEmpty()) return 0.0
         return sumOf { roll -> roll.result }.toDouble() / size
     }

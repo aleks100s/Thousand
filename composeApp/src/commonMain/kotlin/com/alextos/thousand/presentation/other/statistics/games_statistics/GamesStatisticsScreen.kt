@@ -34,11 +34,11 @@ import org.koin.compose.viewmodel.koinViewModel
 fun GamesStatisticsScreen(
     goBack: () -> Unit,
 ) {
-    val viewModel: com.alextos.thousand.presentation.other.statistics.games_statistics.GamesStatisticsViewModel = koinViewModel()
+    val viewModel: GamesStatisticsViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        viewModel.onAction(_root_ide_package_.com.alextos.thousand.presentation.other.statistics.games_statistics.GamesStatisticsAction.LoadStatistics)
+        viewModel.onAction(GamesStatisticsAction.LoadStatistics)
     }
 
     Screen(
@@ -51,7 +51,7 @@ fun GamesStatisticsScreen(
                 LoadingIndicator()
             }
         } else {
-            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.games_statistics.GamesStatisticsContent(
+            GamesStatisticsContent(
                 modifier = modifier,
                 state = state,
             )
@@ -62,7 +62,7 @@ fun GamesStatisticsScreen(
 @Composable
 private fun GamesStatisticsContent(
     modifier: Modifier,
-    state: com.alextos.thousand.presentation.other.statistics.games_statistics.GamesStatisticsState,
+    state: GamesStatisticsState,
 ) {
     LazyColumn(
         modifier = modifier
@@ -71,25 +71,25 @@ private fun GamesStatisticsContent(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
-            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.games_statistics.FinishedGamesCard(
+            FinishedGamesCard(
                 state.finishedGamesCount
             )
         }
 
         item {
-            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.games_statistics.PlayersStatisticsTableHeader()
+            PlayersStatisticsTableHeader()
         }
 
         if (state.players.isEmpty()) {
             item {
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.games_statistics.EmptyStatistics()
+                EmptyStatistics()
             }
         } else {
             items(
                 items = state.players,
                 key = { player -> player.userId },
             ) { player ->
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.games_statistics.PlayerStatisticsRow(
+                PlayerStatisticsRow(
                     player
                 )
             }
@@ -130,7 +130,7 @@ private fun PlayersStatisticsTableHeader() {
     Column(
         modifier = Modifier.fillMaxWidth(),
     ) {
-        _root_ide_package_.com.alextos.thousand.presentation.other.statistics.games_statistics.StatisticsTableRow(
+        StatisticsTableRow(
             userName = "Игрок",
             games = "Игры",
             wins = "Победы",
@@ -145,7 +145,7 @@ private fun PlayersStatisticsTableHeader() {
 private fun PlayerStatisticsRow(
     player: PlayerWithStatistics,
 ) {
-    _root_ide_package_.com.alextos.thousand.presentation.other.statistics.games_statistics.StatisticsTableRow(
+    StatisticsTableRow(
         userName = player.userName,
         games = player.games.toString(),
         wins = player.wins.toString(),

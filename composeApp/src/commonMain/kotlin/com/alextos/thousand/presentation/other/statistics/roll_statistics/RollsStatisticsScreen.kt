@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.domain.usecase.statistics.PlayerWithRollStatistics
-import com.alextos.thousand.presentation.other.statistics.roll_statistics.toScoreText
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.math.roundToInt
 
@@ -38,11 +37,11 @@ import kotlin.math.roundToInt
 fun RollsStatisticsScreen(
     goBack: () -> Unit,
 ) {
-    val viewModel: com.alextos.thousand.presentation.other.statistics.roll_statistics.RollsStatisticsViewModel = koinViewModel()
+    val viewModel: RollsStatisticsViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        viewModel.onAction(_root_ide_package_.com.alextos.thousand.presentation.other.statistics.roll_statistics.RollsStatisticsAction.LoadStatistics)
+        viewModel.onAction(RollsStatisticsAction.LoadStatistics)
     }
 
     Screen(
@@ -55,7 +54,7 @@ fun RollsStatisticsScreen(
                 LoadingIndicator()
             }
         } else {
-            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.roll_statistics.RollsStatisticsContent(
+            RollsStatisticsContent(
                 modifier = modifier,
                 state = state,
             )
@@ -66,7 +65,7 @@ fun RollsStatisticsScreen(
 @Composable
 private fun RollsStatisticsContent(
     modifier: Modifier,
-    state: com.alextos.thousand.presentation.other.statistics.roll_statistics.RollsStatisticsState,
+    state: RollsStatisticsState,
 ) {
     LazyColumn(
         modifier = modifier
@@ -75,16 +74,16 @@ private fun RollsStatisticsContent(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
-            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.roll_statistics.CommonRollsStatisticsCard(
+            CommonRollsStatisticsCard(
                 state
             )
         }
 
         item {
             if (state.players.isEmpty()) {
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.roll_statistics.EmptyRollsStatistics()
+                EmptyRollsStatistics()
             } else {
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.roll_statistics.PlayersRollsStatisticsTable(
+                PlayersRollsStatisticsTable(
                     state.players
                 )
             }
@@ -98,7 +97,7 @@ private fun RollsStatisticsContent(
 
 @Composable
 private fun CommonRollsStatisticsCard(
-    state: com.alextos.thousand.presentation.other.statistics.roll_statistics.RollsStatisticsState,
+    state: RollsStatisticsState,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -117,23 +116,23 @@ private fun CommonRollsStatisticsCard(
                     .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.roll_statistics.CommonRollsStatisticsItem(
+                CommonRollsStatisticsItem(
                     title = "Броски",
                     value = state.totalRolls.toString(),
                 )
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.roll_statistics.CommonRollsStatisticsItem(
+                CommonRollsStatisticsItem(
                     title = "Средний",
                     value = state.averageRoll.toScoreText(),
                 )
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.roll_statistics.CommonRollsStatisticsItem(
+                CommonRollsStatisticsItem(
                     title = "Лучший",
                     value = state.bestRoll.toString(),
                 )
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.roll_statistics.CommonRollsStatisticsItem(
+                CommonRollsStatisticsItem(
                     title = "Средняя цепь",
                     value = state.averageRollChain.toScoreText(),
                 )
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.roll_statistics.CommonRollsStatisticsItem(
+                CommonRollsStatisticsItem(
                     title = "Лучшая цепь",
                     value = state.bestRollChain.toString(),
                 )
@@ -176,10 +175,10 @@ private fun PlayersRollsStatisticsTable(
             .fillMaxWidth()
             .horizontalScroll(horizontalScrollState),
     ) {
-        _root_ide_package_.com.alextos.thousand.presentation.other.statistics.roll_statistics.PlayersRollsStatisticsTableHeader()
+        PlayersRollsStatisticsTableHeader()
 
         players.forEach { player ->
-            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.roll_statistics.PlayerRollsStatisticsRow(
+            PlayerRollsStatisticsRow(
                 player
             )
         }
@@ -188,7 +187,7 @@ private fun PlayersRollsStatisticsTable(
 
 @Composable
 private fun PlayersRollsStatisticsTableHeader() {
-    _root_ide_package_.com.alextos.thousand.presentation.other.statistics.roll_statistics.RollsStatisticsTableRow(
+    RollsStatisticsTableRow(
         userName = "Игрок",
         rolls = "Броски",
         averageRoll = "Средний",
@@ -197,8 +196,8 @@ private fun PlayersRollsStatisticsTableHeader() {
         bestRollChain = "Лучшая цепь",
         isHeader = true,
     )
-    HorizontalDivider(modifier = _root_ide_package_.androidx.compose.ui.Modifier.Companion.width(
-        _root_ide_package_.com.alextos.thousand.presentation.other.statistics.roll_statistics.TABLE_WIDTH
+    HorizontalDivider(modifier = Modifier.width(
+        TABLE_WIDTH
     ))
 }
 
@@ -206,7 +205,7 @@ private fun PlayersRollsStatisticsTableHeader() {
 private fun PlayerRollsStatisticsRow(
     player: PlayerWithRollStatistics,
 ) {
-    _root_ide_package_.com.alextos.thousand.presentation.other.statistics.roll_statistics.RollsStatisticsTableRow(
+    RollsStatisticsTableRow(
         userName = player.userName,
         rolls = player.rolls.toString(),
         averageRoll = player.averageRoll.toScoreText(),
@@ -235,54 +234,54 @@ private fun RollsStatisticsTableRow(
     val fontWeight = if (isHeader) FontWeight.Bold else FontWeight.Normal
 
     Row(
-        modifier = _root_ide_package_.androidx.compose.ui.Modifier.Companion
-            .width(_root_ide_package_.com.alextos.thousand.presentation.other.statistics.roll_statistics.TABLE_WIDTH)
+        modifier = Modifier
+            .width(TABLE_WIDTH)
             .padding(vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            modifier = _root_ide_package_.androidx.compose.ui.Modifier.Companion.width(
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.roll_statistics.USER_COLUMN_WIDTH
+            modifier = Modifier.width(
+                USER_COLUMN_WIDTH
             ),
             text = userName,
             style = textStyle,
             fontWeight = fontWeight,
         )
         Text(
-            modifier = _root_ide_package_.androidx.compose.ui.Modifier.Companion.width(
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.roll_statistics.METRIC_COLUMN_WIDTH
+            modifier = Modifier.width(
+                METRIC_COLUMN_WIDTH
             ),
             text = rolls,
             style = textStyle,
             fontWeight = fontWeight,
         )
         Text(
-            modifier = _root_ide_package_.androidx.compose.ui.Modifier.Companion.width(
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.roll_statistics.METRIC_COLUMN_WIDTH
+            modifier = Modifier.width(
+                METRIC_COLUMN_WIDTH
             ),
             text = averageRoll,
             style = textStyle,
             fontWeight = fontWeight,
         )
         Text(
-            modifier = _root_ide_package_.androidx.compose.ui.Modifier.Companion.width(
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.roll_statistics.METRIC_COLUMN_WIDTH
+            modifier = Modifier.width(
+                METRIC_COLUMN_WIDTH
             ),
             text = bestRoll,
             style = textStyle,
             fontWeight = fontWeight,
         )
         Text(
-            modifier = _root_ide_package_.androidx.compose.ui.Modifier.Companion.width(
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.roll_statistics.CHAIN_COLUMN_WIDTH
+            modifier = Modifier.width(
+                CHAIN_COLUMN_WIDTH
             ),
             text = averageRollChain,
             style = textStyle,
             fontWeight = fontWeight,
         )
         Text(
-            modifier = _root_ide_package_.androidx.compose.ui.Modifier.Companion.width(
-                _root_ide_package_.com.alextos.thousand.presentation.other.statistics.roll_statistics.CHAIN_COLUMN_WIDTH
+            modifier = Modifier.width(
+                CHAIN_COLUMN_WIDTH
             ),
             text = bestRollChain,
             style = textStyle,

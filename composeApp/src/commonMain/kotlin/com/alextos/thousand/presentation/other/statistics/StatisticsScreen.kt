@@ -36,19 +36,19 @@ fun StatisticsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.StatisticsItem(
+            StatisticsItem(
                 title = "Статистика игр",
                 onClick = openGamesStatistics,
             )
-            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.StatisticsItem(
+            StatisticsItem(
                 title = "Статистика ходов",
                 onClick = openTurnsStatistics,
             )
-            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.StatisticsItem(
+            StatisticsItem(
                 title = "Статистика бросков",
                 onClick = openRollsStatistics,
             )
-            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.StatisticsItem(
+            StatisticsItem(
                 title = "Статистика кубиков",
                 onClick = openDiceStatistics,
             )

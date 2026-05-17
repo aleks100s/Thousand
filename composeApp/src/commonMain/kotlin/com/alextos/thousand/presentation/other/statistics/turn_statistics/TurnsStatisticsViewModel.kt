@@ -12,12 +12,12 @@ import kotlinx.coroutines.launch
 class TurnsStatisticsViewModel(
     private val turnsStatisticsUseCase: TurnsStatisticsUseCase,
 ) : ViewModel() {
-    private val _state = MutableStateFlow(_root_ide_package_.com.alextos.thousand.presentation.other.statistics.turn_statistics.TurnsStatisticsState())
-    val state: StateFlow<com.alextos.thousand.presentation.other.statistics.turn_statistics.TurnsStatisticsState> = _state.asStateFlow()
+    private val _state = MutableStateFlow(TurnsStatisticsState())
+    val state: StateFlow<TurnsStatisticsState> = _state.asStateFlow()
 
-    fun onAction(action: com.alextos.thousand.presentation.other.statistics.turn_statistics.TurnsStatisticsAction) {
+    fun onAction(action: TurnsStatisticsAction) {
         when (action) {
-            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.turn_statistics.TurnsStatisticsAction.LoadStatistics -> observeStatistics()
+            TurnsStatisticsAction.LoadStatistics -> observeStatistics()
         }
     }
 

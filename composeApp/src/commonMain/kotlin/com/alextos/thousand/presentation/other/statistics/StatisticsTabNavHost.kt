@@ -17,42 +17,42 @@ fun StatisticsTabRoot(
 
     NavHost(
         navController = navController,
-        startDestination = _root_ide_package_.com.alextos.thousand.presentation.other.statistics.StatisticsRoute.Statistics,
+        startDestination = StatisticsRoute.Statistics,
     ) {
-        horizontalTransition<com.alextos.thousand.presentation.other.statistics.StatisticsRoute.Statistics> {
-            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.StatisticsScreen(
+        horizontalTransition<StatisticsRoute.Statistics> {
+            StatisticsScreen(
                 goBack = goBack,
                 openGamesStatistics = {
-                    navController.navigate(_root_ide_package_.com.alextos.thousand.presentation.other.statistics.StatisticsRoute.GamesStatistics)
+                    navController.navigate(StatisticsRoute.GamesStatistics)
                 },
                 openTurnsStatistics = {
-                    navController.navigate(_root_ide_package_.com.alextos.thousand.presentation.other.statistics.StatisticsRoute.TurnsStatistics)
+                    navController.navigate(StatisticsRoute.TurnsStatistics)
                 },
                 openRollsStatistics = {
-                    navController.navigate(_root_ide_package_.com.alextos.thousand.presentation.other.statistics.StatisticsRoute.RollsStatistics)
+                    navController.navigate(StatisticsRoute.RollsStatistics)
                 },
                 openDiceStatistics = {
-                    navController.navigate(_root_ide_package_.com.alextos.thousand.presentation.other.statistics.StatisticsRoute.DiceStatistics)
+                    navController.navigate(StatisticsRoute.DiceStatistics)
                 },
             )
         }
-        horizontalTransition<com.alextos.thousand.presentation.other.statistics.StatisticsRoute.GamesStatistics> {
-            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.games_statistics.GamesStatisticsScreen(
+        horizontalTransition<StatisticsRoute.GamesStatistics> {
+            GamesStatisticsScreen(
                 goBack = navController::popBackStack,
             )
         }
-        horizontalTransition<com.alextos.thousand.presentation.other.statistics.StatisticsRoute.TurnsStatistics> {
-            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.turn_statistics.TurnsStatisticsScreen(
+        horizontalTransition<StatisticsRoute.TurnsStatistics> {
+            TurnsStatisticsScreen(
                 goBack = navController::popBackStack,
             )
         }
-        horizontalTransition<com.alextos.thousand.presentation.other.statistics.StatisticsRoute.RollsStatistics> {
-            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.roll_statistics.RollsStatisticsScreen(
+        horizontalTransition<StatisticsRoute.RollsStatistics> {
+            RollsStatisticsScreen(
                 goBack = navController::popBackStack,
             )
         }
-        horizontalTransition<com.alextos.thousand.presentation.other.statistics.StatisticsRoute.DiceStatistics> {
-            _root_ide_package_.com.alextos.thousand.presentation.other.statistics.dice_statistics.DiceStatisticsScreen(
+        horizontalTransition<StatisticsRoute.DiceStatistics> {
+            DiceStatisticsScreen(
                 goBack = navController::popBackStack,
             )
         }
