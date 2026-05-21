@@ -217,6 +217,16 @@ private fun ButtonsView(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        AnimatedVisibility(state.tutorialAdvice != null) {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = state.tutorialAdvice ?: "",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center
+            )
+        }
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -306,17 +316,6 @@ private fun ButtonsView(
                     }
                 }
             }
-        }
-
-
-        AnimatedVisibility(state.tutorialAdvice != null) {
-            Text(
-                modifier = Modifier.fillMaxWidth(),
-                text = state.tutorialAdvice ?: "",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.bodySmall,
-                textAlign = TextAlign.Center
-            )
         }
     }
 }

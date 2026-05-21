@@ -4,6 +4,7 @@ import org.jetbrains.compose.resources.DrawableResource
 import thousand.composeapp.generated.resources.Res
 import thousand.composeapp.generated.resources.casino_24px
 import thousand.composeapp.generated.resources.info_24px
+import thousand.composeapp.generated.resources.menu_24px
 
 enum class BottomTab(
     val route: String,
@@ -17,7 +18,7 @@ enum class BottomTab(
     ),
     Other(
         route = "tab_other",
-        title = "Прочее",
-        iconResource = Res.drawable.info_24px,
+        title = "Меню",
+        iconResource = Res.drawable.menu_24px,
     ),
 }

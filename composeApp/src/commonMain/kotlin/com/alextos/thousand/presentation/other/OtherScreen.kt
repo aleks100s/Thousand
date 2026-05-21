@@ -26,7 +26,7 @@ fun OtherScreen(
 ) {
     Screen(
         modifier = Modifier,
-        title = "Прочее",
+        title = "Меню",
     ) { modifier ->
         Column(
             modifier = modifier

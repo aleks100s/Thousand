@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "965709920516",
+    "project_id": "thousand-688b0",
+    "storage_bucket": "thousand-688b0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:965709920516:android:b55bda43ab2ac7a0883851",
+        "android_client_info": {
+          "package_name": "com.alextos.thousand"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDsiMgeO6NVTg54RHmPqoBuPRLArxnNU7M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
