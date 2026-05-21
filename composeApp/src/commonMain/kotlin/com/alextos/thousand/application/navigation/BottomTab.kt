@@ -3,7 +3,6 @@ package com.alextos.thousand.application.navigation
 import org.jetbrains.compose.resources.DrawableResource
 import thousand.composeapp.generated.resources.Res
 import thousand.composeapp.generated.resources.casino_24px
-import thousand.composeapp.generated.resources.info_24px
 import thousand.composeapp.generated.resources.menu_24px
 
 enum class BottomTab(
