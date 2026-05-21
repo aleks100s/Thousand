@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.alextos.thousand.presentation.game.GameTabRoot
+import com.alextos.thousand.presentation.multiplayer.MultiplayerTabRoot
 import com.alextos.thousand.presentation.other.OtherTabRoot
 
 @Composable
@@ -39,6 +40,14 @@ fun AppNavHost(
                 contentAlignment = contentAlignment,
             ) {
                 OtherTabRoot()
+            }
+        }
+        composable(BottomTab.Multiplayer.route) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = contentAlignment,
+            ) {
+                MultiplayerTabRoot()
             }
         }
     }
