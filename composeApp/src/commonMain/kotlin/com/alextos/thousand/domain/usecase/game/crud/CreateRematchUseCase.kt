@@ -15,7 +15,7 @@ class CreateRematchUseCase(
 
         return repository.createGame(
             Game(
-                players = players,
+                players = players.shuffled(),
                 isShakeEnabled = sourceGame.isShakeEnabled,
                 isVirtualDiceEnabled = sourceGame.isVirtualDiceEnabled,
                 isNotificationEnabled = sourceGame.isNotificationEnabled,

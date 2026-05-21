@@ -25,7 +25,7 @@ class CreateGameUseCase(
         }
         return repository.createGame(
             Game(
-                players = players,
+                players = players.shuffled(),
                 isShakeEnabled = isShakeEnabled,
                 isVirtualDiceEnabled = isVirtualDiceEnabled,
                 isNotificationEnabled = isNotificationEnabled,
