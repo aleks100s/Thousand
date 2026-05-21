@@ -13,7 +13,6 @@ import com.alextos.thousand.domain.usecase.game.crud.UpdateGameUseCase
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.Die
 import com.alextos.thousand.domain.models.Game
-import com.alextos.thousand.domain.models.GameButton
 import com.alextos.thousand.domain.models.RollAbility
 import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.usecase.game.LoadGameTurnsUseCase
