@@ -3,7 +3,7 @@ package com.alextos.thousand.application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alextos.thousand.domain.models.UserKind
-import com.alextos.thousand.domain.service.NativeAuthenticatorService
+import com.alextos.thousand.domain.service.NativeAccountService
 import com.alextos.thousand.domain.usecase.user.GetAllUsersUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 
 class AppViewModel(
     private val getAllUsersUseCase: GetAllUsersUseCase,
-    private val nativeAuthenticatorService: NativeAuthenticatorService,
+    private val nativeAccountService: NativeAccountService,
 ) : ViewModel() {
     private val _state = MutableStateFlow(AppState())
     val state: StateFlow<AppState> = _state.asStateFlow()
@@ -27,7 +27,7 @@ class AppViewModel(
         viewModelScope.launch {
             combine(
                 getAllUsersUseCase(),
-                nativeAuthenticatorService.hideMultiplayer,
+                nativeAccountService.hideMultiplayer,
             ) { users, hideMultiplayer ->
                 AppState(
                     isLoading = false,

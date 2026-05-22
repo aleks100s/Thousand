@@ -4,14 +4,14 @@ import ComposeApp
 @main
 struct iOSApp: App {
     private let observer = DefaultShakeDeviceObserver()
-    private let authenticator = IOSAuthenticatorService()
+    private let accountService = IOSAccountService()
     
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     
     init() {
         KoinKt.doInitKoin(
             shakeDeviceObserver: observer,
-            nativeAuthenticatorService: authenticator,
+            nativeAccountService: accountService,
             appDeclaration: { _ in }
         )
     }

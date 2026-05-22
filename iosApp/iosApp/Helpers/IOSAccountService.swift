@@ -1,5 +1,5 @@
 //
-//  IOSAuthenticatorService.swift
+//  IOSAccountService.swift
 //  iosApp
 //
 //  Created by Alexander on 21.05.2026.
@@ -8,7 +8,7 @@
 import ComposeApp
 import GameKit
 
-final class IOSAuthenticatorService: MutableNativeAuthenticatorService {
+final class IOSAccountService: MutableNativeAccountService {
     override init() {
         super.init()
         GKLocalPlayer.local.authenticateHandler = { viewController, error in

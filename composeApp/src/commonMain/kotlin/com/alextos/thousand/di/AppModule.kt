@@ -17,7 +17,7 @@ import com.alextos.thousand.data.service.StorageServiceImpl
 import com.alextos.thousand.application.AppViewModel
 import com.alextos.thousand.domain.repository.GameRepository
 import com.alextos.thousand.domain.repository.StatisticsRepository
-import com.alextos.thousand.domain.service.NativeAuthenticatorService
+import com.alextos.thousand.domain.service.NativeAccountService
 import com.alextos.thousand.domain.service.ShakeDeviceObserver
 import com.alextos.thousand.domain.service.StorageService
 import com.alextos.thousand.domain.usecase.game.ApplyDiceRollRestrictionsUseCase
@@ -72,7 +72,7 @@ expect val platformModule: Module
 
 fun appModule(
     shakeDeviceObserver: ShakeDeviceObserver,
-    nativeAuthenticatorService: NativeAuthenticatorService
+    nativeAccountService: NativeAccountService
 ) = module {
     includes(platformModule)
 
@@ -88,7 +88,7 @@ fun appModule(
     single<StorageService> { StorageServiceImpl(get()) }
     single<GameRepository> { GameRepositoryImpl(get(), get(), get(), get(), get(), get(), get(), get()) }
     single<StatisticsRepository> { StatisticsRepositoryImpl(get(), get(), get(), get()) }
-    single<NativeAuthenticatorService> { nativeAuthenticatorService }
+    single<NativeAccountService> { nativeAccountService }
     factory { GetAllGamesUseCase(get()) }
     factory { GetAllUsersUseCase(get()) }
     factory { DiceStatisticsUseCase(get()) }

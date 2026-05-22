@@ -4,13 +4,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-interface NativeAuthenticatorService {
+interface NativeAccountService {
     val isAuthorized: StateFlow<Boolean>
     val authorizedUserName: StateFlow<String?>
     val hideMultiplayer: StateFlow<Boolean>
 }
 
-open class MutableNativeAuthenticatorService : NativeAuthenticatorService {
+open class MutableNativeAccountService : NativeAccountService {
     private val _isAuthorized = MutableStateFlow(false)
     private val _authorizedUserName = MutableStateFlow<String?>(null)
     private val _hideMultiplayer = MutableStateFlow(false)

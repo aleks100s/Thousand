@@ -3,7 +3,7 @@ package com.alextos.thousand.presentation.onboarding
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alextos.thousand.domain.models.UserKind
-import com.alextos.thousand.domain.service.NativeAuthenticatorService
+import com.alextos.thousand.domain.service.NativeAccountService
 import com.alextos.thousand.domain.usecase.user.SaveUserUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +15,7 @@ import kotlin.uuid.Uuid
 
 class FirstUserViewModel(
     private val saveUserUseCase: SaveUserUseCase,
-    private val authenticatorService: NativeAuthenticatorService,
+    private val accountService: NativeAccountService,
 ) : ViewModel() {
     private val _state = MutableStateFlow(FirstUserState())
     val state: StateFlow<FirstUserState> = _state.asStateFlow()
@@ -26,7 +26,7 @@ class FirstUserViewModel(
 
     private fun observeAuthorizedUserName() {
         viewModelScope.launch {
-            authenticatorService.authorizedUserName.collect { name ->
+            accountService.authorizedUserName.collect { name ->
                 val authorizedName = name?.trim().orEmpty()
                 if (authorizedName.isBlank()) return@collect
 
