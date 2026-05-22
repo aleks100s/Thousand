@@ -20,6 +20,12 @@ final class IOSAccountService: MutableNativeAccountService {
         viewController: UIViewController?,
         error: Error?
     ) {
+        let hideMultiplayer = GKLocalPlayer.local.isUnderage ||
+            GKLocalPlayer.local.isMultiplayerGamingRestricted
+        updateHideMultiplayer(hideMultiplayer: hideMultiplayer)
+        updateIsAuthorized(isAuthorized: GKLocalPlayer.local.isAuthenticated)
+        updateAuthorizedUserName(name: GKLocalPlayer.local.displayName)
+
         if let viewController {
             UIApplication.shared.delegate?.window??.rootViewController?.present(viewController, animated: true)
             return
@@ -27,19 +33,7 @@ final class IOSAccountService: MutableNativeAccountService {
         
         if let error {
             print(error.localizedDescription)
-            updateIsAuthorized(isAuthorized: false)
             return
-        }
-        
-        let hideMultiplayer = GKLocalPlayer.local.isUnderage ||
-            GKLocalPlayer.local.isMultiplayerGamingRestricted
-        updateHideMultiplayer(hideMultiplayer: hideMultiplayer)
-        
-        if GKLocalPlayer.local.isAuthenticated {
-            updateIsAuthorized(isAuthorized: true)
-            updateAuthorizedUserName(name: GKLocalPlayer.local.displayName)
-        } else {
-            updateIsAuthorized(isAuthorized: false)
         }
     }
 }
