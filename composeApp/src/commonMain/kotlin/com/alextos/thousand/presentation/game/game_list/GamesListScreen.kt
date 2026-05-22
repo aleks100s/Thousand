@@ -51,7 +51,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.alextos.thousand.common.EmptyStateView
+import com.alextos.thousand.common.InfoCardView
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.presentation.models.GameUi
 import org.jetbrains.compose.resources.painterResource
@@ -91,24 +91,26 @@ fun GamesListScreen(
         modifier = Modifier,
         title = "Список игр",
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                text = {
-                    Text("Новая игра")
-                },
-                icon = {
-                    Icon(
-                        painterResource(Res.drawable.add_24px),
-                        contentDescription = null
-                    )
-                },
-                onClick = {
-                    if (state.isFirstLaunch) {
-                        isTutorialSheetVisible = true
-                    } else {
-                        onCreateGame()
-                    }
-                },
-            )
+            if (state.isFABShown) {
+                ExtendedFloatingActionButton(
+                    text = {
+                        Text("Начать игру")
+                    },
+                    icon = {
+                        Icon(
+                            painterResource(Res.drawable.add_24px),
+                            contentDescription = null
+                        )
+                    },
+                    onClick = {
+                        if (state.isFirstLaunch) {
+                            isTutorialSheetVisible = true
+                        } else {
+                            onCreateGame()
+                        }
+                    },
+                )
+            }
         },
     ) { modifier ->
         if (state.isLoading) {
@@ -116,11 +118,30 @@ fun GamesListScreen(
                 LoadingIndicator()
             }
         } else if (state.games.isEmpty()) {
-            EmptyStateView(
-                modifier,
-                Res.drawable.casino_24px,
-                "Здесь будут ваши игры"
-            )
+            Column (
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+            ) {
+                InfoCardView(
+                    icon = Res.drawable.casino_24px,
+                    title = "Здесь будут ваши игры",
+                    text = "Создайте новую партию, чтобы собрать игроков, бросать кубики и сохранить историю счета.",
+                ) {
+                    Button(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = {
+                            if (state.isFirstLaunch) {
+                                isTutorialSheetVisible = true
+                            } else {
+                                onCreateGame()
+                            }
+                        },
+                    ) {
+                        Text("Начать игру")
+                    }
+                }
+            }
         } else {
             LazyColumn(
                 modifier = modifier
