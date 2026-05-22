@@ -6,16 +6,17 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import org.jetbrains.compose.resources.painterResource
-import thousand.composeapp.generated.resources.Res
-import thousand.composeapp.generated.resources.casino_24px
 
 @Composable
 fun BottomBar(
     currentTab: BottomTab,
+    hideMultiplayer: Boolean,
     onTabSelected: (BottomTab) -> Unit,
 ) {
     NavigationBar {
-        BottomTab.entries.forEach { tab ->
+        BottomTab.entries
+            .filter { tab -> tab != BottomTab.Multiplayer || hideMultiplayer.not() }
+            .forEach { tab ->
             NavigationBarItem(
                 selected = currentTab == tab,
                 onClick = { onTabSelected(tab) },

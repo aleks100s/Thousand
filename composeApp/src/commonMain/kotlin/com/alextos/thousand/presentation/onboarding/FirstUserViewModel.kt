@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alextos.thousand.domain.models.UserKind
 import com.alextos.thousand.domain.service.AuthenticationStatus
-import com.alextos.thousand.domain.service.NativeAuthenticatorDelegate
 import com.alextos.thousand.domain.service.NativeAuthenticatorService
 import com.alextos.thousand.domain.usecase.user.SaveUserUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,26 +16,27 @@ import kotlin.uuid.Uuid
 
 class FirstUserViewModel(
     private val saveUserUseCase: SaveUserUseCase,
-    authenticatorService: NativeAuthenticatorService
-) : ViewModel(), NativeAuthenticatorDelegate {
+    private val authenticatorService: NativeAuthenticatorService,
+) : ViewModel() {
     private val _state = MutableStateFlow(FirstUserState())
     val state: StateFlow<FirstUserState> = _state.asStateFlow()
 
     init {
-        authenticatorService.delegate = this
+        observeAuthenticationStatus()
     }
 
-    override fun userAuthenticationChanged(status: AuthenticationStatus) {
+    private fun observeAuthenticationStatus() {
         viewModelScope.launch {
-            when (status) {
-                is AuthenticationStatus.LoggedIn -> {
-                    _state.update {
-                        it.copy(name = status.name)
+            authenticatorService.authenticationStatus.collect { status ->
+                when (status) {
+                    is AuthenticationStatus.LoggedIn -> {
+                        _state.update {
+                            it.copy(name = status.name)
+                        }
                     }
+                    AuthenticationStatus.LoggedOut -> {}
                 }
-                AuthenticationStatus.LoggedOut -> {}
             }
-
         }
     }
 

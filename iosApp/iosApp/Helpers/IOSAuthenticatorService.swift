@@ -8,10 +8,9 @@
 import ComposeApp
 import GameKit
 
-final class IOSAuthenticatorService: NativeAuthenticatorService {
-    var delegate: (any NativeAuthenticatorDelegate)?
-    
-    init() {
+final class IOSAuthenticatorService: MutableNativeAuthenticatorService {
+    override init() {
+        super.init()
         GKLocalPlayer.local.authenticateHandler = { viewController, error in
             self.handleAuthentication(viewController: viewController, error: error)
         }
@@ -28,24 +27,18 @@ final class IOSAuthenticatorService: NativeAuthenticatorService {
         
         if let error {
             print(error.localizedDescription)
-            delegate?.userAuthenticationChanged(status: AuthenticationStatusLoggedOut())
+            updateAuthenticationStatus(status: AuthenticationStatusLoggedOut())
             return
         }
         
-        if GKLocalPlayer.local.isUnderage {
-            // Hide explicit game content.
-        }
-
-
-        if GKLocalPlayer.local.isMultiplayerGamingRestricted {
-            // Disable multiplayer game features.
-        }
-
-
-        if GKLocalPlayer.local.isPersonalizedCommunicationRestricted {
-            // Disable in game communication UI.
-        }
+        let hideMultiplayer = GKLocalPlayer.local.isUnderage ||
+            GKLocalPlayer.local.isMultiplayerGamingRestricted
+        updateHideMultiplayer(hideMultiplayer: hideMultiplayer)
         
-        delegate?.userAuthenticationChanged(status: AuthenticationStatusLoggedIn(name: "Loh"))
+        if GKLocalPlayer.local.isAuthenticated {
+            updateAuthenticationStatus(status: AuthenticationStatusLoggedIn(name: GKLocalPlayer.local.displayName))
+        } else {
+            updateAuthenticationStatus(status: AuthenticationStatusLoggedOut())
+        }
     }
 }

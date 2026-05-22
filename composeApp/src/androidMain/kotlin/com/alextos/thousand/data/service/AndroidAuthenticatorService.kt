@@ -1,8 +1,5 @@
 package com.alextos.thousand.data.service
 
-import com.alextos.thousand.domain.service.NativeAuthenticatorDelegate
-import com.alextos.thousand.domain.service.NativeAuthenticatorService
+import com.alextos.thousand.domain.service.MutableNativeAuthenticatorService
 
-class AndroidAuthenticatorService: NativeAuthenticatorService {
-    override var delegate: NativeAuthenticatorDelegate? = null
-}
+class AndroidAuthenticatorService : MutableNativeAuthenticatorService()

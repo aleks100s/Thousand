@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -12,6 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.application.navigation.AppNavHost
 import com.alextos.thousand.application.navigation.BottomBar
+import com.alextos.thousand.application.navigation.BottomTab
 import com.alextos.thousand.application.navigation.rememberAppNavState
 import com.alextos.thousand.application.theme.ThousandTheme
 import com.alextos.thousand.presentation.onboarding.FirstUserScreen
@@ -24,6 +26,13 @@ fun App() {
         val appNavState = rememberAppNavState()
         val viewModel: AppViewModel = koinViewModel()
         val state by viewModel.state.collectAsStateWithLifecycle()
+        val currentTab = appNavState.currentTab
+
+        LaunchedEffect(state.hideMultiplayer, currentTab) {
+            if (state.hideMultiplayer && currentTab == BottomTab.Multiplayer) {
+                appNavState.navigateToTab(BottomTab.Game)
+            }
+        }
 
         when {
             state.isLoading -> {
@@ -42,7 +51,8 @@ fun App() {
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = {
                         BottomBar(
-                            currentTab = appNavState.currentTab,
+                            currentTab = currentTab,
+                            hideMultiplayer = state.hideMultiplayer,
                             onTabSelected = appNavState::navigateToTab,
                         )
                     },

@@ -5,7 +5,6 @@ import thousand.composeapp.generated.resources.Res
 import thousand.composeapp.generated.resources.casino_24px
 import thousand.composeapp.generated.resources.diversity_3_24px
 import thousand.composeapp.generated.resources.menu_24px
-import thousand.composeapp.generated.resources.person_heart_24px
 
 enum class BottomTab(
     val route: String,
