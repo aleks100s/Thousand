@@ -1,6 +1,7 @@
 package com.alextos.thousand
 
 import android.app.Application
+import com.alextos.thousand.data.service.AndroidAuthenticatorService
 import com.alextos.thousand.data.service.AndroidShakeDeviceObserver
 import com.alextos.thousand.di.initKoin
 import org.koin.android.ext.koin.androidContext
@@ -14,7 +15,7 @@ class ThousandApplication : Application() {
             start()
         }
 
-        initKoin(shakeDeviceObserver) {
+        initKoin(shakeDeviceObserver, AndroidAuthenticatorService()) {
             androidLogger()
             androidContext(this@ThousandApplication)
         }

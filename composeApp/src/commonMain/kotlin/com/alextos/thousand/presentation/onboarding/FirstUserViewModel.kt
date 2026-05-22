@@ -2,9 +2,10 @@ package com.alextos.thousand.presentation.onboarding
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.alextos.thousand.domain.models.User
 import com.alextos.thousand.domain.models.UserKind
-import com.alextos.thousand.domain.usecase.user.GetAllUsersUseCase
+import com.alextos.thousand.domain.service.AuthenticationStatus
+import com.alextos.thousand.domain.service.NativeAuthenticatorDelegate
+import com.alextos.thousand.domain.service.NativeAuthenticatorService
 import com.alextos.thousand.domain.usecase.user.SaveUserUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,35 +16,34 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 class FirstUserViewModel(
-    private val getAllUsersUseCase: GetAllUsersUseCase,
     private val saveUserUseCase: SaveUserUseCase,
-) : ViewModel() {
+    authenticatorService: NativeAuthenticatorService
+) : ViewModel(), NativeAuthenticatorDelegate {
     private val _state = MutableStateFlow(FirstUserState())
     val state: StateFlow<FirstUserState> = _state.asStateFlow()
 
     init {
-        observeUsers()
+        authenticatorService.delegate = this
+    }
+
+    override fun userAuthenticationChanged(status: AuthenticationStatus) {
+        viewModelScope.launch {
+            when (status) {
+                is AuthenticationStatus.LoggedIn -> {
+                    _state.update {
+                        it.copy(name = status.name)
+                    }
+                }
+                AuthenticationStatus.LoggedOut -> {}
+            }
+
+        }
     }
 
     fun onAction(action: FirstUserAction) {
         when (action) {
             is FirstUserAction.UpdateName -> updateName(action.value)
-            is FirstUserAction.SelectExistingUser -> selectExistingUser(action.user)
             FirstUserAction.SaveUser -> saveUser()
-        }
-    }
-
-    private fun observeUsers() {
-        viewModelScope.launch {
-            getAllUsersUseCase().collect { users ->
-                _state.update { it ->
-                    it.copy(
-                        isLoading = false,
-                        isFirstUserRequired = users.none { it.kind == UserKind.MainUser },
-                        localUsers = users.filter { it.kind == UserKind.LocalUser },
-                    )
-                }
-            }
         }
     }
 
@@ -74,28 +74,6 @@ class FirstUserViewModel(
                     name = "",
                     isSaving = false,
                 )
-            }
-        }
-    }
-
-    @OptIn(ExperimentalUuidApi::class)
-    private fun selectExistingUser(user: User) {
-        if (state.value.isSaving) return
-
-        viewModelScope.launch {
-            _state.update {
-                it.copy(isSaving = true)
-            }
-
-            saveUserUseCase(
-                id = user.id,
-                name = user.name,
-                kind = UserKind.MainUser,
-                multiplayerToken = Uuid.random().toHexString()
-            )
-
-            _state.update {
-                it.copy(isSaving = false)
             }
         }
     }

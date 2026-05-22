@@ -14,8 +14,10 @@ import com.alextos.thousand.data.local.KeyValueStorage
 import com.alextos.thousand.data.repository.GameRepositoryImpl
 import com.alextos.thousand.data.repository.StatisticsRepositoryImpl
 import com.alextos.thousand.data.service.StorageServiceImpl
+import com.alextos.thousand.application.AppViewModel
 import com.alextos.thousand.domain.repository.GameRepository
 import com.alextos.thousand.domain.repository.StatisticsRepository
+import com.alextos.thousand.domain.service.NativeAuthenticatorService
 import com.alextos.thousand.domain.service.ShakeDeviceObserver
 import com.alextos.thousand.domain.service.StorageService
 import com.alextos.thousand.domain.usecase.game.ApplyDiceRollRestrictionsUseCase
@@ -67,7 +69,10 @@ import org.koin.dsl.module
 
 expect val platformModule: Module
 
-fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
+fun appModule(
+    shakeDeviceObserver: ShakeDeviceObserver,
+    nativeAuthenticatorService: NativeAuthenticatorService
+) = module {
     includes(platformModule)
 
     single<UserDao> { get<ThousandDatabase>().userDao() }
@@ -82,6 +87,7 @@ fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     single<StorageService> { StorageServiceImpl(get()) }
     single<GameRepository> { GameRepositoryImpl(get(), get(), get(), get(), get(), get(), get(), get()) }
     single<StatisticsRepository> { StatisticsRepositoryImpl(get(), get(), get(), get()) }
+    single<NativeAuthenticatorService> { nativeAuthenticatorService }
     factory { GetAllGamesUseCase(get()) }
     factory { GetAllUsersUseCase(get()) }
     factory { DiceStatisticsUseCase(get()) }
@@ -93,6 +99,7 @@ fun appModule(shakeDeviceObserver: ShakeDeviceObserver) = module {
     factory { LoadGameTurnsUseCase(get()) }
     factory { SaveUserUseCase(get()) }
     viewModelOf(::CreateGameViewModel)
+    viewModelOf(::AppViewModel)
     viewModelOf(::FirstUserViewModel)
     viewModelOf(::GamesListViewModel)
     viewModelOf(::GameRulesViewModel)
