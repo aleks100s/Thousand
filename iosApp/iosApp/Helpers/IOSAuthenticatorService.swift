@@ -27,7 +27,7 @@ final class IOSAuthenticatorService: MutableNativeAuthenticatorService {
         
         if let error {
             print(error.localizedDescription)
-            updateAuthenticationStatus(status: AuthenticationStatusLoggedOut())
+            updateIsAuthorized(isAuthorized: false)
             return
         }
         
@@ -36,9 +36,10 @@ final class IOSAuthenticatorService: MutableNativeAuthenticatorService {
         updateHideMultiplayer(hideMultiplayer: hideMultiplayer)
         
         if GKLocalPlayer.local.isAuthenticated {
-            updateAuthenticationStatus(status: AuthenticationStatusLoggedIn(name: GKLocalPlayer.local.displayName))
+            updateIsAuthorized(isAuthorized: true)
+            updateAuthorizedUserName(name: GKLocalPlayer.local.displayName)
         } else {
-            updateAuthenticationStatus(status: AuthenticationStatusLoggedOut())
+            updateIsAuthorized(isAuthorized: false)
         }
     }
 }

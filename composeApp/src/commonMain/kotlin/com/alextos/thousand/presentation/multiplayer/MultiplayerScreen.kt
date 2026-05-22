@@ -147,9 +147,11 @@ private fun MultiplayerHero(
 private fun StatusPill(
     state: MultiplayerState,
 ) {
-    val text = state.userName?.let { userName ->
-        "Вы вошли как $userName"
-    } ?: "Войдите, чтобы играть онлайн"
+    val text = if (state.isAuthorized) {
+        "Вы авторизованы для онлайн-игры"
+    } else {
+        "Войдите, чтобы играть онлайн"
+    }
 
     Surface(
         shape = CircleShape,

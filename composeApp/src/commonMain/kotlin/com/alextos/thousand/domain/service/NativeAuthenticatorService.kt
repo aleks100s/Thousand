@@ -5,27 +5,32 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 interface NativeAuthenticatorService {
-    val authenticationStatus: StateFlow<AuthenticationStatus>
+    val isAuthorized: StateFlow<Boolean>
+    val authorizedUserName: StateFlow<String?>
     val hideMultiplayer: StateFlow<Boolean>
 }
 
 open class MutableNativeAuthenticatorService : NativeAuthenticatorService {
-    private val _authenticationStatus = MutableStateFlow<AuthenticationStatus>(AuthenticationStatus.LoggedOut)
+    private val _isAuthorized = MutableStateFlow(false)
+    private val _authorizedUserName = MutableStateFlow<String?>(null)
     private val _hideMultiplayer = MutableStateFlow(false)
 
-    override val authenticationStatus: StateFlow<AuthenticationStatus> = _authenticationStatus.asStateFlow()
+    override val isAuthorized: StateFlow<Boolean> = _isAuthorized.asStateFlow()
+    override val authorizedUserName: StateFlow<String?> = _authorizedUserName.asStateFlow()
     override val hideMultiplayer: StateFlow<Boolean> = _hideMultiplayer.asStateFlow()
 
-    fun updateAuthenticationStatus(status: AuthenticationStatus) {
-        _authenticationStatus.value = status
+    fun updateIsAuthorized(isAuthorized: Boolean) {
+        _isAuthorized.value = isAuthorized
+        if (isAuthorized.not()) {
+            _authorizedUserName.value = null
+        }
+    }
+
+    fun updateAuthorizedUserName(name: String?) {
+        _authorizedUserName.value = name
     }
 
     fun updateHideMultiplayer(hideMultiplayer: Boolean) {
         _hideMultiplayer.value = hideMultiplayer
     }
-}
-
-sealed interface AuthenticationStatus {
-    data class LoggedIn(val name: String): AuthenticationStatus
-    data object LoggedOut: AuthenticationStatus
 }

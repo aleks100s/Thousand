@@ -2,7 +2,6 @@ package com.alextos.thousand.presentation.multiplayer
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.alextos.thousand.domain.service.AuthenticationStatus
 import com.alextos.thousand.domain.service.NativeAuthenticatorService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,17 +16,14 @@ class MultiplayerViewModel(
     val state: StateFlow<MultiplayerState> = _state.asStateFlow()
 
     init {
-        observeAuthenticationStatus()
+        observeAuthorization()
     }
 
-    private fun observeAuthenticationStatus() {
+    private fun observeAuthorization() {
         viewModelScope.launch {
-            nativeAuthenticatorService.authenticationStatus.collect { status ->
+            nativeAuthenticatorService.isAuthorized.collect { isAuthorized ->
                 _state.update {
-                    when (status) {
-                        is AuthenticationStatus.LoggedIn -> it.copy(userName = status.name)
-                        AuthenticationStatus.LoggedOut -> it.copy(userName = null)
-                    }
+                    it.copy(isAuthorized = isAuthorized)
                 }
             }
         }
