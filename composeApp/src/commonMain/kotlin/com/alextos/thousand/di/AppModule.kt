@@ -55,6 +55,7 @@ import com.alextos.thousand.presentation.other.game_rules.GameRulesViewModel
 import com.alextos.thousand.presentation.game.game_results.GameResultsViewModel
 import com.alextos.thousand.presentation.game.game_score.GameScoreViewModel
 import com.alextos.thousand.presentation.game.play_game.PlayGameViewModel
+import com.alextos.thousand.presentation.multiplayer.MultiplayerViewModel
 import com.alextos.thousand.presentation.other.tutorial_game.TutorialGameViewModel
 import com.alextos.thousand.presentation.onboarding.FirstUserViewModel
 import com.alextos.thousand.presentation.other.users.UsersViewModel
@@ -107,6 +108,7 @@ fun appModule(
     viewModelOf(::PlayGameViewModel)
     viewModelOf(::GameScoreViewModel)
     viewModelOf(::GameResultsViewModel)
+    viewModelOf(::MultiplayerViewModel)
     viewModelOf(::UsersViewModel)
     viewModelOf(::DiceStatisticsViewModel)
     viewModelOf(::EventsStatisticsViewModel)
