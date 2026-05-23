@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
+    id("kotlinx-serialization")
 }
 
 kotlin {
@@ -83,8 +84,12 @@ android {
         }
     }
     buildTypes {
-        getByName("release") {
+        release {
             isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt")
+            )
         }
     }
     buildFeatures {
