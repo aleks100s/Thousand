@@ -9,6 +9,7 @@ import com.alextos.thousand.domain.usecase.game.crud.CreateGameUseCase
 import com.alextos.thousand.domain.usecase.user.GenerateBotNameUseCase
 import com.alextos.thousand.domain.usecase.user.GetAllUsersUseCase
 import com.alextos.thousand.domain.usecase.user.SaveUserUseCase
+import com.alextos.thousand.presentation.game.components.GameSettings
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -44,15 +45,7 @@ class CreateGameViewModel(
             CreateGameAction.OpenSettingsStep -> openSettingsStep()
             is CreateGameAction.UpdateNewUserName -> updateNewUserName(action.value)
             is CreateGameAction.ToggleUserSelection -> toggleUserSelection(action.user)
-            is CreateGameAction.SetNotificationEnabled -> setNotificationEnabled(action.isEnabled)
-            is CreateGameAction.SetVirtualDiceEnabled -> setVirtualDiceEnabled(action.isEnabled)
-            is CreateGameAction.SetShakeEnabled -> setShakeEnabled(action.isEnabled)
-            is CreateGameAction.SetHasStartLimit -> setHasStartLimit(action.isEnabled)
-            is CreateGameAction.SetBarrel1Active -> setBarrel1Active(action.isEnabled)
-            is CreateGameAction.SetBarrel2Active -> setBarrel2Active(action.isEnabled)
-            is CreateGameAction.SetBarrel3Active -> setBarrel3Active(action.isEnabled)
-            is CreateGameAction.SetTripleBoltFineActive -> setTripleBoltFineActive(action.isEnabled)
-            is CreateGameAction.SetOvertakeFineActive -> setOvertakeFineActive(action.isEnabled)
+            is CreateGameAction.UpdateGameSettings -> updateGameSettings(action.settings)
             CreateGameAction.CreateGame -> createGame()
         }
     }
@@ -70,23 +63,17 @@ class CreateGameViewModel(
         }
         viewModelScope.launch {
             storageService.isNotificationEnabled.collect { isEnabled ->
-                _state.update {
-                    it.copy(isNotificationEnabled = isEnabled)
-                }
+                updateSettings { isNotificationEnabled = isEnabled }
             }
         }
         viewModelScope.launch {
             storageService.isManualInputEnabled.collect { isEnabled ->
-                _state.update {
-                    it.copy(isVirtualDiceEnabled = isEnabled.not())
-                }
+                updateSettings { isVirtualDiceEnabled = isEnabled.not() }
             }
         }
         viewModelScope.launch {
             storageService.isShakeEnabled.collect { isEnabled ->
-                _state.update {
-                    it.copy(isShakeEnabled = isEnabled)
-                }
+                updateSettings { isShakeEnabled = isEnabled }
             }
         }
     }
@@ -180,73 +167,51 @@ class CreateGameViewModel(
     private fun createGame() {
         viewModelScope.launch {
             val state = state.value
+            val settings = state.gameSettings
             val game = createGameUseCase(
                 users = state.selectedUsers,
-                isShakeEnabled = state.isShakeEnabled,
-                isVirtualDiceEnabled = state.isVirtualDiceEnabled,
-                isNotificationEnabled = state.isNotificationEnabled,
-                hasStartLimit = state.hasStartLimit,
-                isBarrel1Active = state.isBarrel1Active,
-                isBarrel2Active = state.isBarrel2Active,
-                isBarrel3Active = state.isBarrel3Active,
-                isTripleBoltFineActive = state.isTripleBoltFineActive,
-                isOvertakeFineActive = state.isOvertakeFineActive
+                isShakeEnabled = settings.isShakeEnabled,
+                isVirtualDiceEnabled = settings.isVirtualDiceEnabled,
+                isNotificationEnabled = settings.isNotificationEnabled,
+                hasStartLimit = settings.hasStartLimit,
+                isBarrel1Active = settings.isBarrel1Active,
+                isBarrel2Active = settings.isBarrel2Active,
+                isBarrel3Active = settings.isBarrel3Active,
+                isTripleBoltFineActive = settings.isTripleBoltFineActive,
+                isOvertakeFineActive = settings.isOvertakeFineActive,
             )
             _events.emit(CreateGameEvent.OpenGame(game.id))
         }
     }
 
-    private fun setNotificationEnabled(isEnabled: Boolean) {
-        viewModelScope.launch {
-            storageService.setNotificationEnabled(isEnabled)
-        }
-    }
-
-    private fun setVirtualDiceEnabled(isEnabled: Boolean) {
-        viewModelScope.launch {
-            storageService.setManualInputEnabled(isEnabled.not())
-        }
-    }
-
-    private fun setShakeEnabled(isEnabled: Boolean) {
-        viewModelScope.launch {
-            storageService.setShakeEnabled(isEnabled)
-        }
-    }
-
-    private fun setHasStartLimit(isEnabled: Boolean) {
+    private fun updateGameSettings(settings: GameSettings) {
+        val oldSettings = state.value.gameSettings
         _state.update {
-            it.copy(hasStartLimit = isEnabled)
+            it.copy(gameSettings = settings)
+        }
+
+        if (oldSettings.isNotificationEnabled != settings.isNotificationEnabled) {
+            viewModelScope.launch {
+                storageService.setNotificationEnabled(settings.isNotificationEnabled)
+            }
+        }
+        if (oldSettings.isVirtualDiceEnabled != settings.isVirtualDiceEnabled) {
+            viewModelScope.launch {
+                storageService.setManualInputEnabled(settings.isVirtualDiceEnabled.not())
+            }
+        }
+        if (oldSettings.isShakeEnabled != settings.isShakeEnabled) {
+            viewModelScope.launch {
+                storageService.setShakeEnabled(settings.isShakeEnabled)
+            }
         }
     }
 
-    private fun setBarrel1Active(isEnabled: Boolean) {
-        _state.update {
-            it.copy(isBarrel1Active = isEnabled)
-        }
-    }
-
-    private fun setBarrel2Active(isEnabled: Boolean) {
-        _state.update {
-            it.copy(isBarrel2Active = isEnabled)
-        }
-    }
-
-    private fun setBarrel3Active(isEnabled: Boolean) {
-        _state.update {
-            it.copy(isBarrel3Active = isEnabled)
-        }
-    }
-
-    private fun setTripleBoltFineActive(isEnabled: Boolean) {
-        _state.update {
-            it.copy(isTripleBoltFineActive = isEnabled)
-        }
-    }
-
-    private fun setOvertakeFineActive(isEnabled: Boolean) {
-        _state.update {
-            it.copy(isOvertakeFineActive = isEnabled)
+    private fun updateSettings(block: GameSettings.() -> Unit) {
+        _state.update { state ->
+            state.copy(
+                gameSettings = state.gameSettings.copy().apply(block),
+            )
         }
     }
 }
