@@ -12,6 +12,8 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.PlayGamesAuthProvider
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.database.FirebaseDatabase
+import kotlin.coroutines.resume
+import kotlinx.coroutines.suspendCancellableCoroutine
 
 class AndroidAccountService(
     private val application: Application,
@@ -26,6 +28,39 @@ class AndroidAccountService(
 
     override fun onActivityResumed(activity: Activity) {
         authenticate(activity)
+    }
+
+    override suspend fun logIn(email: String, password: String) {
+        suspendCancellableCoroutine { continuation ->
+            fun finish() {
+                if (continuation.isActive) {
+                    continuation.resume(Unit)
+                }
+            }
+
+            FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful.not()) {
+                        handleAuthenticationError(task.exception)
+                        finish()
+                        return@addOnCompleteListener
+                    }
+
+                    val result = task.result
+                    val user = result.user ?: FirebaseAuth.getInstance().currentUser
+                    if (user == null) {
+                        handleAuthenticationError(IllegalStateException("Firebase user is null after email sign-in."))
+                        finish()
+                        return@addOnCompleteListener
+                    }
+
+                    saveFirebaseUser(
+                        uid = user.uid,
+                        name = user.displayName ?: user.email?.substringBefore("@") ?: user.uid,
+                        onComplete = ::finish,
+                    )
+                }
+        }
     }
 
     private fun authenticate(activity: Activity) {
@@ -126,6 +161,7 @@ class AndroidAccountService(
     private fun saveFirebaseUser(
         uid: String,
         name: String,
+        onComplete: (() -> Unit)? = null,
     ) {
         updateAuthorizedUserName(name)
         updateIsAuthorized(true)
@@ -135,8 +171,13 @@ class AndroidAccountService(
             .child(USERS_NODE)
             .child(uid)
             .setValue(mapOf(USERNAME_KEY to name))
-            .addOnFailureListener { error ->
-                FirebaseCrashlytics.getInstance().recordException(error)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful.not()) {
+                    task.exception?.let { error ->
+                        FirebaseCrashlytics.getInstance().recordException(error)
+                    }
+                }
+                onComplete?.invoke()
             }
     }
 

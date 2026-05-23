@@ -22,6 +22,23 @@ final class IOSAccountService: MutableNativeAccountService {
             }
         }
     }
+
+    override func logIn(email: String, password: String) {
+        Auth.auth().signIn(withEmail: email, password: password) { [weak self] result, error in
+            if let error {
+                self?.handleAuthenticationError(error: error)
+                return
+            }
+            
+            guard let user = result?.user else {
+                self?.handleAuthenticationError(error: nil)
+                return
+            }
+            
+            let name = user.displayName ?? user.email?.components(separatedBy: "@").first ?? user.uid
+            self?.saveFirebaseUser(uid: user.uid, name: name)
+        }
+    }
     
     private func handleAuthentication(
         viewController: UIViewController?,
@@ -33,8 +50,7 @@ final class IOSAccountService: MutableNativeAccountService {
         }
         
         if let error {
-            Crashlytics.crashlytics().record(error: error)
-            updateIsAuthorized(isAuthorized: false)
+            handleAuthenticationError(error: error)
             return
         }
         
@@ -49,30 +65,42 @@ final class IOSAccountService: MutableNativeAccountService {
         // Get Firebase credentials from the player's Game Center credentials
         GameCenterAuthProvider.getCredential() { [weak self] (credential, error) in
             if let error = error {
-                self?.updateIsAuthorized(isAuthorized: false)
-                Crashlytics.crashlytics().record(error: error)
+                self?.handleAuthenticationError(error: error)
                 return
             }
             
             guard let credential else {
-                self?.updateIsAuthorized(isAuthorized: false)
+                self?.handleAuthenticationError(error: nil)
                 return
             }
             
             // The credential can be used to sign in, or re-auth, or link or unlink.
             Auth.auth().signIn(with: credential) { (user, error) in
                 if let error = error {
-                    Crashlytics.crashlytics().record(error: error)
+                    self?.handleAuthenticationError(error: error)
                     return
                 }
                 
                 guard let user = user?.user else {
+                    self?.handleAuthenticationError(error: nil)
                     return
                 }
                 
-                self?.updateIsAuthorized(isAuthorized: true)
-                Database.database().reference().child("users").child(user.uid).setValue(["username": user.displayName ?? GKLocalPlayer.local.displayName])
+                self?.saveFirebaseUser(uid: user.uid, name: user.displayName ?? GKLocalPlayer.local.displayName)
             }
+        }
+    }
+    
+    private func saveFirebaseUser(uid: String, name: String) {
+        updateAuthorizedUserName(name: name)
+        updateIsAuthorized(isAuthorized: true)
+        Database.database().reference().child("users").child(uid).setValue(["username": name])
+    }
+    
+    private func handleAuthenticationError(error: Error?) {
+        updateIsAuthorized(isAuthorized: false)
+        if let error {
+            Crashlytics.crashlytics().record(error: error)
         }
     }
     
