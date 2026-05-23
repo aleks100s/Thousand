@@ -16,15 +16,7 @@ import UIKit
 final class IOSAccountService: MutableNativeAccountService {
     override init() {
         super.init()
-        if (Auth.auth().currentUser == nil) {
-            authorize(connectWithFirebase: true)
-        } else {
-            updateIsAuthorized(isAuthorized: true)
-            if (Auth.auth().currentUser?.providerData.contains(where: { $0.providerID == "password" }) == false) {
-                authorize(connectWithFirebase: false)
-            }
-        }
-        
+        observeGameCenterAuthorization()
     }
     
     override func logIn(email: String, password: String, completionHandler: @escaping ((any Error)?) -> Void) {
@@ -67,22 +59,17 @@ final class IOSAccountService: MutableNativeAccountService {
         }
     }
     
-    private func authorize(connectWithFirebase: Bool) {
+    private func observeGameCenterAuthorization() {
         GKLocalPlayer.local.authenticateHandler = { [weak self] viewController, error in
             DispatchQueue.main.async {
-                self?.handleAuthentication(
-                    viewController: viewController,
-                    error: error,
-                    connectWithFirebase: connectWithFirebase
-                )
+                self?.handleAuthentication(viewController: viewController, error: error)
             }
         }
     }
     
     private func handleAuthentication(
         viewController: UIViewController?,
-        error: Error?,
-        connectWithFirebase: Bool
+        error: Error?
     ) {
         if let viewController {
             present(viewController: viewController)
@@ -91,6 +78,9 @@ final class IOSAccountService: MutableNativeAccountService {
         
         if let error {
             handleAuthenticationError(error: error)
+            if Auth.auth().currentUser != nil {
+                updateIsAuthorized(isAuthorized: true)
+            }
             return
         }
         
@@ -98,8 +88,10 @@ final class IOSAccountService: MutableNativeAccountService {
             GKLocalPlayer.local.isMultiplayerGamingRestricted
         updateHideMultiplayer(hideMultiplayer: hideMultiplayer)
         updateAuthorizedUserName(name: GKLocalPlayer.local.displayName)
-        if connectWithFirebase {
+        if Auth.auth().currentUser == nil {
             authorizeFirebase()
+        } else {
+            updateIsAuthorized(isAuthorized: true)
         }
     }
     
