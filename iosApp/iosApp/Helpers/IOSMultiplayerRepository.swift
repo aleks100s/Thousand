@@ -21,14 +21,14 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
         gameSettings.host = currentUser?.uid
         gameSettings.players = [hostPlayer]
 
-        try await Database.database().reference().child("games").child(gameID)
+        try await Database.database().reference().child("lobbies").child(gameID)
             .setValue(dictionary(from: gameSettings))
         return gameID
     }
 
     func connectToLobby(id: String) -> any Kotlinx_coroutines_coreFlow {
         let bridge = GameSettingsFlowBridge()
-        let reference = Database.database().reference().child("games").child(id)
+        let reference = Database.database().reference().child("lobbies").child(id)
 
         reference.observe(.value, with: { [weak self] snapshot in
             guard let self, let gameSettings = self.gameSettings(from: snapshot.value) else {

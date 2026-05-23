@@ -13,8 +13,12 @@ data class GameSettings(
     var host: String? = null,
     var players: List<Player> = emptyList()
 ) {
+    constructor() : this(host = null)
+
     data class Player(
         var id: String = "",
         var name: String = ""
-    )
+    ) {
+        constructor(): this(id = "")
+    }
 }

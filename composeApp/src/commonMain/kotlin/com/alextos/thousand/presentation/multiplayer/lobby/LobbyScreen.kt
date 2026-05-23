@@ -35,7 +35,7 @@ fun LobbyScreen(
 
     Screen(
         modifier = Modifier,
-        title = "Лобби",
+        title = "Лобби ${state.lobbyId}",
         goBack = goBack,
         actions = {
             {
