@@ -6,4 +6,5 @@ sealed interface MultiplayerAction {
     data class UpdateEmail(val value: String) : MultiplayerAction
     data class UpdatePassword(val value: String) : MultiplayerAction
     data object LogIn : MultiplayerAction
+    data object SignUp : MultiplayerAction
 }

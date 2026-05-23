@@ -25,7 +25,8 @@ class MultiplayerViewModel(
             MultiplayerAction.HideLoginSheet -> hideLoginSheet()
             is MultiplayerAction.UpdateEmail -> updateEmail(action.value)
             is MultiplayerAction.UpdatePassword -> updatePassword(action.value)
-            MultiplayerAction.LogIn -> logIn()
+            MultiplayerAction.LogIn -> logIn(createAccount = false)
+            MultiplayerAction.SignUp -> logIn(createAccount = true)
         }
     }
 
@@ -70,28 +71,39 @@ class MultiplayerViewModel(
         }
     }
 
-    private fun logIn() {
+    private fun logIn(createAccount: Boolean) {
         val state = state.value
         if (state.canLogIn.not() || state.isLoginInProgress) return
 
         viewModelScope.launch {
             _state.update {
-                it.copy(isLoginInProgress = true)
+                it.copy(isLoginInProgress = createAccount.not(), isSignUpInProgress = createAccount)
             }
 
             try {
-                nativeAccountService.logIn(
-                    email = state.email.trim(),
-                    password = state.password,
-                )
+                if (createAccount) {
+                    nativeAccountService.signUp(
+                        email = state.email.trim(),
+                        password = state.password,
+                    )
+                } else {
+                    nativeAccountService.logIn(
+                        email = state.email.trim(),
+                        password = state.password,
+                    )
+                }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(error = e.message)
+                }
             } finally {
                 _state.update {
-                    it.copy(isLoginInProgress = false)
+                    it.copy(isLoginInProgress = false, isSignUpInProgress = false)
                 }
             }
         }
     }
 
     private fun MultiplayerState.withValidation(): MultiplayerState =
-        copy(canLogIn = email.trim().isNotBlank() && password.isNotBlank())
+        copy(canLogIn = email.trim().isNotBlank() && password.isNotBlank(), error = null)
 }

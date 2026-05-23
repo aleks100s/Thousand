@@ -16,33 +16,73 @@ import UIKit
 final class IOSAccountService: MutableNativeAccountService {
     override init() {
         super.init()
-        GKLocalPlayer.local.authenticateHandler = { [weak self] viewController, error in
-            DispatchQueue.main.async {
-                self?.handleAuthentication(viewController: viewController, error: error)
+        if (Auth.auth().currentUser == nil) {
+            authorize(connectWithFirebase: true)
+        } else {
+            updateIsAuthorized(isAuthorized: true)
+            if (Auth.auth().currentUser?.providerData.contains(where: { $0.providerID == "password" }) == false) {
+                authorize(connectWithFirebase: false)
             }
         }
+        
     }
-
-    override func logIn(email: String, password: String) {
+    
+    override func logIn(email: String, password: String, completionHandler: @escaping ((any Error)?) -> Void) {
         Auth.auth().signIn(withEmail: email, password: password) { [weak self] result, error in
             if let error {
                 self?.handleAuthenticationError(error: error)
+                completionHandler(error)
                 return
             }
             
             guard let user = result?.user else {
                 self?.handleAuthenticationError(error: nil)
+                completionHandler(nil)
                 return
             }
             
             let name = user.displayName ?? user.email?.components(separatedBy: "@").first ?? user.uid
             self?.saveFirebaseUser(uid: user.uid, name: name)
+            completionHandler(nil)
+        }
+    }
+    
+    override func signUp(email: String, password: String, completionHandler: @escaping ((any Error)?) -> Void) {
+        Auth.auth().createUser(withEmail: email, password: password) { [weak self] result, error in
+            if let error {
+                self?.handleAuthenticationError(error: error)
+                completionHandler(error)
+                return
+            }
+            
+            guard let user = result?.user else {
+                self?.handleAuthenticationError(error: nil)
+                completionHandler(nil)
+                return
+            }
+            
+            let name = user.displayName ?? user.email?.components(separatedBy: "@").first ?? user.uid
+            self?.saveFirebaseUser(uid: user.uid, name: name)
+            completionHandler(nil)
+        }
+    }
+    
+    private func authorize(connectWithFirebase: Bool) {
+        GKLocalPlayer.local.authenticateHandler = { [weak self] viewController, error in
+            DispatchQueue.main.async {
+                self?.handleAuthentication(
+                    viewController: viewController,
+                    error: error,
+                    connectWithFirebase: connectWithFirebase
+                )
+            }
         }
     }
     
     private func handleAuthentication(
         viewController: UIViewController?,
-        error: Error?
+        error: Error?,
+        connectWithFirebase: Bool
     ) {
         if let viewController {
             present(viewController: viewController)
@@ -58,7 +98,9 @@ final class IOSAccountService: MutableNativeAccountService {
             GKLocalPlayer.local.isMultiplayerGamingRestricted
         updateHideMultiplayer(hideMultiplayer: hideMultiplayer)
         updateAuthorizedUserName(name: GKLocalPlayer.local.displayName)
-        authorizeFirebase()
+        if connectWithFirebase {
+            authorizeFirebase()
+        }
     }
     
     private func authorizeFirebase() {

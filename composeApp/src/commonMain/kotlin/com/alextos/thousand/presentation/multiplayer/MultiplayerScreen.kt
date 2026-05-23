@@ -2,6 +2,7 @@ package com.alextos.thousand.presentation.multiplayer
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -166,20 +167,46 @@ private fun LoginSheet(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             )
 
-            Button(
+            if (state.error != null) {
+                Text(text = state.error, color = MaterialTheme.colorScheme.error)
+            }
+
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                enabled = state.canLogIn && state.isLoginInProgress.not(),
-                onClick = {
-                    onAction(MultiplayerAction.LogIn)
-                },
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                if (state.isLoginInProgress) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
-                        strokeWidth = 2.dp,
-                    )
-                } else {
-                    Text("Войти")
+                Button(
+                    modifier = Modifier.weight(1f),
+                    enabled = state.canLogIn && state.isLoginInProgress.not(),
+                    onClick = {
+                        onAction(MultiplayerAction.LogIn)
+                    },
+                ) {
+                    if (state.isLoginInProgress) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                        )
+                    } else {
+                        Text("Вход")
+                    }
+                }
+
+                OutlinedButton(
+                    modifier = Modifier.weight(1f),
+                    enabled = state.canLogIn && state.isSignUpInProgress.not(),
+                    onClick = {
+                        onAction(MultiplayerAction.SignUp)
+                    },
+                ) {
+                    if (state.isSignUpInProgress) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                        )
+                    } else {
+                        Text("Регистрация")
+                    }
                 }
             }
         }

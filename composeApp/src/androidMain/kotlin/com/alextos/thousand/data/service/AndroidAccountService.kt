@@ -7,9 +7,11 @@ import com.alextos.thousand.domain.service.MutableNativeAccountService
 import com.google.android.gms.games.PlayGames
 import com.google.android.gms.games.PlayGamesSdk
 import com.google.android.gms.games.PlayersClient
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.PlayGamesAuthProvider
+import com.google.firebase.auth.auth
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.database.FirebaseDatabase
 import kotlin.coroutines.resume
@@ -27,13 +29,58 @@ class AndroidAccountService(
     }
 
     override fun onActivityResumed(activity: Activity) {
-        authenticate(activity)
+        if (Firebase.auth.currentUser == null) {
+            authenticate(activity)
+        } else {
+            updateIsAuthorized(true)
+            val info = Firebase.auth.currentUser?.providerData ?: return
+            if (info.none { it.providerId == "password" }) {
+                signInPlayGames(activity, false)
+            }
+        }
+    }
+
+    override suspend fun signUp(email: String, password: String) {
+        suspendCancellableCoroutine { continuation ->
+            fun finish(error: Exception? = null) {
+                if (error != null) {
+                    continuation.cancel(error)
+                } else if (continuation.isActive) {
+                    continuation.resume(Unit)
+                }
+            }
+
+            FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful.not()) {
+                        handleAuthenticationError(task.exception)
+                        finish(task.exception)
+                        return@addOnCompleteListener
+                    }
+
+                    val result = task.result
+                    val user = result.user ?: FirebaseAuth.getInstance().currentUser
+                    if (user == null) {
+                        handleAuthenticationError(IllegalStateException("Firebase user is null after email sign-in."))
+                        finish(IllegalStateException("Firebase user is null after email sign-in."))
+                        return@addOnCompleteListener
+                    }
+
+                    saveFirebaseUser(
+                        uid = user.uid,
+                        name = user.displayName ?: user.email?.substringBefore("@") ?: user.uid,
+                    )
+                    finish()
+                }
+        }
     }
 
     override suspend fun logIn(email: String, password: String) {
         suspendCancellableCoroutine { continuation ->
-            fun finish() {
-                if (continuation.isActive) {
+            fun finish(error: Exception? = null) {
+                if (error != null) {
+                    continuation.cancel(error)
+                } else if (continuation.isActive) {
                     continuation.resume(Unit)
                 }
             }
@@ -42,7 +89,7 @@ class AndroidAccountService(
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful.not()) {
                         handleAuthenticationError(task.exception)
-                        finish()
+                        finish(task.exception)
                         return@addOnCompleteListener
                     }
 
@@ -50,15 +97,15 @@ class AndroidAccountService(
                     val user = result.user ?: FirebaseAuth.getInstance().currentUser
                     if (user == null) {
                         handleAuthenticationError(IllegalStateException("Firebase user is null after email sign-in."))
-                        finish()
+                        finish(IllegalStateException("Firebase user is null after email sign-in."))
                         return@addOnCompleteListener
                     }
 
                     saveFirebaseUser(
                         uid = user.uid,
                         name = user.displayName ?: user.email?.substringBefore("@") ?: user.uid,
-                        onComplete = ::finish,
                     )
+                    finish()
                 }
         }
     }
@@ -78,17 +125,19 @@ class AndroidAccountService(
                 if (task.result.isAuthenticated) {
                     requestServerAuthCode(activity)
                 } else {
-                    signInPlayGames(activity)
+                    signInPlayGames(activity, true)
                 }
             }
     }
 
-    private fun signInPlayGames(activity: Activity) {
+    private fun signInPlayGames(activity: Activity, connectWithFirebase: Boolean) {
         val gamesSignInClient = PlayGames.getGamesSignInClient(activity)
         gamesSignInClient.signIn()
             .addOnCompleteListener(activity) { task ->
                 if (task.isSuccessful && task.result.isAuthenticated) {
-                    requestServerAuthCode(activity)
+                    if (connectWithFirebase) {
+                        requestServerAuthCode(activity)
+                    }
                 } else {
                     handleAuthenticationError(task.exception)
                 }
@@ -160,8 +209,7 @@ class AndroidAccountService(
 
     private fun saveFirebaseUser(
         uid: String,
-        name: String,
-        onComplete: (() -> Unit)? = null,
+        name: String
     ) {
         updateAuthorizedUserName(name)
         updateIsAuthorized(true)
@@ -177,7 +225,6 @@ class AndroidAccountService(
                         FirebaseCrashlytics.getInstance().recordException(error)
                     }
                 }
-                onComplete?.invoke()
             }
     }
 
