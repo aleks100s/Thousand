@@ -16,6 +16,7 @@ import com.alextos.thousand.data.repository.StatisticsRepositoryImpl
 import com.alextos.thousand.data.service.StorageServiceImpl
 import com.alextos.thousand.application.AppViewModel
 import com.alextos.thousand.domain.repository.GameRepository
+import com.alextos.thousand.domain.repository.MultiplayerRepository
 import com.alextos.thousand.domain.repository.StatisticsRepository
 import com.alextos.thousand.domain.service.NativeAccountService
 import com.alextos.thousand.domain.service.ShakeDeviceObserver
@@ -74,7 +75,8 @@ expect val platformModule: Module
 
 fun appModule(
     shakeDeviceObserver: ShakeDeviceObserver,
-    nativeAccountService: NativeAccountService
+    nativeAccountService: NativeAccountService,
+    multiplayerRepository: MultiplayerRepository,
 ) = module {
     includes(platformModule)
 
@@ -91,6 +93,7 @@ fun appModule(
     single<GameRepository> { GameRepositoryImpl(get(), get(), get(), get(), get(), get(), get(), get()) }
     single<StatisticsRepository> { StatisticsRepositoryImpl(get(), get(), get(), get()) }
     single<NativeAccountService> { nativeAccountService }
+    single<MultiplayerRepository> { multiplayerRepository }
     factory { GetAllGamesUseCase(get()) }
     factory { GetAllUsersUseCase(get()) }
     factory { DiceStatisticsUseCase(get()) }

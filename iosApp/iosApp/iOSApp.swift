@@ -5,6 +5,7 @@ import ComposeApp
 struct iOSApp: App {
     private let observer = DefaultShakeDeviceObserver()
     private let accountService = IOSAccountService()
+    private let multiplayerRepository = IOSMultiplayerRepository()
     
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     
@@ -12,6 +13,7 @@ struct iOSApp: App {
         KoinKt.doInitKoin(
             shakeDeviceObserver: observer,
             nativeAccountService: accountService,
+            multiplayerRepository: multiplayerRepository,
             appDeclaration: { _ in }
         )
     }
