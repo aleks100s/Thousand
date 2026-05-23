@@ -31,7 +31,9 @@ fun MultiplayerTabRoot() {
                     navController.popBackStack()
                 },
                 openLobby = { lobbyId ->
-                    navController.navigate(MultiplayerRoute.Lobby(lobbyId))
+                    navController.navigate(MultiplayerRoute.Lobby(lobbyId)) {
+                        popUpTo(MultiplayerRoute.Multiplayer)
+                    }
                 },
             )
         }
