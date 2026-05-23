@@ -6,6 +6,9 @@
 //
 
 import ComposeApp
+import FirebaseCrashlytics
+import FirebaseCrashlyticsSwift
+import FirebaseAuth
 import GameKit
 import UIKit
 
@@ -29,7 +32,7 @@ final class IOSAccountService: MutableNativeAccountService {
         }
         
         if let error {
-            print(error.localizedDescription)
+            Crashlytics.crashlytics().record(error: error)
             updateIsAuthorized(isAuthorized: false)
             return
         }
@@ -37,8 +40,34 @@ final class IOSAccountService: MutableNativeAccountService {
         let hideMultiplayer = GKLocalPlayer.local.isUnderage ||
             GKLocalPlayer.local.isMultiplayerGamingRestricted
         updateHideMultiplayer(hideMultiplayer: hideMultiplayer)
-        updateIsAuthorized(isAuthorized: GKLocalPlayer.local.isAuthenticated)
         updateAuthorizedUserName(name: GKLocalPlayer.local.displayName)
+        authorizeFirebase()
+    }
+    
+    private func authorizeFirebase() {
+        // Get Firebase credentials from the player's Game Center credentials
+        GameCenterAuthProvider.getCredential() { [weak self] (credential, error) in
+            if let error = error {
+                self?.updateIsAuthorized(isAuthorized: false)
+                Crashlytics.crashlytics().record(error: error)
+                return
+            }
+            
+            guard let credential else {
+                self?.updateIsAuthorized(isAuthorized: false)
+                return
+            }
+            
+            // The credential can be used to sign in, or re-auth, or link or unlink.
+            Auth.auth().signIn(with: credential) { (user, error) in
+                if let error = error {
+                    Crashlytics.crashlytics().record(error: error)
+                    return
+                }
+                
+                self?.updateIsAuthorized(isAuthorized: true)
+            }
+        }
     }
     
     private func present(viewController: UIViewController) {
