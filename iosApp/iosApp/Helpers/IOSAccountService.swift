@@ -6,9 +6,10 @@
 //
 
 import ComposeApp
+import FirebaseAuth
 import FirebaseCrashlytics
 import FirebaseCrashlyticsSwift
-import FirebaseAuth
+import FirebaseDatabase
 import GameKit
 import UIKit
 
@@ -65,7 +66,12 @@ final class IOSAccountService: MutableNativeAccountService {
                     return
                 }
                 
+                guard let user = user?.user else {
+                    return
+                }
+                
                 self?.updateIsAuthorized(isAuthorized: true)
+                Database.database().reference().child("users").child(user.uid).setValue(["username": user.displayName ?? GKLocalPlayer.local.displayName])
             }
         }
     }

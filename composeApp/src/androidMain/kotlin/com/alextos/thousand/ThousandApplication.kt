@@ -15,7 +15,7 @@ class ThousandApplication : Application() {
             start()
         }
 
-        initKoin(shakeDeviceObserver, AndroidAccountService()) {
+        initKoin(shakeDeviceObserver, AndroidAccountService(this)) {
             androidLogger()
             androidContext(this@ThousandApplication)
         }
