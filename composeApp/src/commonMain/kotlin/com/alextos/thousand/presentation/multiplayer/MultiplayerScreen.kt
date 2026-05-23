@@ -34,7 +34,9 @@ import thousand.composeapp.generated.resources.diversity_3_24px
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MultiplayerScreen() {
+fun MultiplayerScreen(
+    openCreateLobby: () -> Unit,
+) {
     val viewModel: MultiplayerViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -52,6 +54,7 @@ fun MultiplayerScreen() {
             MultiplayerHero(
                 state = state,
                 onAction = viewModel::onAction,
+                openCreateLobby = openCreateLobby,
             )
         }
     }
@@ -68,6 +71,7 @@ fun MultiplayerScreen() {
 private fun MultiplayerHero(
     state: MultiplayerState,
     onAction: (MultiplayerAction) -> Unit,
+    openCreateLobby: () -> Unit,
 ) {
     InfoCardView(
         icon = Res.drawable.diversity_3_24px,
@@ -77,6 +81,7 @@ private fun MultiplayerHero(
         MultiplayerActions(
             state = state,
             onAction = onAction,
+            openCreateLobby = openCreateLobby,
         )
     }
 }
@@ -85,6 +90,7 @@ private fun MultiplayerHero(
 private fun MultiplayerActions(
     state: MultiplayerState,
     onAction: (MultiplayerAction) -> Unit,
+    openCreateLobby: () -> Unit,
 ) {
     if (state.isAuthorized) {
         Column(
@@ -100,7 +106,7 @@ private fun MultiplayerActions(
 
             Button(
                 modifier = Modifier.fillMaxWidth(),
-                onClick = {},
+                onClick = openCreateLobby,
             ) {
                 Text("Создать игру")
             }
