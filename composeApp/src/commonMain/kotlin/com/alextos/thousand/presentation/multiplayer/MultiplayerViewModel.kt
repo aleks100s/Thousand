@@ -3,7 +3,10 @@ package com.alextos.thousand.presentation.multiplayer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alextos.thousand.domain.service.NativeAccountService
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -15,6 +18,9 @@ class MultiplayerViewModel(
     private val _state = MutableStateFlow(MultiplayerState())
     val state: StateFlow<MultiplayerState> = _state.asStateFlow()
 
+    private val _events = MutableSharedFlow<MultiplayerEvent>()
+    val events: SharedFlow<MultiplayerEvent> = _events.asSharedFlow()
+
     init {
         observeAuthorization()
     }
@@ -23,10 +29,14 @@ class MultiplayerViewModel(
         when (action) {
             MultiplayerAction.ShowLoginSheet -> showLoginSheet()
             MultiplayerAction.HideLoginSheet -> hideLoginSheet()
+            MultiplayerAction.ShowJoinLobbySheet -> showJoinLobbySheet()
+            MultiplayerAction.HideJoinLobbySheet -> hideJoinLobbySheet()
             is MultiplayerAction.UpdateEmail -> updateEmail(action.value)
             is MultiplayerAction.UpdatePassword -> updatePassword(action.value)
+            is MultiplayerAction.UpdateLobbyId -> updateLobbyId(action.value)
             MultiplayerAction.LogIn -> logIn(createAccount = false)
             MultiplayerAction.SignUp -> logIn(createAccount = true)
+            MultiplayerAction.JoinLobby -> joinLobby()
         }
     }
 
@@ -59,6 +69,18 @@ class MultiplayerViewModel(
         }
     }
 
+    private fun showJoinLobbySheet() {
+        _state.update {
+            it.copy(isJoinLobbySheetVisible = true)
+        }
+    }
+
+    private fun hideJoinLobbySheet() {
+        _state.update {
+            it.copy(isJoinLobbySheetVisible = false)
+        }
+    }
+
     private fun updateEmail(value: String) {
         _state.update {
             it.copy(email = value).withValidation()
@@ -68,6 +90,27 @@ class MultiplayerViewModel(
     private fun updatePassword(value: String) {
         _state.update {
             it.copy(password = value).withValidation()
+        }
+    }
+
+    private fun updateLobbyId(value: String) {
+        _state.update {
+            it.copy(
+                lobbyId = value,
+                canJoinLobby = value.trim().isNotBlank(),
+            )
+        }
+    }
+
+    private fun joinLobby() {
+        val lobbyId = state.value.lobbyId.trim()
+        if (lobbyId.isBlank()) return
+
+        viewModelScope.launch {
+            _state.update {
+                it.copy(isJoinLobbySheetVisible = false)
+            }
+            _events.emit(MultiplayerEvent.OpenLobby(lobbyId))
         }
     }
 

@@ -19,6 +19,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -36,9 +37,18 @@ import thousand.composeapp.generated.resources.diversity_3_24px
 @Composable
 fun MultiplayerScreen(
     openCreateLobby: () -> Unit,
+    openLobby: (String) -> Unit,
 ) {
     val viewModel: MultiplayerViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is MultiplayerEvent.OpenLobby -> openLobby(event.lobbyId)
+            }
+        }
+    }
 
     Screen(
         modifier = Modifier,
@@ -61,6 +71,13 @@ fun MultiplayerScreen(
 
     if (state.isLoginSheetVisible) {
         LoginSheet(
+            state = state,
+            onAction = viewModel::onAction,
+        )
+    }
+
+    if (state.isJoinLobbySheetVisible) {
+        JoinLobbySheet(
             state = state,
             onAction = viewModel::onAction,
         )
@@ -99,9 +116,11 @@ private fun MultiplayerActions(
         ) {
             OutlinedButton(
                 modifier = Modifier.fillMaxWidth(),
-                onClick = {},
+                onClick = {
+                    onAction(MultiplayerAction.ShowJoinLobbySheet)
+                },
             ) {
-                Text("Подключиться")
+                Text("Присоединиться")
             }
 
             Button(
@@ -119,6 +138,54 @@ private fun MultiplayerActions(
             },
         ) {
             Text("Авторизоваться")
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun JoinLobbySheet(
+    state: MultiplayerState,
+    onAction: (MultiplayerAction) -> Unit,
+) {
+    ModalBottomSheet(
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        onDismissRequest = {
+            onAction(MultiplayerAction.HideJoinLobbySheet)
+        },
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text(
+                text = "Подключиться к лобби",
+                style = MaterialTheme.typography.titleMedium,
+            )
+
+            OutlinedTextField(
+                value = state.lobbyId,
+                onValueChange = { value ->
+                    onAction(MultiplayerAction.UpdateLobbyId(value))
+                },
+                modifier = Modifier.fillMaxWidth(),
+                label = {
+                    Text("ID лобби")
+                },
+                singleLine = true,
+            )
+
+            Button(
+                modifier = Modifier.fillMaxWidth(),
+                enabled = state.canJoinLobby,
+                onClick = {
+                    onAction(MultiplayerAction.JoinLobby)
+                },
+            ) {
+                Text("Подключиться")
+            }
         }
     }
 }
