@@ -7,7 +7,6 @@ import com.alextos.thousand.common.horizontalTransition
 import com.alextos.thousand.presentation.game.create_game.CreateGameScreen
 import com.alextos.thousand.presentation.game.play_game.PlayGameScreen
 import com.alextos.thousand.presentation.game.game_list.GamesListScreen
-import com.alextos.thousand.presentation.other.game_rules.GameRulesScreen
 import com.alextos.thousand.presentation.game.game_results.GameResultsScreen
 import com.alextos.thousand.presentation.game.game_score.GameScoreScreen
 import com.alextos.thousand.presentation.other.tutorial_game.TutorialGameScreen

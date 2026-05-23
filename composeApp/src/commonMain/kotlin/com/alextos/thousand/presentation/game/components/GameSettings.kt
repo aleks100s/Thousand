@@ -10,4 +10,5 @@ data class GameSettings(
     var isBarrel3Active: Boolean = false,
     var isTripleBoltFineActive: Boolean = true,
     var isOvertakeFineActive: Boolean = true,
+    var host: String? = null
 )

@@ -2,7 +2,8 @@
   "project_info": {
     "project_number": "965709920516",
     "project_id": "thousand-688b0",
-    "storage_bucket": "thousand-688b0.firebasestorage.app"
+    "storage_bucket": "thousand-688b0.firebasestorage.app",
+    "firebase_url": "https://thousand-688b0-default-rtdb.europe-west1.firebasedatabase.app"
   },
   "client": [
     {
