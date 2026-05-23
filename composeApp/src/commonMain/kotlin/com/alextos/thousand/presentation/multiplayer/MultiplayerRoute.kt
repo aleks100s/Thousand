@@ -8,4 +8,7 @@ sealed interface MultiplayerRoute {
 
     @Serializable
     data object CreateLobby : MultiplayerRoute
+
+    @Serializable
+    data class Lobby(val lobbyId: String) : MultiplayerRoute
 }

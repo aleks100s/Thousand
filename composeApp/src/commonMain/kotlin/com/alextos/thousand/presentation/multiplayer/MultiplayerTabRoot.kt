@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.alextos.thousand.common.horizontalTransition
 import com.alextos.thousand.presentation.multiplayer.create_lobby.CreateLobbyScreen
+import com.alextos.thousand.presentation.multiplayer.lobby.LobbyScreen
 
 @Composable
 fun MultiplayerTabRoot() {
@@ -23,6 +24,16 @@ fun MultiplayerTabRoot() {
         }
         horizontalTransition<MultiplayerRoute.CreateLobby> {
             CreateLobbyScreen(
+                goBack = {
+                    navController.popBackStack()
+                },
+                openLobby = { lobbyId ->
+                    navController.navigate(MultiplayerRoute.Lobby(lobbyId))
+                },
+            )
+        }
+        horizontalTransition<MultiplayerRoute.Lobby> {
+            LobbyScreen(
                 goBack = {
                     navController.popBackStack()
                 },

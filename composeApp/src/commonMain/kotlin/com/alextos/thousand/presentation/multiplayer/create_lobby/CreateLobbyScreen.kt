@@ -9,6 +9,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -21,13 +22,22 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun CreateLobbyScreen(
     goBack: () -> Unit,
+    openLobby: (String) -> Unit,
 ) {
     val viewModel: CreateLobbyViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
 
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is CreateLobbyEvent.OpenLobby -> openLobby(event.lobbyId)
+            }
+        }
+    }
+
     Screen(
         modifier = Modifier,
-        title = "Создание лобби",
+        title = "Настройки игры",
         goBack = goBack,
         floatingActionButton = {
             ExtendedFloatingActionButton(
@@ -35,7 +45,7 @@ fun CreateLobbyScreen(
                     viewModel.onAction(CreateLobbyAction.OpenLobby)
                 },
             ) {
-                Text("перейти в лобби")
+                Text("Перейти в лобби")
             }
         },
     ) { modifier ->
