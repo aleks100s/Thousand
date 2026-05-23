@@ -2,7 +2,7 @@ package com.alextos.thousand.presentation.game.create_game
 
 import com.alextos.thousand.domain.models.User
 import com.alextos.thousand.domain.models.UserKind
-import com.alextos.thousand.presentation.game.components.GameSettings
+import com.alextos.thousand.domain.models.GameSettings
 
 data class CreateGameState(
     val users: List<User> = emptyList(),

@@ -33,6 +33,7 @@ import com.alextos.thousand.domain.GameConstants.BARREL_3
 import com.alextos.thousand.domain.GameConstants.BOLT_FINE
 import com.alextos.thousand.domain.GameConstants.OVERTAKE_FINE
 import com.alextos.thousand.domain.GameConstants.STARTING_LIMIT
+import com.alextos.thousand.domain.models.GameSettings
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import thousand.composeapp.generated.resources.Res

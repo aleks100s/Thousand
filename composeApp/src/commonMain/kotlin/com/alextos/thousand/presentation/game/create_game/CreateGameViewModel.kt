@@ -9,7 +9,7 @@ import com.alextos.thousand.domain.usecase.game.crud.CreateGameUseCase
 import com.alextos.thousand.domain.usecase.user.GenerateBotNameUseCase
 import com.alextos.thousand.domain.usecase.user.GetAllUsersUseCase
 import com.alextos.thousand.domain.usecase.user.SaveUserUseCase
-import com.alextos.thousand.presentation.game.components.GameSettings
+import com.alextos.thousand.domain.models.GameSettings
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow

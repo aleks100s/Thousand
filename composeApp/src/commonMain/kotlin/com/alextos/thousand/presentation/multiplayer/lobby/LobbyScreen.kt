@@ -64,7 +64,12 @@ fun LobbyScreen(
                 modifier = Modifier.align(Alignment.Center),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+                state.gameSettings.players.forEach {
+                    Text(it.name)
+                }
+
                 CircularProgressIndicator()
+
                 Text(
                     modifier = Modifier.padding(top = 16.dp),
                     text = "Ожидание игроков",
@@ -75,7 +80,7 @@ fun LobbyScreen(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth(),
-                enabled = false,
+                enabled = state.isStartButtonEnabled,
                 onClick = {},
             ) {
                 Text("Начать игру")

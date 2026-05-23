@@ -1,7 +1,7 @@
 package com.alextos.thousand.presentation.game.create_game
 
 import com.alextos.thousand.domain.models.User
-import com.alextos.thousand.presentation.game.components.GameSettings
+import com.alextos.thousand.domain.models.GameSettings
 
 sealed interface CreateGameAction {
     data object Initialize : CreateGameAction

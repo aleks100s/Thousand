@@ -1,7 +1,10 @@
 package com.alextos.thousand.domain.repository
 
-import com.alextos.thousand.presentation.game.components.GameSettings
+import com.alextos.thousand.domain.models.GameSettings
+import com.alextos.thousand.domain.models.Lobby
+import kotlinx.coroutines.flow.Flow
 
 interface MultiplayerRepository {
     suspend fun createLobby(gameSettings: GameSettings): String
+    fun connectToLobby(id: String): Flow<Lobby>
 }

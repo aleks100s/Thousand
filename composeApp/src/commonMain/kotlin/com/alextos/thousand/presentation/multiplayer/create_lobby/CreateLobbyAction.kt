@@ -1,6 +1,6 @@
 package com.alextos.thousand.presentation.multiplayer.create_lobby
 
-import com.alextos.thousand.presentation.game.components.GameSettings
+import com.alextos.thousand.domain.models.GameSettings
 
 sealed interface CreateLobbyAction {
     data class UpdateGameSettings(val settings: GameSettings) : CreateLobbyAction

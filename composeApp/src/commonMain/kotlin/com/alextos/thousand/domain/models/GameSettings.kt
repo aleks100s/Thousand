@@ -1,4 +1,4 @@
-package com.alextos.thousand.presentation.game.components
+package com.alextos.thousand.domain.models
 
 data class GameSettings(
     var isNotificationEnabled: Boolean = true,
@@ -10,5 +10,11 @@ data class GameSettings(
     var isBarrel3Active: Boolean = false,
     var isTripleBoltFineActive: Boolean = true,
     var isOvertakeFineActive: Boolean = true,
-    var host: String? = null
-)
+    var host: String? = null,
+    var players: List<Player> = emptyList()
+) {
+    data class Player(
+        var id: String = "",
+        var name: String = ""
+    )
+}
