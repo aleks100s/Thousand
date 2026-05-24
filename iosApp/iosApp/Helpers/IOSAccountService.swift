@@ -93,8 +93,8 @@ final class IOSAccountService: MutableNativeAccountService {
         
         if let error {
             handleAuthenticationError(error: error)
-            if Auth.auth().currentUser != nil {
-                updateIsAuthorized(isAuthorized: true)
+            if let name = Auth.auth().currentUser?.displayName {
+                saveFirebaseUser(name: name)
             }
             return
         }
@@ -105,7 +105,9 @@ final class IOSAccountService: MutableNativeAccountService {
         if Auth.auth().currentUser == nil {
             connectFirebaseWithGameCenter()
         } else {
-            updateIsAuthorized(isAuthorized: true)
+            if let name = Auth.auth().currentUser?.displayName {
+                saveFirebaseUser(name: name)
+            }
         }
     }
     

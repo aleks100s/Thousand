@@ -9,6 +9,7 @@ data class MultiplayerState(
     val email: String = "",
     val password: String = "",
     val lobbyId: String = "",
+    val username: String? = null,
     val isLoginInProgress: Boolean = false,
     val isSignUpInProgress: Boolean = false,
     val canLogIn: Boolean = false,

@@ -30,6 +30,7 @@ class MultiplayerViewModel(
 
     init {
         observeAuthorization()
+        observeUsername()
     }
 
     fun onAction(action: MultiplayerAction) {
@@ -61,6 +62,15 @@ class MultiplayerViewModel(
                     observeLobbies()
                 }
             }
+        }
+    }
+
+    private fun observeUsername() {
+        viewModelScope.launch {
+            nativeAccountService.authorizedUserName
+                .collect { name ->
+                    _state.update { it.copy(username = name) }
+                }
         }
     }
 

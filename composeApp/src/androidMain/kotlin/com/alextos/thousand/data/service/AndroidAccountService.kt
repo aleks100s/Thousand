@@ -29,11 +29,14 @@ class AndroidAccountService(
     }
 
     override fun onActivityResumed(activity: Activity) {
-        if (Firebase.auth.currentUser == null) {
+        val user = Firebase.auth.currentUser
+        if (user == null) {
             authenticate(activity)
         } else {
-            updateIsAuthorized(true)
-            val info = Firebase.auth.currentUser?.providerData ?: return
+            user.displayName?.let {
+                saveFirebaseUser(it)
+            }
+            val info = user.providerData
             if (info.none { it.providerId == "password" }) {
                 signInPlayGames(activity, false)
             }
