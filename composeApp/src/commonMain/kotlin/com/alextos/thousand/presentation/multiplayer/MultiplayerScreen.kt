@@ -357,23 +357,6 @@ private fun LoginSheet(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Button(
-                    modifier = Modifier.weight(1f),
-                    enabled = state.loginSheetButtonsEnabled,
-                    onClick = {
-                        onAction(MultiplayerAction.LogIn)
-                    },
-                ) {
-                    if (state.isLoginInProgress) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp,
-                        )
-                    } else {
-                        Text("Вход")
-                    }
-                }
-
                 OutlinedButton(
                     modifier = Modifier.weight(1f),
                     enabled = state.loginSheetButtonsEnabled,
@@ -388,6 +371,23 @@ private fun LoginSheet(
                         )
                     } else {
                         Text("Регистрация")
+                    }
+                }
+
+                Button(
+                    modifier = Modifier.weight(1f),
+                    enabled = state.loginSheetButtonsEnabled,
+                    onClick = {
+                        onAction(MultiplayerAction.LogIn)
+                    },
+                ) {
+                    if (state.isLoginInProgress) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                        )
+                    } else {
+                        Text("Вход")
                     }
                 }
             }
@@ -408,13 +408,13 @@ private fun LogoutSheet(
         },
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(text = "Вы действительно хотите выйти из аккаунта?")
 
             Row(
-                modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 OutlinedButton(

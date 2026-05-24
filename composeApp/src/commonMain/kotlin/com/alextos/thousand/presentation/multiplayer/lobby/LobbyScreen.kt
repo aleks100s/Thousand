@@ -29,6 +29,7 @@ import thousand.composeapp.generated.resources.content_copy_24px
 @Suppress("DEPRECATION")
 fun LobbyScreen(
     goBack: () -> Unit,
+    openGame: (String) -> Unit,
 ) {
     val viewModel: LobbyViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -88,7 +89,9 @@ fun LobbyScreen(
                             .align(Alignment.BottomCenter)
                             .fillMaxWidth(),
                         enabled = state.isStartButtonEnabled,
-                        onClick = {},
+                        onClick = {
+                            openGame(state.lobbyId)
+                        },
                     ) {
                         Text("Начать игру")
                     }
