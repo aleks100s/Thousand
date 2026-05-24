@@ -43,6 +43,9 @@ class MultiplayerViewModel(
             MultiplayerAction.LogIn -> logIn(createAccount = false)
             MultiplayerAction.SignUp -> logIn(createAccount = true)
             MultiplayerAction.JoinLobby -> joinLobby()
+            MultiplayerAction.SignOut -> signOut()
+            MultiplayerAction.ShowLogoutSheet -> showLogout()
+            MultiplayerAction.HideLogoutSheet -> hideLogout()
         }
     }
 
@@ -133,6 +136,29 @@ class MultiplayerViewModel(
                 it.copy(isJoinLobbySheetVisible = false)
             }
             _events.emit(MultiplayerEvent.OpenLobby(lobbyId))
+        }
+    }
+
+    private fun showLogout() {
+        _state.update {
+            it.copy(isLogoutSheetVisible = true)
+        }
+    }
+
+    private fun hideLogout() {
+        _state.update {
+            it.copy(isLogoutSheetVisible = false)
+        }
+    }
+
+    private fun signOut() {
+        nativeAccountService.signOut()
+        _state.update {
+            it.copy(
+                isAuthorized = false,
+                username = null,
+                lobbies = emptyList(),
+            )
         }
     }
 

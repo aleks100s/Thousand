@@ -112,6 +112,11 @@ class AndroidAccountService(
         }
     }
 
+    override fun signOut() {
+        Firebase.auth.signOut()
+        clearUserProfile()
+    }
+
     private fun authenticate(activity: Activity) {
         if (hasAttemptedAuthentication || userProfile.value != null) return
         hasAttemptedAuthentication = true

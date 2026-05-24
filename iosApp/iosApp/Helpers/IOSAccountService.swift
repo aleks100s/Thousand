@@ -73,6 +73,15 @@ final class IOSAccountService: MutableNativeAccountService {
         
         saveFirebaseUser(name: name)
     }
+
+    override func signOut() {
+        do {
+            try Auth.auth().signOut()
+            clearUserProfile()
+        } catch {
+            Crashlytics.crashlytics().record(error: error)
+        }
+    }
     
     private func observeGameCenterAuthorization() {
         GKLocalPlayer.local.authenticateHandler = { [weak self] viewController, error in
