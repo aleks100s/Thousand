@@ -250,7 +250,7 @@ private fun LoginSheet(
             ) {
                 Button(
                     modifier = Modifier.weight(1f),
-                    enabled = state.canLogIn && state.isLoginInProgress.not(),
+                    enabled = state.loginSheetButtonsEnabled,
                     onClick = {
                         onAction(MultiplayerAction.LogIn)
                     },
@@ -267,7 +267,7 @@ private fun LoginSheet(
 
                 OutlinedButton(
                     modifier = Modifier.weight(1f),
-                    enabled = state.canLogIn && state.isSignUpInProgress.not(),
+                    enabled = state.loginSheetButtonsEnabled,
                     onClick = {
                         onAction(MultiplayerAction.SignUp)
                     },

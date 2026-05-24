@@ -12,4 +12,7 @@ data class MultiplayerState(
     val canLogIn: Boolean = false,
     val canJoinLobby: Boolean = false,
     val error: String? = null
-)
+) {
+    val loginSheetButtonsEnabled: Boolean
+        get() = isLoginInProgress.not() && isSignUpInProgress.not() && canLogIn
+}

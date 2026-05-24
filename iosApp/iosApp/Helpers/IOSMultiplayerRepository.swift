@@ -42,6 +42,7 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
             }
 
             if gameSettings.players.contains(where: { $0.id == currentPlayer.id }) {
+                gameSettings.players.first(where: { $0.id == currentPlayer.id })?.name = currentPlayer.name
                 bridge.emit(lobby: self.lobby(from: gameSettings))
                 return
             }

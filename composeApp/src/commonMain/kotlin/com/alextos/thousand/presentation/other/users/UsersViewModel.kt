@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 class UsersViewModel(
     private val getAllUsersUseCase: GetAllUsersUseCase,
     private val deleteUserUseCase: DeleteUserUseCase,
-    private val updateUserUseCase: UpdateUserUseCase,
+    private val updateUserUseCase: UpdateUserUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(UsersState())
     val state: StateFlow<UsersState> = _state.asStateFlow()
@@ -74,7 +74,8 @@ class UsersViewModel(
         if (currentState.canSaveEditingUser.not()) return
 
         viewModelScope.launch {
-            updateUserUseCase(user.copy(name = currentState.editingUserName.trim()))
+            val name = currentState.editingUserName.trim()
+            updateUserUseCase(user.copy(name = name))
             hideRenameUserSheet()
         }
     }

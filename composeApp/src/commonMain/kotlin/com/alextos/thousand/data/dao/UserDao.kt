@@ -14,6 +14,9 @@ interface UserDao {
     @Query("SELECT * FROM users")
     fun getAllUsers(): Flow<List<UserEntity>>
 
+    @Query("SELECT * FROM users WHERE kind = 2 LIMIT 1")
+    suspend fun getMainUser(): UserEntity?
+
     @Query("DELETE FROM users WHERE id = :userId")
     suspend fun delete(userId: Long)
 }

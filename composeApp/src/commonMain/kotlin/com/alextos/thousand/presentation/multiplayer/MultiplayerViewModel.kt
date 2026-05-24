@@ -3,6 +3,8 @@ package com.alextos.thousand.presentation.multiplayer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alextos.thousand.domain.service.NativeAccountService
+import com.alextos.thousand.domain.usecase.LogInUseCase
+import com.alextos.thousand.domain.usecase.SignUpUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -14,6 +16,8 @@ import kotlinx.coroutines.launch
 
 class MultiplayerViewModel(
     private val nativeAccountService: NativeAccountService,
+    private val logInUseCase: LogInUseCase,
+    private val signUpUseCase: SignUpUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(MultiplayerState())
     val state: StateFlow<MultiplayerState> = _state.asStateFlow()
@@ -125,12 +129,12 @@ class MultiplayerViewModel(
 
             try {
                 if (createAccount) {
-                    nativeAccountService.signUp(
+                    logInUseCase(
                         email = state.email.trim(),
                         password = state.password,
                     )
                 } else {
-                    nativeAccountService.logIn(
+                    signUpUseCase(
                         email = state.email.trim(),
                         password = state.password,
                     )

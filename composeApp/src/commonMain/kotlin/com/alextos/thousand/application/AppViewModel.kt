@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 
 class AppViewModel(
     private val getAllUsersUseCase: GetAllUsersUseCase,
-    private val nativeAccountService: NativeAccountService,
+    private val nativeAccountService: NativeAccountService
 ) : ViewModel() {
     private val _state = MutableStateFlow(AppState())
     val state: StateFlow<AppState> = _state.asStateFlow()

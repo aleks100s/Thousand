@@ -10,7 +10,8 @@ interface NativeAccountService {
     val hideMultiplayer: StateFlow<Boolean>
 
     suspend fun logIn(email: String, password: String)
-    suspend fun signUp(email: String, password: String)
+    suspend fun signUp(email: String, password: String, name: String)
+    fun updatePlayerName(name: String)
 }
 
 open class MutableNativeAccountService : NativeAccountService {
@@ -23,8 +24,8 @@ open class MutableNativeAccountService : NativeAccountService {
     override val hideMultiplayer: StateFlow<Boolean> = _hideMultiplayer.asStateFlow()
 
     override suspend fun logIn(email: String, password: String) = Unit
-    override suspend fun signUp(email: String, password: String) = Unit
-
+    override suspend fun signUp(email: String, password: String, name: String) = Unit
+    override fun updatePlayerName(name: String) = Unit
     fun updateIsAuthorized(isAuthorized: Boolean) {
         _isAuthorized.value = isAuthorized
         if (isAuthorized.not()) {

@@ -11,9 +11,9 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.PlayGamesAuthProvider
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.auth
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.google.firebase.database.FirebaseDatabase
 import kotlin.coroutines.resume
 import kotlinx.coroutines.suspendCancellableCoroutine
 
@@ -40,7 +40,12 @@ class AndroidAccountService(
         }
     }
 
-    override suspend fun signUp(email: String, password: String) {
+    override fun updatePlayerName(name: String) {
+        val currentUser = Firebase.auth.currentUser ?: return
+        saveFirebaseUser(name)
+    }
+
+    override suspend fun signUp(email: String, password: String, name: String) {
         suspendCancellableCoroutine { continuation ->
             fun finish(error: Exception? = null) {
                 if (error != null) {
@@ -66,10 +71,7 @@ class AndroidAccountService(
                         return@addOnCompleteListener
                     }
 
-                    saveFirebaseUser(
-                        uid = user.uid,
-                        name = user.displayName ?: user.email?.substringBefore("@") ?: user.uid,
-                    )
+                    saveFirebaseUser(name = name)
                     finish()
                 }
         }
@@ -101,10 +103,7 @@ class AndroidAccountService(
                         return@addOnCompleteListener
                     }
 
-                    saveFirebaseUser(
-                        uid = user.uid,
-                        name = user.displayName ?: user.email?.substringBefore("@") ?: user.uid,
-                    )
+                    saveFirebaseUser(name = user.displayName ?: user.uid)
                     finish()
                 }
         }
@@ -193,39 +192,20 @@ class AndroidAccountService(
         val playersClient: PlayersClient = PlayGames.getPlayersClient(activity)
         playersClient.currentPlayer
             .addOnSuccessListener(activity) { player ->
-                saveFirebaseUser(
-                    uid = user.uid,
-                    name = player.displayName,
-                )
+                saveFirebaseUser(name = user.displayName ?: player.displayName.ifEmpty { user.uid })
             }
             .addOnFailureListener(activity) { error ->
                 FirebaseCrashlytics.getInstance().recordException(error)
-                saveFirebaseUser(
-                    uid = user.uid,
-                    name = user.displayName ?: user.uid,
-                )
+                saveFirebaseUser(name = user.displayName ?: user.uid)
             }
     }
 
-    private fun saveFirebaseUser(
-        uid: String,
-        name: String
-    ) {
+    private fun saveFirebaseUser(name: String) {
         updateAuthorizedUserName(name)
         updateIsAuthorized(true)
-
-        FirebaseDatabase.getInstance()
-            .reference
-            .child(USERS_NODE)
-            .child(uid)
-            .setValue(mapOf(USERNAME_KEY to name))
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful.not()) {
-                    task.exception?.let { error ->
-                        FirebaseCrashlytics.getInstance().recordException(error)
-                    }
-                }
-            }
+        val request = UserProfileChangeRequest.Builder()
+        request.displayName = name
+        Firebase.auth.currentUser?.updateProfile(request.build())
     }
 
     private fun handleAuthenticationError(error: Exception?) {

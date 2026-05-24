@@ -72,6 +72,7 @@ class MultiplayerRepositoryImpl : MultiplayerRepository {
                                 }
                             }
                     } else {
+                        gameSettings.players.firstOrNull { it.id == currentPlayer.id }?.name = currentPlayer.name
                         trySend(gameSettings.toLobby())
                     }
                 }

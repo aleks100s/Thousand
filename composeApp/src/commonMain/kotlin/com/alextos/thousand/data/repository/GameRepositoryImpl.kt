@@ -39,6 +39,10 @@ class GameRepositoryImpl(
         }
     }
 
+    override suspend fun getMainUser(): User? {
+        return userDao.getMainUser()?.toDomain()
+    }
+
     override suspend fun saveUser(user: User) {
         userDao.upsert(user.toEntity())
     }

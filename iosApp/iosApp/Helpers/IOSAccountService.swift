@@ -19,7 +19,11 @@ final class IOSAccountService: MutableNativeAccountService {
         observeGameCenterAuthorization()
     }
     
-    override func logIn(email: String, password: String, completionHandler: @escaping ((any Error)?) -> Void) {
+    override func logIn(
+        email: String,
+        password: String,
+        completionHandler: @escaping ((any Error)?) -> Void
+    ) {
         Auth.auth().signIn(withEmail: email, password: password) { [weak self] result, error in
             if let error {
                 self?.handleAuthenticationError(error: error)
@@ -33,13 +37,17 @@ final class IOSAccountService: MutableNativeAccountService {
                 return
             }
             
-            let name = user.displayName ?? user.email?.components(separatedBy: "@").first ?? user.uid
-            self?.saveFirebaseUser(uid: user.uid, name: name)
+            self?.saveFirebaseUser(name: user.displayName ?? user.uid)
             completionHandler(nil)
         }
     }
     
-    override func signUp(email: String, password: String, completionHandler: @escaping ((any Error)?) -> Void) {
+    override func signUp(
+        email: String,
+        password: String,
+        name: String,
+        completionHandler: @escaping ((any Error)?) -> Void
+    ) {
         Auth.auth().createUser(withEmail: email, password: password) { [weak self] result, error in
             if let error {
                 self?.handleAuthenticationError(error: error)
@@ -47,16 +55,23 @@ final class IOSAccountService: MutableNativeAccountService {
                 return
             }
             
-            guard let user = result?.user else {
+            guard result?.user != nil else {
                 self?.handleAuthenticationError(error: nil)
                 completionHandler(nil)
                 return
             }
             
-            let name = user.displayName ?? user.email?.components(separatedBy: "@").first ?? user.uid
-            self?.saveFirebaseUser(uid: user.uid, name: name)
+            self?.saveFirebaseUser(name: name)
             completionHandler(nil)
         }
+    }
+    
+    override func updatePlayerName(name: String) {
+        guard Auth.auth().currentUser != nil else {
+            return
+        }
+        
+        saveFirebaseUser(name: name)
     }
     
     private func observeGameCenterAuthorization() {
@@ -87,15 +102,14 @@ final class IOSAccountService: MutableNativeAccountService {
         let hideMultiplayer = GKLocalPlayer.local.isUnderage ||
             GKLocalPlayer.local.isMultiplayerGamingRestricted
         updateHideMultiplayer(hideMultiplayer: hideMultiplayer)
-        updateAuthorizedUserName(name: GKLocalPlayer.local.displayName)
         if Auth.auth().currentUser == nil {
-            authorizeFirebase()
+            connectFirebaseWithGameCenter()
         } else {
             updateIsAuthorized(isAuthorized: true)
         }
     }
     
-    private func authorizeFirebase() {
+    private func connectFirebaseWithGameCenter() {
         // Get Firebase credentials from the player's Game Center credentials
         GameCenterAuthProvider.getCredential() { [weak self] (credential, error) in
             if let error = error {
@@ -120,15 +134,15 @@ final class IOSAccountService: MutableNativeAccountService {
                     return
                 }
                 
-                self?.saveFirebaseUser(uid: user.uid, name: user.displayName ?? GKLocalPlayer.local.displayName)
+                self?.saveFirebaseUser(name: user.displayName ?? GKLocalPlayer.local.displayName)
             }
         }
     }
     
-    private func saveFirebaseUser(uid: String, name: String) {
+    private func saveFirebaseUser(name: String) {
         updateAuthorizedUserName(name: name)
         updateIsAuthorized(isAuthorized: true)
-        Database.database().reference().child("users").child(uid).setValue(["username": name])
+        Auth.auth().currentUser?.displayName = name
     }
     
     private func handleAuthenticationError(error: Error?) {
