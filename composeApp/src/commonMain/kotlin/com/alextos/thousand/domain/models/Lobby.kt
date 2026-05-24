@@ -1,6 +1,12 @@
 package com.alextos.thousand.domain.models
 
 data class Lobby(
-    val settings: GameSettings,
-    val isCurrentPlayerHost: Boolean
-)
+    var settings: GameSettings = GameSettings(),
+    var players: List<Player> = emptyList(),
+    var host: String = ""
+) {
+    data class Player(
+        var id: String = "",
+        var name: String = ""
+    )
+}

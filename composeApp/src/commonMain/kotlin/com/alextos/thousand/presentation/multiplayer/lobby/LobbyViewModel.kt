@@ -41,7 +41,7 @@ class LobbyViewModel(
                     _state.update {
                         it.copy(
                             gameSettings = lobby.settings,
-                            isHost = lobby.isCurrentPlayerHost,
+                            players = lobby.players,
                             error = null
                         )
                     }

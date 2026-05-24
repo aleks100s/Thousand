@@ -70,7 +70,7 @@ fun LobbyScreen(
                     modifier = Modifier.align(Alignment.Center),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    state.gameSettings.players.forEach {
+                    state.players.forEach {
                         Text(it.name)
                     }
 
@@ -82,14 +82,16 @@ fun LobbyScreen(
                     )
                 }
 
-                Button(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth(),
-                    enabled = state.isStartButtonEnabled,
-                    onClick = {},
-                ) {
-                    Text("Начать игру")
+                if (state.isHost) {
+                    Button(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth(),
+                        enabled = state.isStartButtonEnabled,
+                        onClick = {},
+                    ) {
+                        Text("Начать игру")
+                    }
                 }
             }
         }

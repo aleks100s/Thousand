@@ -25,13 +25,18 @@ class MultiplayerRepositoryImpl : MultiplayerRepository {
     override suspend fun createLobby(gameSettings: GameSettings): String {
         val gameID = Random.nextInt(1000, 10000).toString()
         val currentUser = Firebase.auth.currentUser
-        gameSettings.host = currentUser?.uid
-        gameSettings.players = listOf(GameSettings.Player(id = currentUser?.uid ?: "", currentUser?.displayName ?: "Без имени"))
+        val host = currentUser?.uid ?: ""
+        val players = listOf(Lobby.Player(id = currentUser?.uid ?: "", currentUser?.displayName ?: "Без имени"))
+        val lobby = Lobby(
+            settings = gameSettings,
+            players = players,
+            host = host
+        )
         return suspendCancellableCoroutine { continuation ->
             FirebaseDatabase.getInstance().reference
                 .child(LOBBIES_NODE)
                 .child(gameID)
-                .setValue(gameSettings)
+                .setValue(lobby)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         if (continuation.isActive) {
@@ -55,28 +60,28 @@ class MultiplayerRepositoryImpl : MultiplayerRepository {
 
             val listener = object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    val gameSettings = snapshot.toGameSettings() ?: run {
+                    val lobby = snapshot.toLobby() ?: run {
                         close(IllegalStateException("Failed to connect to lobby."))
                         return
                     }
-                    val currentPlayer = GameSettings.Player(
+                    val currentPlayer = Lobby.Player(
                         id = currentUser?.uid.orEmpty(),
                         name = currentUser?.displayName ?: "Без имени",
                     )
 
-                    if (currentPlayer.id.isNotEmpty() && gameSettings.players.none { it.id == currentPlayer.id }) {
-                        gameSettings.players += currentPlayer
-                        reference.setValue(gameSettings)
+                    if (currentPlayer.id.isNotEmpty() && lobby.players.none { it.id == currentPlayer.id }) {
+                        lobby.players += currentPlayer
+                        reference.setValue(lobby)
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
-                                    trySend(gameSettings.toLobby())
+                                    trySend(lobby)
                                 } else {
                                     close(task.exception)
                                 }
                             }
                     } else {
-                        gameSettings.players.firstOrNull { it.id == currentPlayer.id }?.name = currentPlayer.name
-                        trySend(gameSettings.toLobby())
+                        lobby.players.firstOrNull { it.id == currentPlayer.id }?.name = currentPlayer.name
+                        trySend(lobby)
                     }
                 }
 
@@ -93,10 +98,23 @@ class MultiplayerRepositoryImpl : MultiplayerRepository {
         }
     }
 
-    private fun DataSnapshot.toGameSettings(): GameSettings? {
+    private fun DataSnapshot.toLobby(): Lobby? {
         if (!exists()) return null
 
-        return GameSettings(
+        return Lobby(
+            settings = child("settings").toGameSettings(),
+            players = child("players").children.map { playerSnapshot ->
+                Lobby.Player(
+                    id = playerSnapshot.child("id").getValue(String::class.java).orEmpty(),
+                    name = playerSnapshot.child("name").getValue(String::class.java) ?: "Без имени",
+                )
+            },
+            host = child("host").getValue(String::class.java).orEmpty(),
+        )
+    }
+
+    private fun DataSnapshot.toGameSettings(): GameSettings =
+        GameSettings(
             isNotificationEnabled = child("isNotificationEnabled").getValue(Boolean::class.java) ?: true,
             isVirtualDiceEnabled = child("isVirtualDiceEnabled").getValue(Boolean::class.java) ?: true,
             isShakeEnabled = child("isShakeEnabled").getValue(Boolean::class.java) ?: true,
@@ -106,19 +124,5 @@ class MultiplayerRepositoryImpl : MultiplayerRepository {
             isBarrel3Active = child("isBarrel3Active").getValue(Boolean::class.java) ?: false,
             isTripleBoltFineActive = child("isTripleBoltFineActive").getValue(Boolean::class.java) ?: true,
             isOvertakeFineActive = child("isOvertakeFineActive").getValue(Boolean::class.java) ?: true,
-            host = child("host").getValue(String::class.java),
-            players = child("players").children.map { playerSnapshot ->
-                GameSettings.Player(
-                    id = playerSnapshot.child("id").getValue(String::class.java).orEmpty(),
-                    name = playerSnapshot.child("name").getValue(String::class.java) ?: "Без имени",
-                )
-            },
-        )
-    }
-
-    private fun GameSettings.toLobby(): Lobby =
-        Lobby(
-            settings = this,
-            isCurrentPlayerHost = Firebase.auth.currentUser?.uid == host,
         )
 }
