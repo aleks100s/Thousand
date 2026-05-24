@@ -142,13 +142,16 @@ final class IOSAccountService: MutableNativeAccountService {
     }
     
     private func saveFirebaseUser(name: String) {
-        updateAuthorizedUserName(name: name)
-        updateIsAuthorized(isAuthorized: true)
-        Auth.auth().currentUser?.displayName = name
+        guard let currentUser = Auth.auth().currentUser else {
+            return
+        }
+        
+        updateUserProfile(id: currentUser.uid, name: name)
+        currentUser.displayName = name
     }
     
     private func handleAuthenticationError(error: Error?) {
-        updateIsAuthorized(isAuthorized: false)
+        clearUserProfile()
         if let error {
             Crashlytics.crashlytics().record(error: error)
         }

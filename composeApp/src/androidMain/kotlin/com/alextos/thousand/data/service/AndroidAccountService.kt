@@ -11,7 +11,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.PlayGamesAuthProvider
-import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.auth.UserProfileChangeRequest as FirebaseUserProfileChangeRequest
 import com.google.firebase.auth.auth
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlin.coroutines.resume
@@ -113,7 +113,7 @@ class AndroidAccountService(
     }
 
     private fun authenticate(activity: Activity) {
-        if (hasAttemptedAuthentication || isAuthorized.value) return
+        if (hasAttemptedAuthentication || userProfile.value != null) return
         hasAttemptedAuthentication = true
 
         val gamesSignInClient = PlayGames.getGamesSignInClient(activity)
@@ -204,15 +204,15 @@ class AndroidAccountService(
     }
 
     private fun saveFirebaseUser(name: String) {
-        updateAuthorizedUserName(name)
-        updateIsAuthorized(true)
-        val request = UserProfileChangeRequest.Builder()
+        val currentUser = Firebase.auth.currentUser ?: return
+        updateUserProfile(id = currentUser.uid, name = name)
+        val request = FirebaseUserProfileChangeRequest.Builder()
         request.displayName = name
-        Firebase.auth.currentUser?.updateProfile(request.build())
+        currentUser.updateProfile(request.build())
     }
 
     private fun handleAuthenticationError(error: Exception?) {
-        updateIsAuthorized(false)
+        clearUserProfile()
         error?.let {
             FirebaseCrashlytics.getInstance().recordException(it)
         }

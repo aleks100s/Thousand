@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -29,8 +28,7 @@ class MultiplayerViewModel(
     val events: SharedFlow<MultiplayerEvent> = _events.asSharedFlow()
 
     init {
-        observeAuthorization()
-        observeUsername()
+        observeUserProfile()
     }
 
     fun onAction(action: MultiplayerAction) {
@@ -48,12 +46,14 @@ class MultiplayerViewModel(
         }
     }
 
-    private fun observeAuthorization() {
+    private fun observeUserProfile() {
         viewModelScope.launch {
-            nativeAccountService.isAuthorized.collect { isAuthorized ->
+            nativeAccountService.userProfile.collect { userProfile ->
+                val isAuthorized = userProfile != null
                 _state.update {
                     it.copy(
                         isAuthorized = isAuthorized,
+                        username = userProfile?.name,
                         isLoginSheetVisible = if (isAuthorized) false else it.isLoginSheetVisible,
                         isLoginInProgress = if (isAuthorized) false else it.isLoginInProgress,
                     )
@@ -62,15 +62,6 @@ class MultiplayerViewModel(
                     observeLobbies()
                 }
             }
-        }
-    }
-
-    private fun observeUsername() {
-        viewModelScope.launch {
-            nativeAccountService.authorizedUserName
-                .collect { name ->
-                    _state.update { it.copy(username = name) }
-                }
         }
     }
 

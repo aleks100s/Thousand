@@ -14,7 +14,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
         let gameID = String(Int.random(in: 1000...10000))
         let currentUser = Auth.auth().currentUser
         let host = currentUser?.uid ?? ""
-        let hostPlayer = Lobby.Player(
+        let hostPlayer = UserProfile(
             id: currentUser?.uid ?? "",
             name: currentUser?.displayName ?? "Без имени"
         )
@@ -107,9 +107,9 @@ final class IOSMultiplayerManager: MultiplayerManager {
 }
 
 private extension IOSMultiplayerManager {
-    func currentPlayer() -> Lobby.Player {
+    func currentPlayer() -> UserProfile {
         let currentUser = Auth.auth().currentUser
-        return Lobby.Player(
+        return UserProfile(
             id: currentUser?.uid ?? "",
             name: currentUser?.displayName ?? "Без имени"
         )
@@ -188,7 +188,7 @@ private extension IOSMultiplayerManager {
         )
     }
 
-    func players(from value: Any?) -> [Lobby.Player] {
+    func players(from value: Any?) -> [UserProfile] {
         if let players = value as? [[String: Any]] {
             return players.map(player(from:))
         }
@@ -204,8 +204,8 @@ private extension IOSMultiplayerManager {
         return []
     }
 
-    func player(from dictionary: [String: Any]) -> Lobby.Player {
-        Lobby.Player(
+    func player(from dictionary: [String: Any]) -> UserProfile {
+        UserProfile(
             id: dictionary["id"] as? String ?? "",
             name: dictionary["name"] as? String ?? "Без имени"
         )

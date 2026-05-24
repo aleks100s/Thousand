@@ -26,8 +26,8 @@ class FirstUserViewModel(
 
     private fun observeAuthorizedUserName() {
         viewModelScope.launch {
-            accountService.authorizedUserName.collect { name ->
-                val authorizedName = name?.trim().orEmpty()
+            accountService.userProfile.collect { userProfile ->
+                val authorizedName = userProfile?.name?.trim().orEmpty()
                 if (authorizedName.isBlank()) return@collect
 
                 _state.update {

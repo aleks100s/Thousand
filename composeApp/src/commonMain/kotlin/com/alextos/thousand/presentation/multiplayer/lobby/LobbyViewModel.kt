@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.alextos.thousand.domain.repository.MultiplayerManager
+import com.alextos.thousand.domain.service.NativeAccountService
 import com.alextos.thousand.presentation.multiplayer.MultiplayerRoute
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +16,8 @@ import kotlinx.coroutines.launch
 
 class LobbyViewModel(
     savedStateHandle: SavedStateHandle,
-    private val manager: MultiplayerManager
+    private val manager: MultiplayerManager,
+    private val accountService: NativeAccountService
 ) : ViewModel() {
     private val route = savedStateHandle.toRoute<MultiplayerRoute.Lobby>()
 
@@ -42,7 +44,8 @@ class LobbyViewModel(
                         it.copy(
                             gameSettings = lobby.settings,
                             players = lobby.players,
-                            error = null
+                            error = null,
+                            isHost = lobby.host == accountService.userProfile.value?.id
                         )
                     }
                 }

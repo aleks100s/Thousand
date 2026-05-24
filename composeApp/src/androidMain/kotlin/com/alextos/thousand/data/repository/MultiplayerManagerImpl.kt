@@ -3,6 +3,7 @@ package com.alextos.thousand.data.repository
 import com.alextos.thousand.domain.repository.MultiplayerManager
 import com.alextos.thousand.domain.models.GameSettings
 import com.alextos.thousand.domain.models.Lobby
+import com.alextos.thousand.domain.models.UserProfile
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.database.DataSnapshot
@@ -26,7 +27,7 @@ class MultiplayerManagerImpl : MultiplayerManager {
         val gameID = Random.nextInt(1000, 10000).toString()
         val currentUser = Firebase.auth.currentUser
         val host = currentUser?.uid ?: ""
-        val players = listOf(Lobby.Player(id = currentUser?.uid ?: "", currentUser?.displayName ?: "Без имени"))
+        val players = listOf(UserProfile(id = currentUser?.uid ?: "", currentUser?.displayName ?: "Без имени"))
         val lobby = Lobby(
             settings = gameSettings,
             players = players,
@@ -65,7 +66,7 @@ class MultiplayerManagerImpl : MultiplayerManager {
                         close(IllegalStateException("Failed to connect to lobby."))
                         return
                     }
-                    val currentPlayer = Lobby.Player(
+                    val currentPlayer = UserProfile(
                         id = currentUser?.uid.orEmpty(),
                         name = currentUser?.displayName ?: "Без имени",
                     )
@@ -137,7 +138,7 @@ class MultiplayerManagerImpl : MultiplayerManager {
             id = child("id").getValue(String::class.java) ?: "",
             settings = child("settings").toGameSettings(),
             players = child("players").children.map { playerSnapshot ->
-                Lobby.Player(
+                UserProfile(
                     id = playerSnapshot.child("id").getValue(String::class.java).orEmpty(),
                     name = playerSnapshot.child("name").getValue(String::class.java) ?: "Без имени",
                 )
