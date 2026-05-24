@@ -1,5 +1,5 @@
 //
-//  IOSMultiplayerRepository.swift
+//  IOSMultiplayerManager.swift
 //  iosApp
 //
 //  Created by Codex on 23.05.2026.
@@ -9,7 +9,7 @@ import ComposeApp
 import FirebaseAuth
 import FirebaseDatabase
 
-final class IOSMultiplayerRepository: MultiplayerRepository {
+final class IOSMultiplayerManager: MultiplayerManager {
     func createLobby(gameSettings: GameSettings) async throws -> String {
         let gameID = String(Int.random(in: 1000...10000))
         let currentUser = Auth.auth().currentUser
@@ -106,7 +106,7 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
     }
 }
 
-private extension IOSMultiplayerRepository {
+private extension IOSMultiplayerManager {
     func currentPlayer() -> Lobby.Player {
         let currentUser = Auth.auth().currentUser
         return Lobby.Player(

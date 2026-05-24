@@ -1,7 +1,7 @@
 package com.alextos.thousand
 
 import android.app.Application
-import com.alextos.thousand.data.repository.MultiplayerRepositoryImpl
+import com.alextos.thousand.data.repository.MultiplayerManagerImpl
 import com.alextos.thousand.data.service.AndroidAccountService
 import com.alextos.thousand.data.service.AndroidShakeDeviceObserver
 import com.alextos.thousand.di.initKoin
@@ -19,7 +19,7 @@ class ThousandApplication : Application() {
         initKoin(
             shakeDeviceObserver = shakeDeviceObserver,
             nativeAccountService = AndroidAccountService(this),
-            multiplayerRepository = MultiplayerRepositoryImpl(),
+            multiplayerManager = MultiplayerManagerImpl(),
         ) {
             androidLogger()
             androidContext(this@ThousandApplication)

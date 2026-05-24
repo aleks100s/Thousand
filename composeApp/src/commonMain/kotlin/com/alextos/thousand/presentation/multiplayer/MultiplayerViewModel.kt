@@ -2,7 +2,7 @@ package com.alextos.thousand.presentation.multiplayer
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.alextos.thousand.domain.repository.MultiplayerRepository
+import com.alextos.thousand.domain.repository.MultiplayerManager
 import com.alextos.thousand.domain.service.NativeAccountService
 import com.alextos.thousand.domain.usecase.LogInUseCase
 import com.alextos.thousand.domain.usecase.SignUpUseCase
@@ -20,7 +20,7 @@ class MultiplayerViewModel(
     private val nativeAccountService: NativeAccountService,
     private val logInUseCase: LogInUseCase,
     private val signUpUseCase: SignUpUseCase,
-    private val multiplayerRepository: MultiplayerRepository
+    private val multiplayerManager: MultiplayerManager
 ) : ViewModel() {
     private val _state = MutableStateFlow(MultiplayerState())
     val state: StateFlow<MultiplayerState> = _state.asStateFlow()
@@ -76,7 +76,7 @@ class MultiplayerViewModel(
 
     private fun observeLobbies() {
         viewModelScope.launch {
-            multiplayerRepository.userLobbies()
+            multiplayerManager.userLobbies()
                 .collect { lobbies ->
                     _state.update {
                         it.copy(lobbies = lobbies)

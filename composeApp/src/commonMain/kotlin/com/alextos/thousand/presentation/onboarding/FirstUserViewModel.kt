@@ -64,7 +64,6 @@ class FirstUserViewModel(
                 it.copy(isSaving = true)
             }
 
-            accountService.updatePlayerName(name)
             saveUserUseCase(
                 name = name,
                 kind = UserKind.MainUser,

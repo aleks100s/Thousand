@@ -4,7 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import com.alextos.thousand.domain.repository.MultiplayerRepository
+import com.alextos.thousand.domain.repository.MultiplayerManager
 import com.alextos.thousand.presentation.multiplayer.MultiplayerRoute
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 
 class LobbyViewModel(
     savedStateHandle: SavedStateHandle,
-    private val repository: MultiplayerRepository
+    private val manager: MultiplayerManager
 ) : ViewModel() {
     private val route = savedStateHandle.toRoute<MultiplayerRoute.Lobby>()
 
@@ -31,7 +31,7 @@ class LobbyViewModel(
 
     private fun connectToLobby() {
         viewModelScope.launch {
-            repository.connectToLobby(state.value.lobbyId)
+            manager.connectToLobby(state.value.lobbyId)
                 .catch { error ->
                     _state.update {
                         it.copy(error = error.message)

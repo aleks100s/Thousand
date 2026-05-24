@@ -1,6 +1,6 @@
 package com.alextos.thousand.data.repository
 
-import com.alextos.thousand.domain.repository.MultiplayerRepository
+import com.alextos.thousand.domain.repository.MultiplayerManager
 import com.alextos.thousand.domain.models.GameSettings
 import com.alextos.thousand.domain.models.Lobby
 import com.google.firebase.Firebase
@@ -16,7 +16,7 @@ import kotlin.coroutines.resume
 import kotlin.random.Random
 import kotlinx.coroutines.suspendCancellableCoroutine
 
-class MultiplayerRepositoryImpl : MultiplayerRepository {
+class MultiplayerManagerImpl : MultiplayerManager {
     companion object {
         private const val LOBBIES_NODE = "lobbies"
         private const val GAMES_NODE = "games"

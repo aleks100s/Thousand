@@ -4,7 +4,7 @@ import com.alextos.thousand.domain.models.GameSettings
 import com.alextos.thousand.domain.models.Lobby
 import kotlinx.coroutines.flow.Flow
 
-interface MultiplayerRepository {
+interface MultiplayerManager {
     suspend fun createLobby(gameSettings: GameSettings): String
     fun connectToLobby(id: String): Flow<Lobby>
     fun userLobbies(): Flow<List<Lobby>>
