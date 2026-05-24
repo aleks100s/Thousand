@@ -43,11 +43,6 @@ class AndroidAccountService(
         }
     }
 
-    override fun updatePlayerName(name: String) {
-        val currentUser = Firebase.auth.currentUser ?: return
-        saveFirebaseUser(name)
-    }
-
     override suspend fun signUp(email: String, password: String, name: String) {
         suspendCancellableCoroutine { continuation ->
             fun finish(error: Exception? = null) {

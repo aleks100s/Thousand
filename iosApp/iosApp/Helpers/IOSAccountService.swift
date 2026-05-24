@@ -65,14 +65,6 @@ final class IOSAccountService: MutableNativeAccountService {
             completionHandler(nil)
         }
     }
-    
-    override func updatePlayerName(name: String) {
-        guard Auth.auth().currentUser != nil else {
-            return
-        }
-        
-        saveFirebaseUser(name: name)
-    }
 
     override func signOut() {
         do {
