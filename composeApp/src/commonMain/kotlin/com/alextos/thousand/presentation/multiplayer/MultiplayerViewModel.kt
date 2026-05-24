@@ -2,6 +2,7 @@ package com.alextos.thousand.presentation.multiplayer
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alextos.thousand.domain.repository.MultiplayerRepository
 import com.alextos.thousand.domain.service.NativeAccountService
 import com.alextos.thousand.domain.usecase.LogInUseCase
 import com.alextos.thousand.domain.usecase.SignUpUseCase
@@ -11,13 +12,15 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class MultiplayerViewModel(
     private val nativeAccountService: NativeAccountService,
     private val logInUseCase: LogInUseCase,
-    private val signUpUseCase: SignUpUseCase
+    private val signUpUseCase: SignUpUseCase,
+    private val multiplayerRepository: MultiplayerRepository
 ) : ViewModel() {
     private val _state = MutableStateFlow(MultiplayerState())
     val state: StateFlow<MultiplayerState> = _state.asStateFlow()
@@ -54,7 +57,21 @@ class MultiplayerViewModel(
                         isLoginInProgress = if (isAuthorized) false else it.isLoginInProgress,
                     )
                 }
+                if (isAuthorized) {
+                    observeLobbies()
+                }
             }
+        }
+    }
+
+    private fun observeLobbies() {
+        viewModelScope.launch {
+            multiplayerRepository.userLobbies()
+                .collect { lobbies ->
+                    _state.update {
+                        it.copy(lobbies = lobbies)
+                    }
+                }
         }
     }
 
@@ -129,12 +146,12 @@ class MultiplayerViewModel(
 
             try {
                 if (createAccount) {
-                    logInUseCase(
+                    signUpUseCase(
                         email = state.email.trim(),
                         password = state.password,
                     )
                 } else {
-                    signUpUseCase(
+                    logInUseCase(
                         email = state.email.trim(),
                         password = state.password,
                     )

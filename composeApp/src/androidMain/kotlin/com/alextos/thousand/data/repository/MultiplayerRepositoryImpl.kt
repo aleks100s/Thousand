@@ -30,7 +30,8 @@ class MultiplayerRepositoryImpl : MultiplayerRepository {
         val lobby = Lobby(
             settings = gameSettings,
             players = players,
-            host = host
+            host = host,
+            id = gameID
         )
         return suspendCancellableCoroutine { continuation ->
             FirebaseDatabase.getInstance().reference
@@ -98,10 +99,42 @@ class MultiplayerRepositoryImpl : MultiplayerRepository {
         }
     }
 
+    override fun userLobbies(): Flow<List<Lobby>> {
+        val currentUser = Firebase.auth.currentUser
+        return callbackFlow {
+            val reference = FirebaseDatabase.getInstance().reference
+                .child(LOBBIES_NODE)
+
+            val listener = object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val lobbies = mutableListOf<Lobby>()
+                    for (child in snapshot.children) {
+                        val lobby = child.toLobby() ?: continue
+                        if (lobby.players.map { it.id }.toSet().contains(currentUser?.uid)) {
+                            lobbies.add(lobby)
+                        }
+                    }
+                    trySend(lobbies)
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    close(error.toException())
+                }
+            }
+
+            reference.addValueEventListener(listener)
+
+            awaitClose {
+                reference.removeEventListener(listener)
+            }
+        }
+    }
+
     private fun DataSnapshot.toLobby(): Lobby? {
         if (!exists()) return null
 
         return Lobby(
+            id = child("id").getValue(String::class.java) ?: "",
             settings = child("settings").toGameSettings(),
             players = child("players").children.map { playerSnapshot ->
                 Lobby.Player(

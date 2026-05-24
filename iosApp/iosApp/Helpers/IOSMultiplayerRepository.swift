@@ -21,7 +21,8 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
         let lobby = Lobby(
             settings: gameSettings,
             players: [hostPlayer],
-            host: host
+            host: host,
+            id: gameID
         )
 
         try await Database.database().reference().child("lobbies").child(gameID)
@@ -67,6 +68,42 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
 
         return bridge.flow
     }
+    
+    func userLobbies() -> any Kotlinx_coroutines_coreFlow {
+        let bridge = LobbyListFlowBridge()
+        let currentUserId = Auth.auth().currentUser?.uid ?? ""
+        let reference = Database.database().reference().child("lobbies")
+
+        reference.observe(.value, with: { [weak self] snapshot in
+            guard let self else {
+                return
+            }
+            guard !currentUserId.isEmpty else {
+                bridge.emit(lobbies: [])
+                return
+            }
+
+            let lobbies = snapshot.children.allObjects.compactMap { child -> Lobby? in
+                guard let childSnapshot = child as? DataSnapshot,
+                      let lobby = self.lobby(from: childSnapshot.value),
+                      lobby.players.contains(where: { $0.id == currentUserId }) else {
+                    return nil
+                }
+
+                if lobby.id.isEmpty {
+                    lobby.id = childSnapshot.key
+                }
+
+                return lobby
+            }
+
+            bridge.emit(lobbies: lobbies)
+        }, withCancel: { error in
+            bridge.closeWithError(message: error.localizedDescription)
+        })
+
+        return bridge.flow
+    }
 }
 
 private extension IOSMultiplayerRepository {
@@ -87,7 +124,8 @@ private extension IOSMultiplayerRepository {
                     "name": $0.name
                 ]
             },
-            "host": lobby.host
+            "host": lobby.host,
+            "id": lobby.id
         ]
     }
 
@@ -113,7 +151,8 @@ private extension IOSMultiplayerRepository {
         return Lobby(
             settings: gameSettings(from: dictionary["settings"]),
             players: players(from: dictionary["players"]),
-            host: dictionary["host"] as? String ?? ""
+            host: dictionary["host"] as? String ?? "",
+            id: dictionary["id"] as? String ?? ""
         )
     }
 
