@@ -9,6 +9,7 @@ import com.alextos.thousand.presentation.multiplayer.MultiplayerRoute
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -18,11 +19,7 @@ class LobbyViewModel(
 ) : ViewModel() {
     private val route = savedStateHandle.toRoute<MultiplayerRoute.Lobby>()
 
-    private val _state = MutableStateFlow(
-        LobbyState(
-            lobbyId = route.lobbyId,
-        ),
-    )
+    private val _state = MutableStateFlow(LobbyState(lobbyId = route.lobbyId))
     val state: StateFlow<LobbyState> = _state.asStateFlow()
 
     init {
@@ -35,9 +32,18 @@ class LobbyViewModel(
     private fun connectToLobby() {
         viewModelScope.launch {
             repository.connectToLobby(state.value.lobbyId)
+                .catch { error ->
+                    _state.update {
+                        it.copy(error = error.message)
+                    }
+                }
                 .collect { lobby ->
                     _state.update {
-                        it.copy(gameSettings = lobby.settings, isHost = lobby.isCurrentPlayerHost)
+                        it.copy(
+                            gameSettings = lobby.settings,
+                            isHost = lobby.isCurrentPlayerHost,
+                            error = null
+                        )
                     }
                 }
         }

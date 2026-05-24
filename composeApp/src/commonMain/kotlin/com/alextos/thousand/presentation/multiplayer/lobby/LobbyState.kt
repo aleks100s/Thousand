@@ -5,7 +5,8 @@ import com.alextos.thousand.domain.models.GameSettings
 data class LobbyState(
     val lobbyId: String = "",
     val gameSettings: GameSettings = GameSettings(),
-    val isHost: Boolean = false
+    val isHost: Boolean = false,
+    val error: String? = null
 ) {
     val isStartButtonEnabled: Boolean = isHost && gameSettings.players.count() > 1
 }

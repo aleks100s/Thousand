@@ -55,7 +55,10 @@ class MultiplayerRepositoryImpl : MultiplayerRepository {
 
             val listener = object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    val gameSettings = snapshot.toGameSettings() ?: return
+                    val gameSettings = snapshot.toGameSettings() ?: run {
+                        close(IllegalStateException("Failed to connect to lobby."))
+                        return
+                    }
                     val currentPlayer = GameSettings.Player(
                         id = currentUser?.uid.orEmpty(),
                         name = currentUser?.displayName ?: "Без имени",

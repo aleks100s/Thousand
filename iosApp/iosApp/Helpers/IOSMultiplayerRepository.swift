@@ -52,11 +52,14 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
             gameSettings.players = players
 
             reference.setValue(self.dictionary(from: gameSettings)) { error, _ in
-                guard error == nil else {
+                if let error {
+                    bridge.closeWithError(message: error.localizedDescription)
                     return
                 }
                 bridge.emit(lobby: self.lobby(from: gameSettings))
             }
+        }, withCancel: { error in
+            bridge.closeWithError(message: error.localizedDescription)
         })
 
         return bridge.flow

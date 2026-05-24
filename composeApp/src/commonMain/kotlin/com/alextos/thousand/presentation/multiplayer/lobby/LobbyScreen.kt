@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -40,7 +41,7 @@ fun LobbyScreen(
         actions = {
             {
                 TextButton(
-                    enabled = state.lobbyId.isNotBlank(),
+                    enabled = state.lobbyId.isNotBlank() && state.error == null,
                     onClick = {
                         clipboardManager.setText(AnnotatedString(state.lobbyId))
                     },
@@ -55,35 +56,41 @@ fun LobbyScreen(
             }
         },
     ) { modifier ->
-        Box(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(16.dp),
-        ) {
-            Column(
-                modifier = Modifier.align(Alignment.Center),
-                horizontalAlignment = Alignment.CenterHorizontally,
+        if (state.error != null) {
+            Box(modifier.fillMaxSize(), Alignment.Center) {
+                Text(state.error ?: "", color = MaterialTheme.colorScheme.error)
+            }
+        } else {
+            Box(
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
             ) {
-                state.gameSettings.players.forEach {
-                    Text(it.name)
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    state.gameSettings.players.forEach {
+                        Text(it.name)
+                    }
+
+                    CircularProgressIndicator()
+
+                    Text(
+                        modifier = Modifier.padding(top = 16.dp),
+                        text = "Ожидание игроков",
+                    )
                 }
 
-                CircularProgressIndicator()
-
-                Text(
-                    modifier = Modifier.padding(top = 16.dp),
-                    text = "Ожидание игроков",
-                )
-            }
-
-            Button(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth(),
-                enabled = state.isStartButtonEnabled,
-                onClick = {},
-            ) {
-                Text("Начать игру")
+                Button(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth(),
+                    enabled = state.isStartButtonEnabled,
+                    onClick = {},
+                ) {
+                    Text("Начать игру")
+                }
             }
         }
     }

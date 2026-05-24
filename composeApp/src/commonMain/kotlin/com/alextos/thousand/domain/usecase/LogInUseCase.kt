@@ -1,6 +1,5 @@
 package com.alextos.thousand.domain.usecase
 
-import com.alextos.thousand.domain.repository.GameRepository
 import com.alextos.thousand.domain.service.NativeAccountService
 
 class LogInUseCase(private val accountService: NativeAccountService) {

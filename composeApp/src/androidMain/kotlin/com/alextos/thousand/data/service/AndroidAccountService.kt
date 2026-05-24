@@ -229,8 +229,6 @@ class AndroidAccountService(
 
     companion object {
         private const val DEFAULT_WEB_CLIENT_ID = "default_web_client_id"
-        private const val USERS_NODE = "users"
-        private const val USERNAME_KEY = "username"
     }
 }
 
