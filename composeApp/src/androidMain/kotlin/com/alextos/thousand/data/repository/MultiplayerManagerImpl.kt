@@ -13,6 +13,7 @@ import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlin.coroutines.resume
 import kotlin.random.Random
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -24,7 +25,7 @@ class MultiplayerManagerImpl : MultiplayerManager {
     }
 
     override suspend fun createLobby(gameSettings: GameSettings): String {
-        val gameID = Random.nextInt(1000, 10000).toString()
+        val lobbyID = Random.nextInt(1000, 10000).toString()
         val currentUser = Firebase.auth.currentUser
         val host = currentUser?.uid ?: ""
         val players = listOf(UserProfile(id = currentUser?.uid ?: "", currentUser?.displayName ?: "Без имени"))
@@ -32,17 +33,17 @@ class MultiplayerManagerImpl : MultiplayerManager {
             settings = gameSettings,
             players = players,
             host = host,
-            id = gameID
+            id = lobbyID
         )
         return suspendCancellableCoroutine { continuation ->
             FirebaseDatabase.getInstance().reference
                 .child(LOBBIES_NODE)
-                .child(gameID)
+                .child(lobbyID)
                 .setValue(lobby)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         if (continuation.isActive) {
-                            continuation.resume(gameID)
+                            continuation.resume(lobbyID)
                         }
                     } else {
                         continuation.cancel(
@@ -54,7 +55,7 @@ class MultiplayerManagerImpl : MultiplayerManager {
     }
 
     override fun connectToLobby(id: String): Flow<Lobby> {
-        val currentUser = Firebase.auth.currentUser
+        val currentUser = Firebase.auth.currentUser ?: return emptyFlow()
         return callbackFlow {
             val reference = FirebaseDatabase.getInstance().reference
                 .child(LOBBIES_NODE)
@@ -67,8 +68,8 @@ class MultiplayerManagerImpl : MultiplayerManager {
                         return
                     }
                     val currentPlayer = UserProfile(
-                        id = currentUser?.uid.orEmpty(),
-                        name = currentUser?.displayName ?: "Без имени",
+                        id = currentUser.uid,
+                        name = currentUser.displayName ?: "Без имени",
                     )
 
                     if (currentPlayer.id.isNotEmpty() && lobby.players.none { it.id == currentPlayer.id }) {
@@ -97,6 +98,49 @@ class MultiplayerManagerImpl : MultiplayerManager {
             awaitClose {
                 reference.removeEventListener(listener)
             }
+        }
+    }
+
+    override suspend fun disconnectFromLobby(id: String) {
+        val currentUser = Firebase.auth.currentUser ?: return
+        val lobbyReference = FirebaseDatabase.getInstance().reference
+            .child(LOBBIES_NODE)
+            .child(id)
+
+        suspendCancellableCoroutine { continuation ->
+            lobbyReference
+                .get()
+                .addOnSuccessListener { snapshot ->
+                    val lobby = snapshot.toLobby() ?: return@addOnSuccessListener
+
+                    if (lobby.host == currentUser.uid) {
+                        lobbyReference.removeValue()
+                            .addOnSuccessListener {
+                                if (continuation.isActive) {
+                                    continuation.resume(Unit)
+                                }
+                            }
+                            .addOnFailureListener { error ->
+                                continuation.cancel(error)
+                            }
+                    } else {
+                        val players = lobby.players.toMutableList()
+                        players.removeIf { it.id == currentUser.uid }
+                        lobby.players = players
+                        lobbyReference.setValue(lobby)
+                            .addOnSuccessListener {
+                                if (continuation.isActive) {
+                                    continuation.resume(Unit)
+                                }
+                            }
+                            .addOnFailureListener { error ->
+                                continuation.cancel(error)
+                            }
+                    }
+                }
+                .addOnFailureListener { error ->
+                    continuation.cancel(error)
+                }
         }
     }
 

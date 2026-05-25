@@ -139,7 +139,7 @@ class MultiplayerViewModel(
 
         viewModelScope.launch {
             _state.update {
-                it.copy(isJoinLobbySheetVisible = false)
+                it.copy(isJoinLobbySheetVisible = false, lobbyId = "")
             }
             _events.emit(MultiplayerEvent.OpenLobby(lobbyId))
         }

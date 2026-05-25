@@ -36,6 +36,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
 
         reference.observe(.value, with: { [weak self] snapshot in
             guard let self, let lobby = self.lobby(from: snapshot.value) else {
+                bridge.closeWithError(message: "Failed to connect")
                 return
             }
 
@@ -67,6 +68,28 @@ final class IOSMultiplayerManager: MultiplayerManager {
         })
 
         return bridge.flow
+    }
+
+    func disconnectFromLobby(id: String) async throws {
+        guard let currentUser = Auth.auth().currentUser else {
+            return
+        }
+
+        let reference = Database.database().reference()
+            .child("lobbies")
+            .child(id)
+        let snapshot = try await reference.getData()
+        let data = snapshot.value as? [String: [String: Any]]
+        guard let lobby = lobby(from: data?[id] ?? [:]) else {
+            return
+        }
+
+        if lobby.host == currentUser.uid {
+            try await reference.removeValue()
+        } else {
+            lobby.players = lobby.players.filter { $0.id != currentUser.uid }
+            try await reference.setValue(dictionary(from: lobby))
+        }
     }
     
     func userLobbies() -> any Kotlinx_coroutines_coreFlow {

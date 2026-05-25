@@ -7,5 +7,6 @@ import kotlinx.coroutines.flow.Flow
 interface MultiplayerManager {
     suspend fun createLobby(gameSettings: GameSettings): String
     fun connectToLobby(id: String): Flow<Lobby>
+    suspend fun disconnectFromLobby(id: String)
     fun userLobbies(): Flow<List<Lobby>>
 }

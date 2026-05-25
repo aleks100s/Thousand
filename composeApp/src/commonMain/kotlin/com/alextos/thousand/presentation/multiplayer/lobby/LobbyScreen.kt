@@ -1,5 +1,6 @@
 package com.alextos.thousand.presentation.multiplayer.lobby
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -7,11 +8,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,6 +28,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
 import thousand.composeapp.generated.resources.content_copy_24px
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Suppress("DEPRECATION")
 fun LobbyScreen(
@@ -35,6 +39,28 @@ fun LobbyScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val clipboardManager = LocalClipboardManager.current
 
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                LobbyEvent.Disconnect -> goBack()
+            }
+        }
+    }
+
+    if (state.error != null) {
+        ModalBottomSheet(
+            onDismissRequest = goBack
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text(state.error ?: "")
+
+                Button(onClick = goBack) {
+                    Text("Понятно")
+                }
+            }
+        }
+    }
+
     Screen(
         modifier = Modifier,
         title = "Лобби ${state.lobbyId}",
@@ -42,59 +68,62 @@ fun LobbyScreen(
         actions = {
             {
                 TextButton(
-                    enabled = state.lobbyId.isNotBlank() && state.error == null,
+                    enabled = state.lobbyId.isNotBlank(),
                     onClick = {
-                        clipboardManager.setText(AnnotatedString(state.lobbyId))
+                        viewModel.onAction(LobbyAction.LeaveGame)
                     },
                 ) {
-                    Text("ID лобби")
-
-                    Icon(
-                        painter = painterResource(Res.drawable.content_copy_24px),
-                        contentDescription = "Скопировать ID лобби",
-                    )
+                    Text("Выйти из игры")
                 }
             }
         },
     ) { modifier ->
-        if (state.error != null) {
-            Box(modifier.fillMaxSize(), Alignment.Center) {
-                Text(state.error ?: "", color = MaterialTheme.colorScheme.error)
-            }
-        } else {
-            Box(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(16.dp),
+        ) {
+            TextButton(
+                enabled = state.lobbyId.isNotBlank(),
+                onClick = {
+                    clipboardManager.setText(AnnotatedString(state.lobbyId))
+                },
             ) {
-                Column(
-                    modifier = Modifier.align(Alignment.Center),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    state.players.forEach {
-                        Text(it.name)
-                    }
+                Text("ID лобби")
 
-                    CircularProgressIndicator()
+                Icon(
+                    painter = painterResource(Res.drawable.content_copy_24px),
+                    contentDescription = "Скопировать ID лобби",
+                )
+            }
 
-                    Text(
-                        modifier = Modifier.padding(top = 16.dp),
-                        text = "Ожидание игроков",
-                    )
+            Column(
+                modifier = Modifier.align(Alignment.Center),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                state.players.forEach {
+                    Text(it.name)
                 }
 
-                if (state.isHost) {
-                    Button(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .fillMaxWidth(),
-                        enabled = state.isStartButtonEnabled,
-                        onClick = {
-                            openGame(state.lobbyId)
-                        },
-                    ) {
-                        Text("Начать игру")
-                    }
+                CircularProgressIndicator()
+
+                Text(
+                    modifier = Modifier.padding(top = 16.dp),
+                    text = "Ожидание игроков",
+                )
+            }
+
+            if (state.isHost) {
+                Button(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth(),
+                    enabled = state.isStartButtonEnabled,
+                    onClick = {
+                        openGame(state.lobbyId)
+                    },
+                ) {
+                    Text("Начать игру")
                 }
             }
         }

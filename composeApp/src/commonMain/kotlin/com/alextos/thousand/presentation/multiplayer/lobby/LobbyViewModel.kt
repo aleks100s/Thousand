@@ -7,8 +7,10 @@ import androidx.navigation.toRoute
 import com.alextos.thousand.domain.repository.MultiplayerManager
 import com.alextos.thousand.domain.service.NativeAccountService
 import com.alextos.thousand.presentation.multiplayer.MultiplayerRoute
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
@@ -19,24 +21,31 @@ class LobbyViewModel(
     private val manager: MultiplayerManager,
     private val accountService: NativeAccountService
 ) : ViewModel() {
-    private val route = savedStateHandle.toRoute<MultiplayerRoute.Lobby>()
+    private val lobbyId = savedStateHandle.toRoute<MultiplayerRoute.Lobby>().lobbyId
 
-    private val _state = MutableStateFlow(LobbyState(lobbyId = route.lobbyId))
+    private val _state = MutableStateFlow(LobbyState(lobbyId = lobbyId))
     val state: StateFlow<LobbyState> = _state.asStateFlow()
+
+    private val _events = MutableSharedFlow<LobbyEvent>()
+    val events = _events.asSharedFlow()
 
     init {
         connectToLobby()
     }
 
     @Suppress("UNUSED_PARAMETER")
-    fun onAction(action: LobbyAction) = Unit
+    fun onAction(action: LobbyAction) {
+        when (action) {
+            LobbyAction.LeaveGame -> leaveGame()
+        }
+    }
 
     private fun connectToLobby() {
         viewModelScope.launch {
-            manager.connectToLobby(state.value.lobbyId)
+            manager.connectToLobby(lobbyId)
                 .catch { error ->
                     _state.update {
-                        it.copy(error = error.message)
+                        it.copy(error = error.cause?.message)
                     }
                 }
                 .collect { lobby ->
@@ -49,6 +58,19 @@ class LobbyViewModel(
                         )
                     }
                 }
+        }
+    }
+
+    private fun leaveGame() {
+        viewModelScope.launch {
+            try {
+                _events.emit(LobbyEvent.Disconnect)
+                manager.disconnectFromLobby(lobbyId)
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(error = e.message)
+                }
+            }
         }
     }
 }

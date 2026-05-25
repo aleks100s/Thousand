@@ -163,7 +163,7 @@ private fun LobbyCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Лобби ${lobby.id}",
+                    text = "Игра ${lobby.id}",
                     style = MaterialTheme.typography.titleMedium,
                 )
 
