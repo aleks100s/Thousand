@@ -31,14 +31,11 @@ class AndroidAccountService(
     override fun onActivityResumed(activity: Activity) {
         val user = Firebase.auth.currentUser
         if (user == null) {
-            authenticate(activity)
+            startSilentAuthenticationFlow(activity)
         } else {
-            user.displayName?.let {
-                saveFirebaseUser(it)
-            }
-            val info = user.providerData
-            if (info.none { it.providerId == "password" }) {
-                signInPlayGames(activity, false)
+            updateUserProfile(id = user.uid, name = user.displayName ?: user.uid)
+            if (user.providerData.none { it.providerId == "password" }) {
+                signInPlayGames(activity)
             }
         }
     }
@@ -69,7 +66,8 @@ class AndroidAccountService(
                         return@addOnCompleteListener
                     }
 
-                    saveFirebaseUser(name = name)
+                    updateUserProfile(id = user.uid, name = name)
+                    updateFirebaseUserName(name)
                     finish()
                 }
         }
@@ -101,7 +99,7 @@ class AndroidAccountService(
                         return@addOnCompleteListener
                     }
 
-                    saveFirebaseUser(name = user.displayName ?: user.uid)
+                    updateUserProfile(id = user.uid, name = user.displayName ?: user.uid)
                     finish()
                 }
         }
@@ -112,7 +110,7 @@ class AndroidAccountService(
         clearUserProfile()
     }
 
-    private fun authenticate(activity: Activity) {
+    private fun startSilentAuthenticationFlow(activity: Activity) {
         if (hasAttemptedAuthentication || userProfile.value != null) return
         hasAttemptedAuthentication = true
 
@@ -127,18 +125,21 @@ class AndroidAccountService(
                 if (task.result.isAuthenticated) {
                     requestServerAuthCode(activity)
                 } else {
-                    signInPlayGames(activity, true)
+                    signInPlayGames(activity)
                 }
             }
     }
 
-    private fun signInPlayGames(activity: Activity, connectWithFirebase: Boolean) {
+    private fun signInPlayGames(activity: Activity) {
         val gamesSignInClient = PlayGames.getGamesSignInClient(activity)
         gamesSignInClient.signIn()
             .addOnCompleteListener(activity) { task ->
                 if (task.isSuccessful && task.result.isAuthenticated) {
-                    if (connectWithFirebase) {
+                    val user = Firebase.auth.currentUser
+                    if (user == null) {
                         requestServerAuthCode(activity)
+                    } else {
+                        updateUserProfile(id = user.uid, name = user.displayName ?: user.uid)
                     }
                 } else {
                     handleAuthenticationError(task.exception)
@@ -158,14 +159,14 @@ class AndroidAccountService(
         val gamesSignInClient = PlayGames.getGamesSignInClient(activity)
         gamesSignInClient.requestServerSideAccess(webClientId, false)
             .addOnSuccessListener(activity) { serverAuthCode ->
-                authorizeFirebase(activity, serverAuthCode)
+                authenticateFirebaseWithPlayGames(activity, serverAuthCode)
             }
             .addOnFailureListener(activity) { error ->
                 handleAuthenticationError(error)
             }
     }
 
-    private fun authorizeFirebase(
+    private fun authenticateFirebaseWithPlayGames(
         activity: Activity,
         serverAuthCode: String,
     ) {
@@ -184,28 +185,31 @@ class AndroidAccountService(
                     return@addOnCompleteListener
                 }
 
-                saveFirebaseUser(activity, user)
+                getPlayGamesProfile(activity, user)
             }
     }
 
-    private fun saveFirebaseUser(
+    private fun getPlayGamesProfile(
         activity: Activity,
         user: FirebaseUser,
     ) {
         val playersClient: PlayersClient = PlayGames.getPlayersClient(activity)
         playersClient.currentPlayer
             .addOnSuccessListener(activity) { player ->
-                saveFirebaseUser(name = user.displayName ?: player.displayName.ifEmpty { user.uid })
+                val name = user.displayName ?: player.displayName.ifEmpty { user.uid }
+                updateFirebaseUserName(name = name)
+                updateUserProfile(id = user.uid, name = name)
             }
             .addOnFailureListener(activity) { error ->
                 FirebaseCrashlytics.getInstance().recordException(error)
-                saveFirebaseUser(name = user.displayName ?: user.uid)
+                val name = user.displayName ?: user.uid
+                updateFirebaseUserName(name = name)
+                updateUserProfile(id = user.uid, name = name)
             }
     }
 
-    private fun saveFirebaseUser(name: String) {
+    private fun updateFirebaseUserName(name: String) {
         val currentUser = Firebase.auth.currentUser ?: return
-        updateUserProfile(id = currentUser.uid, name = name)
         val request = FirebaseUserProfileChangeRequest.Builder()
         request.displayName = name
         currentUser.updateProfile(request.build())

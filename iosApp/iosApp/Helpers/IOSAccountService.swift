@@ -7,6 +7,7 @@
 
 import ComposeApp
 import FirebaseAuth
+import FirebaseCore
 import FirebaseCrashlytics
 import FirebaseCrashlyticsSwift
 import FirebaseDatabase
@@ -16,6 +17,7 @@ import UIKit
 final class IOSAccountService: MutableNativeAccountService {
     override init() {
         super.init()
+        FirebaseApp.configure()
         observeGameCenterAuthorization()
     }
     
@@ -37,7 +39,7 @@ final class IOSAccountService: MutableNativeAccountService {
                 return
             }
             
-            self?.saveFirebaseUser(name: user.displayName ?? user.uid)
+            self?.updateUserProfile(id: user.uid, name: user.displayName ?? user.uid)
             completionHandler(nil)
         }
     }
@@ -55,13 +57,14 @@ final class IOSAccountService: MutableNativeAccountService {
                 return
             }
             
-            guard result?.user != nil else {
+            guard let user = result?.user else {
                 self?.handleAuthenticationError(error: nil)
                 completionHandler(nil)
                 return
             }
             
-            self?.saveFirebaseUser(name: name)
+            self?.updateFirebaseUser(name: name)
+            self?.updateUserProfile(id: user.uid, name: name)
             completionHandler(nil)
         }
     }
@@ -76,14 +79,18 @@ final class IOSAccountService: MutableNativeAccountService {
     }
     
     private func observeGameCenterAuthorization() {
+        if let user = Auth.auth().currentUser {
+            updateUserProfile(id: user.uid, name: user.displayName ?? user.uid)
+        }
+        
         GKLocalPlayer.local.authenticateHandler = { [weak self] viewController, error in
             DispatchQueue.main.async {
-                self?.handleAuthentication(viewController: viewController, error: error)
+                self?.handleGameCenterAuthentication(viewController: viewController, error: error)
             }
         }
     }
     
-    private func handleAuthentication(
+    private func handleGameCenterAuthentication(
         viewController: UIViewController?,
         error: Error?
     ) {
@@ -94,8 +101,8 @@ final class IOSAccountService: MutableNativeAccountService {
         
         if let error {
             handleAuthenticationError(error: error)
-            if let name = Auth.auth().currentUser?.displayName {
-                saveFirebaseUser(name: name)
+            if let user = Auth.auth().currentUser {
+                updateUserProfile(id: user.uid, name: user.displayName ?? user.uid)
             }
             return
         }
@@ -103,12 +110,10 @@ final class IOSAccountService: MutableNativeAccountService {
         let hideMultiplayer = GKLocalPlayer.local.isUnderage ||
             GKLocalPlayer.local.isMultiplayerGamingRestricted
         updateHideMultiplayer(hideMultiplayer: hideMultiplayer)
-        if Auth.auth().currentUser == nil {
-            connectFirebaseWithGameCenter()
+        if let user = Auth.auth().currentUser {
+            updateUserProfile(id: user.uid, name: user.displayName ?? user.uid)
         } else {
-            if let name = Auth.auth().currentUser?.displayName {
-                saveFirebaseUser(name: name)
-            }
+            connectFirebaseWithGameCenter()
         }
     }
     
@@ -137,18 +142,14 @@ final class IOSAccountService: MutableNativeAccountService {
                     return
                 }
                 
-                self?.saveFirebaseUser(name: user.displayName ?? GKLocalPlayer.local.displayName)
+                self?.updateUserProfile(id: user.uid, name: user.displayName ?? user.uid)
+                self?.updateFirebaseUser(name: user.displayName ?? GKLocalPlayer.local.displayName)
             }
         }
     }
     
-    private func saveFirebaseUser(name: String) {
-        guard let currentUser = Auth.auth().currentUser else {
-            return
-        }
-        
-        updateUserProfile(id: currentUser.uid, name: name)
-        currentUser.displayName = name
+    private func updateFirebaseUser(name: String) {
+        Auth.auth().currentUser?.displayName = name
     }
     
     private func handleAuthenticationError(error: Error?) {
