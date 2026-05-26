@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlin.coroutines.resume
 import kotlin.random.Random
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.collections.plus
 
 class MultiplayerManagerImpl : MultiplayerManager {
     companion object {
@@ -54,8 +55,49 @@ class MultiplayerManagerImpl : MultiplayerManager {
         }
     }
 
+    override suspend fun joinLobby(id: String) {
+        val currentUser = Firebase.auth.currentUser ?: return
+
+        val reference = FirebaseDatabase.getInstance().reference
+            .child(LOBBIES_NODE)
+            .child(id)
+
+        return suspendCancellableCoroutine { continuation ->
+            val listener = object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val lobby = snapshot.toLobby() ?: run {
+                        continuation.cancel(IllegalStateException("Failed to join lobby."))
+                        return
+                    }
+
+                    val currentPlayer = UserProfile(
+                        id = currentUser.uid,
+                        name = currentUser.displayName ?: "Без имени",
+                    )
+
+                    if (currentPlayer.id.isNotEmpty() && lobby.players.none { it.id == currentPlayer.id }) {
+                        lobby.players += currentPlayer
+                        reference.setValue(lobby)
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    continuation.resume(Unit)
+                                } else {
+                                    continuation.cancel(task.exception)
+                                }
+                            }
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    continuation.cancel(error.toException())
+                }
+
+            }
+            reference.addValueEventListener(listener)
+        }
+    }
+
     override fun connectToLobby(id: String): Flow<Lobby> {
-        val currentUser = Firebase.auth.currentUser ?: return emptyFlow()
         return callbackFlow {
             val reference = FirebaseDatabase.getInstance().reference
                 .child(LOBBIES_NODE)
@@ -67,25 +109,8 @@ class MultiplayerManagerImpl : MultiplayerManager {
                         close(IllegalStateException("Failed to connect to lobby."))
                         return
                     }
-                    val currentPlayer = UserProfile(
-                        id = currentUser.uid,
-                        name = currentUser.displayName ?: "Без имени",
-                    )
 
-                    if (currentPlayer.id.isNotEmpty() && lobby.players.none { it.id == currentPlayer.id }) {
-                        lobby.players += currentPlayer
-                        reference.setValue(lobby)
-                            .addOnCompleteListener { task ->
-                                if (task.isSuccessful) {
-                                    trySend(lobby)
-                                } else {
-                                    close(task.exception)
-                                }
-                            }
-                    } else {
-                        lobby.players.firstOrNull { it.id == currentPlayer.id }?.name = currentPlayer.name
-                        trySend(lobby)
-                    }
+                    trySend(lobby)
                 }
 
                 override fun onCancelled(error: DatabaseError) {

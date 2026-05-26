@@ -138,10 +138,13 @@ class MultiplayerViewModel(
         if (lobbyId.isBlank()) return
 
         viewModelScope.launch {
-            _state.update {
-                it.copy(isJoinLobbySheetVisible = false, lobbyId = "")
-            }
-            _events.emit(MultiplayerEvent.OpenLobby(lobbyId))
+            try {
+                multiplayerManager.joinLobby(lobbyId)
+                _state.update {
+                    it.copy(isJoinLobbySheetVisible = false, lobbyId = "")
+                }
+                _events.emit(MultiplayerEvent.OpenLobby(lobbyId))
+            } catch (e: Exception) {}
         }
     }
 
