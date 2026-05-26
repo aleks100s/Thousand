@@ -1,5 +1,6 @@
 package com.alextos.thousand.presentation.multiplayer.lobby
 
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -9,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,6 +41,8 @@ import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
 import thousand.composeapp.generated.resources.content_copy_24px
+import thousand.composeapp.generated.resources.person_24px
+import thousand.composeapp.generated.resources.person_heart_24px
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,7 +99,7 @@ fun LobbyScreen(
                 .fillMaxSize()
                 .padding(16.dp),
         ) {
-            LoadingView()
+            LoadingView(Modifier.align(Alignment.Center))
 
             TextButton(
                 enabled = state.lobbyId.isNotBlank(),
@@ -115,11 +119,9 @@ fun LobbyScreen(
                 modifier = Modifier.align(Alignment.Center),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                CircularProgressIndicator()
-
                 Text(
                     modifier = Modifier.padding(top = 16.dp),
-                    text = "Ожидание игроков",
+                    text = "Ожидание игроков...",
                 )
             }
 
@@ -131,7 +133,17 @@ fun LobbyScreen(
                 Text("Подключены:")
 
                 state.players.forEach {
-                    Text(it.name)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(it.name)
+
+                        Icon(
+                            painterResource(Res.drawable.person_24px),
+                            contentDescription = null
+                        )
+                    }
                 }
             }
 
@@ -153,27 +165,27 @@ fun LobbyScreen(
 }
 
 @Composable
-private fun LoadingView() {
+private fun LoadingView(modifier: Modifier) {
     val transition = rememberInfiniteTransition()
     val alpha by transition.animateFloat(
         initialValue = 0.8f,
-        targetValue = 0.2f,
+        targetValue = 0f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 900),
-            repeatMode = RepeatMode.Reverse,
+            animation = tween(durationMillis = 2000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Restart,
         ),
     )
     val scale by transition.animateFloat(
-        initialValue = 0.5f,
+        initialValue = 0.3f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 900),
-            repeatMode = RepeatMode.Reverse,
+            animation = tween(durationMillis = 2000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Restart,
         ),
     )
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .aspectRatio(1f)
             .fillMaxWidth()
             .graphicsLayer {
