@@ -1,12 +1,12 @@
 package com.alextos.thousand.domain.service
 
-import com.alextos.thousand.domain.models.UserProfile
+import com.alextos.thousand.domain.models.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 interface NativeAccountService {
-    val userProfile: StateFlow<UserProfile?>
+    val userProfile: StateFlow<User?>
     val hideMultiplayer: StateFlow<Boolean>
 
     suspend fun logIn(email: String, password: String)
@@ -15,10 +15,10 @@ interface NativeAccountService {
 }
 
 open class MutableNativeAccountService : NativeAccountService {
-    private val _userProfile = MutableStateFlow<UserProfile?>(null)
+    private val _userProfile = MutableStateFlow<User?>(null)
     private val _hideMultiplayer = MutableStateFlow(false)
 
-    override val userProfile: StateFlow<UserProfile?> = _userProfile.asStateFlow()
+    override val userProfile: StateFlow<User?> = _userProfile.asStateFlow()
     override val hideMultiplayer: StateFlow<Boolean> = _hideMultiplayer.asStateFlow()
 
     override suspend fun logIn(email: String, password: String) = Unit
@@ -26,7 +26,7 @@ open class MutableNativeAccountService : NativeAccountService {
     override fun signOut() = Unit
 
     fun updateUserProfile(id: String, name: String) {
-        _userProfile.value = UserProfile(id = id, name = name)
+        _userProfile.value = User(multiplayerToken = id, name = name)
     }
 
     fun clearUserProfile() {

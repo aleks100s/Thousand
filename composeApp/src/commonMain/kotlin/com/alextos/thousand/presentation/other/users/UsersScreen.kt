@@ -230,4 +230,5 @@ private val UserKind.title: String
         UserKind.LocalUser -> "Локальный игрок"
         UserKind.Bot -> "Бот"
         UserKind.MainUser -> "Основной игрок"
+        UserKind.Remote -> "Удаленный игрок"
     }

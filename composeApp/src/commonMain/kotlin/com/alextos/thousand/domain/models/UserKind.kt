@@ -4,4 +4,5 @@ enum class UserKind {
     LocalUser,
     Bot,
     MainUser,
+    Remote
 }

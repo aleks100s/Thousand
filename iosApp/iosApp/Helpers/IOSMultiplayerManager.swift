@@ -14,15 +14,13 @@ final class IOSMultiplayerManager: MultiplayerManager {
         let gameID = String(Int.random(in: 1000...10000))
         let currentUser = Auth.auth().currentUser
         let host = currentUser?.uid ?? ""
-        let hostPlayer = UserProfile(
-            id: currentUser?.uid ?? "",
-            name: currentUser?.displayName ?? "Без имени"
-        )
+        let hostPlayer = currentPlayer()
         let lobby = Lobby(
             settings: gameSettings,
             players: [hostPlayer],
             host: host,
-            id: gameID
+            id: gameID,
+            game: ""
         )
 
         try await Database.database().reference().child("lobbies").child(gameID)
@@ -51,11 +49,8 @@ final class IOSMultiplayerManager: MultiplayerManager {
                     return
                 }
 
-                let currentPlayer = UserProfile(
-                    id: currentUser.uid,
-                    name: currentUser.displayName ?? "Без имени"
-                )
-                guard lobby.players.contains(where: { $0.id == currentPlayer.id }) == false else {
+                
+                guard let currentPlayer = self?.currentPlayer(), lobby.players.contains(where: { $0.multiplayerToken == currentUser.uid }) == false else {
                     let error = NSError(
                         domain: "IOSMultiplayerManager",
                         code: 1,
@@ -113,7 +108,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
         if lobby.host == currentUser.uid {
             try await reference.removeValue()
         } else {
-            lobby.players = lobby.players.filter { $0.id != currentUser.uid }
+            lobby.players = lobby.players.filter { $0.multiplayerToken != currentUser.uid }
             try await reference.setValue(dictionary(from: lobby))
         }
     }
@@ -135,7 +130,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
             let lobbies = snapshot.children.allObjects.compactMap { child -> Lobby? in
                 guard let childSnapshot = child as? DataSnapshot,
                       let lobby = self.lobby(from: childSnapshot.value),
-                      lobby.players.contains(where: { $0.id == currentUserId }) else {
+                      lobby.players.contains(where: { $0.multiplayerToken == currentUserId }) else {
                     return nil
                 }
 
@@ -153,14 +148,20 @@ final class IOSMultiplayerManager: MultiplayerManager {
 
         return bridge.flow
     }
+    
+    func startGame(id: String) async throws {
+        
+    }
 }
 
 private extension IOSMultiplayerManager {
-    func currentPlayer() -> UserProfile {
+    func currentPlayer() -> ComposeApp.User {
         let currentUser = Auth.auth().currentUser
-        return UserProfile(
-            id: currentUser?.uid ?? "",
-            name: currentUser?.displayName ?? "Без имени"
+        return User(
+            id: 0,
+            name: currentUser?.displayName ?? "Без имени",
+            kind: UserKind.remote,
+            multiplayerToken: currentUser?.uid
         )
     }
 
@@ -169,7 +170,7 @@ private extension IOSMultiplayerManager {
             "settings": dictionary(from: lobby.settings),
             "players": lobby.players.map {
                 [
-                    "id": $0.id,
+                    "id": $0.multiplayerToken ?? "",
                     "name": $0.name
                 ]
             },
@@ -201,7 +202,8 @@ private extension IOSMultiplayerManager {
             settings: gameSettings(from: dictionary["settings"]),
             players: players(from: dictionary["players"]),
             host: dictionary["host"] as? String ?? "",
-            id: dictionary["id"] as? String ?? ""
+            id: dictionary["id"] as? String ?? "",
+            game: dictionary["game"] as? String ?? ""
         )
     }
 
@@ -237,7 +239,7 @@ private extension IOSMultiplayerManager {
         )
     }
 
-    func players(from value: Any?) -> [UserProfile] {
+    func players(from value: Any?) -> [ComposeApp.User] {
         if let players = value as? [[String: Any]] {
             return players.map(player(from:))
         }
@@ -253,10 +255,12 @@ private extension IOSMultiplayerManager {
         return []
     }
 
-    func player(from dictionary: [String: Any]) -> UserProfile {
-        UserProfile(
-            id: dictionary["id"] as? String ?? "",
-            name: dictionary["name"] as? String ?? "Без имени"
+    func player(from dictionary: [String: Any]) -> ComposeApp.User {
+        User(
+            id: 0,
+            name: dictionary["name"] as? String ?? "Без имени",
+            kind: UserKind.remote,
+            multiplayerToken: dictionary["id"] as? String ?? ""
         )
     }
 }

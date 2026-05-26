@@ -3,7 +3,7 @@ package com.alextos.thousand.data.repository
 import com.alextos.thousand.domain.repository.MultiplayerManager
 import com.alextos.thousand.domain.models.GameSettings
 import com.alextos.thousand.domain.models.Lobby
-import com.alextos.thousand.domain.models.UserProfile
+import com.alextos.thousand.domain.models.User
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.database.DataSnapshot
@@ -18,6 +18,8 @@ import kotlin.coroutines.resume
 import kotlin.random.Random
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.collections.plus
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 class MultiplayerManagerImpl : MultiplayerManager {
     companion object {
@@ -29,7 +31,7 @@ class MultiplayerManagerImpl : MultiplayerManager {
         val lobbyID = Random.nextInt(1000, 10000).toString()
         val currentUser = Firebase.auth.currentUser
         val host = currentUser?.uid ?: ""
-        val players = listOf(UserProfile(id = currentUser?.uid ?: "", currentUser?.displayName ?: "Без имени"))
+        val players = listOf(User(multiplayerToken = currentUser?.uid ?: "", name = currentUser?.displayName ?: "Без имени"))
         val lobby = Lobby(
             settings = gameSettings,
             players = players,
@@ -40,7 +42,7 @@ class MultiplayerManagerImpl : MultiplayerManager {
             FirebaseDatabase.getInstance().reference
                 .child(LOBBIES_NODE)
                 .child(lobbyID)
-                .setValue(lobby)
+                .setValue(lobby.toDatabaseMap())
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         if (continuation.isActive) {
@@ -70,14 +72,14 @@ class MultiplayerManagerImpl : MultiplayerManager {
                         return
                     }
 
-                    val currentPlayer = UserProfile(
-                        id = currentUser.uid,
+                    val currentPlayer = User(
+                        multiplayerToken = currentUser.uid,
                         name = currentUser.displayName ?: "Без имени",
                     )
 
-                    if (currentPlayer.id.isNotEmpty() && lobby.players.none { it.id == currentPlayer.id }) {
+                    if (lobby.players.none { it.multiplayerToken == currentPlayer.multiplayerToken }) {
                         lobby.players += currentPlayer
-                        reference.setValue(lobby)
+                        reference.setValue(lobby.toDatabaseMap())
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful && continuation.isActive) {
                                     continuation.resume(Unit)
@@ -128,6 +130,7 @@ class MultiplayerManagerImpl : MultiplayerManager {
 
     override suspend fun disconnectFromLobby(id: String) {
         val currentUser = Firebase.auth.currentUser ?: return
+
         val lobbyReference = FirebaseDatabase.getInstance().reference
             .child(LOBBIES_NODE)
             .child(id)
@@ -150,9 +153,9 @@ class MultiplayerManagerImpl : MultiplayerManager {
                             }
                     } else {
                         val players = lobby.players.toMutableList()
-                        players.removeIf { it.id == currentUser.uid }
+                        players.removeIf { it.multiplayerToken == currentUser.uid }
                         lobby.players = players
-                        lobbyReference.setValue(lobby)
+                        lobbyReference.setValue(lobby.toDatabaseMap())
                             .addOnSuccessListener {
                                 if (continuation.isActive) {
                                     continuation.resume(Unit)
@@ -169,8 +172,30 @@ class MultiplayerManagerImpl : MultiplayerManager {
         }
     }
 
+    @OptIn(ExperimentalUuidApi::class)
+    override suspend fun startGame(id: String) {
+        val lobbyReference = FirebaseDatabase.getInstance().reference
+            .child(LOBBIES_NODE)
+            .child(id)
+        val gamesRoot = FirebaseDatabase.getInstance().reference
+            .child(GAMES_NODE)
+
+        val gameID = Uuid.random().toString()
+
+        // gamesRoot.setValue()
+        lobbyReference
+            .child("game")
+            .setValue(gameID)
+            .addOnSuccessListener {
+                lobbyReference
+                    .removeValue()
+                    .addOnSuccessListener {  }
+            }
+    }
+
     override fun userLobbies(): Flow<List<Lobby>> {
-        val currentUser = Firebase.auth.currentUser
+        val currentUser = Firebase.auth.currentUser ?: return emptyFlow()
+
         return callbackFlow {
             val reference = FirebaseDatabase.getInstance().reference
                 .child(LOBBIES_NODE)
@@ -180,7 +205,7 @@ class MultiplayerManagerImpl : MultiplayerManager {
                     val lobbies = mutableListOf<Lobby>()
                     for (child in snapshot.children) {
                         val lobby = child.toLobby() ?: continue
-                        if (lobby.players.map { it.id }.toSet().contains(currentUser?.uid)) {
+                        if (lobby.players.map { it.multiplayerToken }.toSet().contains(currentUser.uid)) {
                             lobbies.add(lobby)
                         }
                     }
@@ -207,14 +232,44 @@ class MultiplayerManagerImpl : MultiplayerManager {
             id = child("id").getValue(String::class.java) ?: "",
             settings = child("settings").toGameSettings(),
             players = child("players").children.map { playerSnapshot ->
-                UserProfile(
-                    id = playerSnapshot.child("id").getValue(String::class.java).orEmpty(),
+                User(
+                    multiplayerToken = playerSnapshot.child("id").getValue(String::class.java)
+                        .orEmpty(),
                     name = playerSnapshot.child("name").getValue(String::class.java) ?: "Без имени",
                 )
             },
             host = child("host").getValue(String::class.java).orEmpty(),
+            game = child("game").getValue(String::class.java).orEmpty()
         )
     }
+
+    private fun Lobby.toDatabaseMap(): Map<String, Any?> =
+        mapOf(
+            "id" to id,
+            "settings" to settings.toDatabaseMap(),
+            "players" to players.map { player -> player.toLobbyPlayerMap() },
+            "host" to host,
+            "game" to game,
+        )
+
+    private fun User.toLobbyPlayerMap(): Map<String, Any?> =
+        mapOf(
+            "id" to multiplayerToken.orEmpty(),
+            "name" to name,
+        )
+
+    private fun GameSettings.toDatabaseMap(): Map<String, Any> =
+        mapOf(
+            "isNotificationEnabled" to isNotificationEnabled,
+            "isVirtualDiceEnabled" to isVirtualDiceEnabled,
+            "isShakeEnabled" to isShakeEnabled,
+            "hasStartLimit" to hasStartLimit,
+            "isBarrel1Active" to isBarrel1Active,
+            "isBarrel2Active" to isBarrel2Active,
+            "isBarrel3Active" to isBarrel3Active,
+            "isTripleBoltFineActive" to isTripleBoltFineActive,
+            "isOvertakeFineActive" to isOvertakeFineActive,
+        )
 
     private fun DataSnapshot.toGameSettings(): GameSettings =
         GameSettings(

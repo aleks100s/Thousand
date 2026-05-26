@@ -58,7 +58,7 @@ class LobbyViewModel(
                                 gameSettings = lobby.settings,
                                 players = lobby.players,
                                 error = null,
-                                isHost = lobby.host == accountService.userProfile.value?.id
+                                isHost = lobby.host == accountService.userProfile.value?.multiplayerToken
                             )
                         }
                     }

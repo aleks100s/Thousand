@@ -9,5 +9,6 @@ interface MultiplayerManager {
     suspend fun joinLobby(id: String)
     fun connectToLobby(id: String): Flow<Lobby>
     suspend fun disconnectFromLobby(id: String)
+    suspend fun startGame(id: String)
     fun userLobbies(): Flow<List<Lobby>>
 }

@@ -12,8 +12,8 @@ data class Player(
 
     fun isMain(): Boolean = user.kind == UserKind.MainUser
 
-    fun header(): String = if (user.name.count() > 10) {
-        "${user.name.substring(0, 10)}…"
+    fun header(): String = if (user.name.count() > 12) {
+        "${user.name.substring(0, 12)}…"
     } else {
         user.name
     }
