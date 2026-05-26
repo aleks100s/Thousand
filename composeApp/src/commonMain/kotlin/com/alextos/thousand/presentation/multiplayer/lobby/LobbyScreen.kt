@@ -58,6 +58,7 @@ fun LobbyScreen(
         viewModel.events.collect { event ->
             when (event) {
                 LobbyEvent.Disconnect -> goBack()
+                is LobbyEvent.StartGame -> openGame(event.gameID)
             }
         }
     }
@@ -159,7 +160,7 @@ fun LobbyScreen(
                         .fillMaxWidth(),
                     enabled = state.isStartButtonEnabled,
                     onClick = {
-                        openGame(state.lobbyId)
+                       viewModel.onAction(LobbyAction.StartGame)
                     },
                 ) {
                     Text("Начать игру")

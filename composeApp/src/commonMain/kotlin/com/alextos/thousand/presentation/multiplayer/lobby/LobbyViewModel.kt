@@ -37,6 +37,7 @@ class LobbyViewModel(
     fun onAction(action: LobbyAction) {
         when (action) {
             LobbyAction.LeaveGame -> leaveGame()
+            LobbyAction.StartGame -> startGame()
         }
     }
 
@@ -49,13 +50,17 @@ class LobbyViewModel(
                     }
                 }
                 .collect { lobby ->
-                    _state.update {
-                        it.copy(
-                            gameSettings = lobby.settings,
-                            players = lobby.players,
-                            error = null,
-                            isHost = lobby.host == accountService.userProfile.value?.id
-                        )
+                    if (lobby.game.isNotEmpty()) {
+                        _events.emit(LobbyEvent.StartGame(lobby.game))
+                    } else {
+                        _state.update {
+                            it.copy(
+                                gameSettings = lobby.settings,
+                                players = lobby.players,
+                                error = null,
+                                isHost = lobby.host == accountService.userProfile.value?.id
+                            )
+                        }
                     }
                 }
         }
@@ -71,6 +76,12 @@ class LobbyViewModel(
                     it.copy(error = e.message)
                 }
             }
+        }
+    }
+
+    private fun startGame() {
+        viewModelScope.launch {
+            manager.startGame(lobbyId)
         }
     }
 }
