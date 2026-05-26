@@ -45,7 +45,7 @@ class LobbyViewModel(
             manager.connectToLobby(lobbyId)
                 .catch { error ->
                     _state.update {
-                        it.copy(error = error.cause?.message)
+                        it.copy(error = error.message)
                     }
                 }
                 .collect { lobby ->

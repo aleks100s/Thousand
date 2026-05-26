@@ -42,7 +42,6 @@ import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
 import thousand.composeapp.generated.resources.content_copy_24px
 import thousand.composeapp.generated.resources.person_24px
-import thousand.composeapp.generated.resources.person_heart_24px
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,7 +66,13 @@ fun LobbyScreen(
         ModalBottomSheet(
             onDismissRequest = goBack
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Text(state.error ?: "")
 
                 Button(onClick = goBack) {

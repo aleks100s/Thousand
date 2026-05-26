@@ -79,7 +79,7 @@ class MultiplayerManagerImpl : MultiplayerManager {
                         lobby.players += currentPlayer
                         reference.setValue(lobby)
                             .addOnCompleteListener { task ->
-                                if (task.isSuccessful) {
+                                if (task.isSuccessful && continuation.isActive) {
                                     continuation.resume(Unit)
                                 } else {
                                     continuation.cancel(task.exception)

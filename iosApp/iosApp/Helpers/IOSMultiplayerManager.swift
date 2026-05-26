@@ -38,29 +38,43 @@ final class IOSMultiplayerManager: MultiplayerManager {
         let reference = Database.database().reference()
             .child("lobbies")
             .child(id)
-        let snapshot = try await reference.getData()
-        guard let lobby = lobby(from: snapshot.value) else {
-            throw NSError(
-                domain: "IOSMultiplayerManager",
-                code: 1,
-                userInfo: [NSLocalizedDescriptionKey: "Failed to join lobby."]
-            )
+        
+        let lobby: Lobby = try await withCheckedThrowingContinuation { continuation in
+            reference.observeSingleEvent(of: .value, with: { [weak self] snapshot in
+                guard let lobby = self?.lobby(from: snapshot.value) else {
+                    let error = NSError(
+                        domain: "IOSMultiplayerManager",
+                        code: 1,
+                        userInfo: [NSLocalizedDescriptionKey: "Failed to join lobby."]
+                    )
+                    continuation.resume(throwing: error)
+                    return
+                }
+
+                let currentPlayer = UserProfile(
+                    id: currentUser.uid,
+                    name: currentUser.displayName ?? "Без имени"
+                )
+                guard lobby.players.contains(where: { $0.id == currentPlayer.id }) == false else {
+                    let error = NSError(
+                        domain: "IOSMultiplayerManager",
+                        code: 1,
+                        userInfo: [NSLocalizedDescriptionKey: "Failed to join lobby."]
+                    )
+                    continuation.resume(throwing: error)
+                    return
+                }
+
+                var players = lobby.players
+                players.append(currentPlayer)
+                lobby.players = players
+                
+                continuation.resume(returning: lobby)
+            }, withCancel: { error in
+                continuation.resume(throwing: error)
+            })
         }
-
-        let currentPlayer = UserProfile(
-            id: currentUser.uid,
-            name: currentUser.displayName ?? "Без имени"
-        )
-
-        guard currentPlayer.id.isEmpty == false,
-              lobby.players.contains(where: { $0.id == currentPlayer.id }) == false else {
-            return
-        }
-
-        var players = lobby.players
-        players.append(currentPlayer)
-        lobby.players = players
-
+        
         try await reference.setValue(dictionary(from: lobby))
     }
 
