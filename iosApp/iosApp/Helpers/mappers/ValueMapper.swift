@@ -1,68 +1,55 @@
 import ComposeApp
+import FirebaseDatabase
 import Foundation
 
+extension DataSnapshot {
+    var firebaseDictionary: [String: Any]? {
+        normalizedFirebaseDictionary(from: value)
+    }
+}
+
 extension IOSMultiplayerManager {
-    func instant(from value: Any?) -> KotlinInstant {
-        optionalInstant(from: value) ?? KotlinInstant.companion.fromEpochMilliseconds(
-            epochMilliseconds: Int64(Date().timeIntervalSince1970 * 1000)
+    func firebaseDictionary(from value: Any?) -> [String: Any]? {
+        normalizedFirebaseDictionary(from: value)
+    }
+
+    func swiftDictionary(from value: [AnyHashable: Any]) -> [String: Any] {
+        normalizedFirebaseDictionary(from: value) ?? [:]
+    }
+
+    func firebaseValue(from value: Any) -> Any {
+        normalizedFirebaseValue(from: value)
+    }
+}
+
+private func normalizedFirebaseDictionary(from value: Any?) -> [String: Any]? {
+    if let dictionary = value as? [String: Any] {
+        return dictionary.mapValues { normalizedFirebaseValue(from: $0) }
+    }
+
+    if let dictionary = value as? [AnyHashable: Any] {
+        return Dictionary(
+            uniqueKeysWithValues: dictionary.compactMap { key, value in
+                guard let key = key as? String else {
+                    return nil
+                }
+
+                return (key, normalizedFirebaseValue(from: value))
+            }
         )
     }
 
-    func optionalInstant(from value: Any?) -> KotlinInstant? {
-        if let milliseconds = int64(from: value) {
-            return KotlinInstant.companion.fromEpochMilliseconds(epochMilliseconds: milliseconds)
-        }
+    return nil
+}
 
-        if let dictionary = value as? [String: Any],
-           let epochSeconds = int64(from: dictionary["epochSeconds"]) {
-            return KotlinInstant.companion.fromEpochSeconds(
-                epochSeconds: epochSeconds,
-                nanosecondAdjustment: int32(from: dictionary["nanosecondsOfSecond"]) ?? 0
-            )
-        }
-
-        if let string = value as? String {
-            return KotlinInstant.companion.parseOrNull(input: string)
-        }
-
-        return nil
+private func normalizedFirebaseValue(from value: Any) -> Any {
+    if let dictionary = normalizedFirebaseDictionary(from: value) {
+        return dictionary
     }
 
-    func int32(from value: Any?) -> Int32? {
-        if let value = value as? Int32 {
-            return value
-        }
-        if let value = value as? Int {
-            return Int32(value)
-        }
-        if let value = value as? Int64 {
-            return Int32(value)
-        }
-        if let value = value as? Double {
-            return Int32(value)
-        }
-        if let value = value as? String {
-            return Int32(value)
-        }
-        return nil
+    if let array = value as? [Any] {
+        return array.map { normalizedFirebaseValue(from: $0) }
     }
 
-    func int64(from value: Any?) -> Int64? {
-        if let value = value as? Int64 {
-            return value
-        }
-        if let value = value as? Int {
-            return Int64(value)
-        }
-        if let value = value as? Int32 {
-            return Int64(value)
-        }
-        if let value = value as? Double {
-            return Int64(value)
-        }
-        if let value = value as? String {
-            return Int64(value)
-        }
-        return nil
-    }
+    return value
 }

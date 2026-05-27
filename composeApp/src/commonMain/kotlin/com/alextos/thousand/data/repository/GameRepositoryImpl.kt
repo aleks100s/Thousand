@@ -8,8 +8,8 @@ import com.alextos.thousand.data.dao.TurnDao
 import com.alextos.thousand.data.dao.TurnEffectDao
 import com.alextos.thousand.data.dao.TurnResultDao
 import com.alextos.thousand.data.dao.UserDao
-import com.alextos.thousand.data.mappers.toEntity
-import com.alextos.thousand.data.mappers.toDomain
+import com.alextos.thousand.data.mappers.room.toEntity
+import com.alextos.thousand.data.mappers.room.toDomain
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.models.User

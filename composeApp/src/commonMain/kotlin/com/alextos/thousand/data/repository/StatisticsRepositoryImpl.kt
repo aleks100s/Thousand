@@ -4,8 +4,8 @@ import com.alextos.thousand.data.dao.GameDao
 import com.alextos.thousand.data.dao.TurnDao
 import com.alextos.thousand.data.dao.TurnEffectDao
 import com.alextos.thousand.data.dao.UserDao
-import com.alextos.thousand.data.mappers.toDomain
-import com.alextos.thousand.data.mappers.toStorageValue
+import com.alextos.thousand.data.mappers.room.toDomain
+import com.alextos.thousand.data.mappers.room.toStorageValue
 import com.alextos.thousand.domain.models.Effect
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Turn

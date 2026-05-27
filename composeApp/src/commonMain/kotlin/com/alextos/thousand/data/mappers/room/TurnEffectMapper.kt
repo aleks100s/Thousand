@@ -1,4 +1,4 @@
-package com.alextos.thousand.data.mappers
+package com.alextos.thousand.data.mappers.room
 
 import com.alextos.thousand.data.models.TurnEffectEntity
 import com.alextos.thousand.data.models.combined.TurnEffectWithPlayer

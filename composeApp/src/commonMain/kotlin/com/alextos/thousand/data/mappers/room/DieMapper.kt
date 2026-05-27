@@ -1,4 +1,4 @@
-package com.alextos.thousand.data.mappers
+package com.alextos.thousand.data.mappers.room
 
 import com.alextos.thousand.data.models.DieEntity
 import com.alextos.thousand.domain.models.Die

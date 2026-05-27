@@ -40,7 +40,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
         
         let lobby: Lobby = try await withCheckedThrowingContinuation { continuation in
             reference.observeSingleEvent(of: .value, with: { [weak self] snapshot in
-                guard let lobby = self?.lobby(from: snapshot.value) else {
+                guard let lobby = self?.lobby(from: snapshot.firebaseDictionary) else {
                     let error = NSError(
                         domain: "IOSMultiplayerManager",
                         code: 1,
@@ -79,7 +79,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
         let reference = Database.database().reference().child("lobbies").child(id)
 
         reference.observe(.value, with: { [weak self] snapshot in
-            guard let self, let lobby = self.lobby(from: snapshot.value) else {
+            guard let self, let lobby = self.lobby(from: snapshot.firebaseDictionary) else {
                 bridge.closeWithError(message: "Failed to connect")
                 return
             }
@@ -130,13 +130,12 @@ final class IOSMultiplayerManager: MultiplayerManager {
 
             let lobbies = snapshot.children.allObjects.compactMap { child -> Lobby? in
                 guard let childSnapshot = child as? DataSnapshot,
-                      let lobby = self.lobby(from: childSnapshot.value),
+                      let lobby = self.lobby(
+                          from: childSnapshot.firebaseDictionary,
+                          fallbackId: childSnapshot.key
+                      ),
                       lobby.players.contains(where: { $0.id == currentUserId }) else {
                     return nil
-                }
-
-                if lobby.id.isEmpty {
-                    lobby.id = childSnapshot.key
                 }
 
                 return lobby
@@ -210,7 +209,10 @@ final class IOSMultiplayerManager: MultiplayerManager {
 
             let games = snapshot.children.allObjects.compactMap { child -> Game? in
                 guard let childSnapshot = child as? DataSnapshot,
-                      let game = self.game(from: childSnapshot.value, fallbackId: childSnapshot.key),
+                      let game = self.game(
+                          from: childSnapshot.firebaseDictionary,
+                          fallbackId: childSnapshot.key
+                      ),
                       game.players.contains(where: { $0.user.id == currentUserId }) else {
                     return nil
                 }
