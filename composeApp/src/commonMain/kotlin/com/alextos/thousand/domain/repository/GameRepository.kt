@@ -14,7 +14,7 @@ interface GameRepository {
 
     suspend fun saveUser(user: User)
 
-    suspend fun deleteUser(userId: Long)
+    suspend fun deleteUser(userId: String)
 
     suspend fun createGame(game: Game): Game
     suspend fun saveGame(game: Game)

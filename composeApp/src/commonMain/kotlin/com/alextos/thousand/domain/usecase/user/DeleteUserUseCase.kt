@@ -5,7 +5,7 @@ import com.alextos.thousand.domain.repository.GameRepository
 class DeleteUserUseCase(
     private val repository: GameRepository,
 ) {
-    suspend operator fun invoke(userId: Long) {
+    suspend operator fun invoke(userId: String) {
         repository.deleteUser(userId)
     }
 }

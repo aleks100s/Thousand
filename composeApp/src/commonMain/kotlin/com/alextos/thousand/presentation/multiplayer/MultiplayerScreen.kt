@@ -139,7 +139,7 @@ private fun LobbyCard(
     openLobby: (String) -> Unit,
 ) {
     val hostName = lobby.players
-        .firstOrNull { player -> player.multiplayerToken == lobby.host }
+        .firstOrNull { player -> player.id == lobby.host }
         ?.name
         ?: "Без имени"
 

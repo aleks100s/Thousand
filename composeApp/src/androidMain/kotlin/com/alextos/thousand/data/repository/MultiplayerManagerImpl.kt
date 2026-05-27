@@ -31,7 +31,12 @@ class MultiplayerManagerImpl : MultiplayerManager {
         val lobbyID = Random.nextInt(1000, 10000).toString()
         val currentUser = Firebase.auth.currentUser
         val host = currentUser?.uid ?: ""
-        val players = listOf(User(multiplayerToken = currentUser?.uid ?: "", name = currentUser?.displayName ?: "Без имени"))
+        val players = listOf(
+            User(
+                id = currentUser?.uid ?: "",
+                name = currentUser?.displayName ?: "Без имени",
+            )
+        )
         val lobby = Lobby(
             settings = gameSettings,
             players = players,
@@ -73,11 +78,11 @@ class MultiplayerManagerImpl : MultiplayerManager {
                     }
 
                     val currentPlayer = User(
-                        multiplayerToken = currentUser.uid,
+                        id = currentUser.uid,
                         name = currentUser.displayName ?: "Без имени",
                     )
 
-                    if (lobby.players.none { it.multiplayerToken == currentPlayer.multiplayerToken }) {
+                    if (lobby.players.none { it.id == currentPlayer.id }) {
                         lobby.players += currentPlayer
                         reference.setValue(lobby.toDatabaseMap())
                             .addOnCompleteListener { task ->
@@ -153,7 +158,7 @@ class MultiplayerManagerImpl : MultiplayerManager {
                             }
                     } else {
                         val players = lobby.players.toMutableList()
-                        players.removeIf { it.multiplayerToken == currentUser.uid }
+                        players.removeIf { it.id == currentUser.uid }
                         lobby.players = players
                         lobbyReference.setValue(lobby.toDatabaseMap())
                             .addOnSuccessListener {
@@ -205,7 +210,7 @@ class MultiplayerManagerImpl : MultiplayerManager {
                     val lobbies = mutableListOf<Lobby>()
                     for (child in snapshot.children) {
                         val lobby = child.toLobby() ?: continue
-                        if (lobby.players.map { it.multiplayerToken }.toSet().contains(currentUser.uid)) {
+                        if (lobby.players.map { it.id }.toSet().contains(currentUser.uid)) {
                             lobbies.add(lobby)
                         }
                     }
@@ -233,8 +238,7 @@ class MultiplayerManagerImpl : MultiplayerManager {
             settings = child("settings").toGameSettings(),
             players = child("players").children.map { playerSnapshot ->
                 User(
-                    multiplayerToken = playerSnapshot.child("id").getValue(String::class.java)
-                        .orEmpty(),
+                    id = playerSnapshot.child("id").getValue(String::class.java).orEmpty(),
                     name = playerSnapshot.child("name").getValue(String::class.java) ?: "Без имени",
                 )
             },
@@ -254,7 +258,7 @@ class MultiplayerManagerImpl : MultiplayerManager {
 
     private fun User.toLobbyPlayerMap(): Map<String, Any?> =
         mapOf(
-            "id" to multiplayerToken.orEmpty(),
+            "id" to id,
             "name" to name,
         )
 

@@ -13,13 +13,13 @@ data class GameResultsState(
 }
 
 data class PlayerScoreSeries(
-    val userId: Long,
+    val userId: String,
     val playerName: String,
     val points: List<Int>,
 )
 
 data class GameResultsPlayerStatistics(
-    val userId: Long,
+    val userId: String,
     val playerName: String,
     val gameAverageTurn: Double,
     val globalAverageTurn: Double,

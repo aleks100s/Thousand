@@ -2,16 +2,16 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "907ce3273f766a3fe00c6311c0fba55a",
+    "identityHash": "f1fba078f9344af3dc93040a6cfe0170",
     "entities": [
       {
         "tableName": "users",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `kind` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
-            "affinity": "INTEGER",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
@@ -19,10 +19,16 @@
             "columnName": "name",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "kind",
+            "columnName": "kind",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
-          "autoGenerate": true,
+          "autoGenerate": false,
           "columnNames": [
             "id"
           ]
@@ -30,7 +36,7 @@
       },
       {
         "tableName": "games",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `startedAt` INTEGER NOT NULL, `finishedAt` INTEGER)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `startedAt` INTEGER NOT NULL, `finishedAt` INTEGER, `isShakeEnabled` INTEGER NOT NULL DEFAULT 1, `isVirtualDiceEnabled` INTEGER NOT NULL DEFAULT 1, `isNotificationEnabled` INTEGER NOT NULL DEFAULT 1, `hasStartLimit` INTEGER NOT NULL DEFAULT 1, `isBarrel1Active` INTEGER NOT NULL DEFAULT 1, `isBarrel2Active` INTEGER NOT NULL DEFAULT 1, `isBarrel3Active` INTEGER NOT NULL DEFAULT 0, `isTripleBoltFineActive` INTEGER NOT NULL DEFAULT 1, `isOvertakeFineActive` INTEGER NOT NULL DEFAULT 1)",
         "fields": [
           {
             "fieldPath": "id",
@@ -48,6 +54,69 @@
             "fieldPath": "finishedAt",
             "columnName": "finishedAt",
             "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "isShakeEnabled",
+            "columnName": "isShakeEnabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "isVirtualDiceEnabled",
+            "columnName": "isVirtualDiceEnabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "isNotificationEnabled",
+            "columnName": "isNotificationEnabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "hasStartLimit",
+            "columnName": "hasStartLimit",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "isBarrel1Active",
+            "columnName": "isBarrel1Active",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "isBarrel2Active",
+            "columnName": "isBarrel2Active",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "isBarrel3Active",
+            "columnName": "isBarrel3Active",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "isTripleBoltFineActive",
+            "columnName": "isTripleBoltFineActive",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "isOvertakeFineActive",
+            "columnName": "isOvertakeFineActive",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
           }
         ],
         "primaryKey": {
@@ -59,7 +128,7 @@
       },
       {
         "tableName": "players",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` INTEGER NOT NULL, `gameId` INTEGER NOT NULL, `currentScore` INTEGER NOT NULL, `isWinner` INTEGER NOT NULL, `boltCount` INTEGER NOT NULL, `hasPassedStartLimit` INTEGER NOT NULL, FOREIGN KEY(`userId`) REFERENCES `users`(`id`) ON UPDATE CASCADE ON DELETE CASCADE , FOREIGN KEY(`gameId`) REFERENCES `games`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` TEXT NOT NULL, `gameId` INTEGER NOT NULL, `currentScore` INTEGER NOT NULL, `isWinner` INTEGER NOT NULL, `boltCount` INTEGER NOT NULL, `hasPassedStartLimit` INTEGER NOT NULL, FOREIGN KEY(`userId`) REFERENCES `users`(`id`) ON UPDATE CASCADE ON DELETE CASCADE , FOREIGN KEY(`gameId`) REFERENCES `games`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -70,7 +139,7 @@
           {
             "fieldPath": "userId",
             "columnName": "userId",
-            "affinity": "INTEGER",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
@@ -582,7 +651,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '907ce3273f766a3fe00c6311c0fba55a')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f1fba078f9344af3dc93040a6cfe0170')"
     ]
   }
 }

@@ -13,5 +13,5 @@ interface StatisticsRepository {
 
     fun getAllUsers(): Flow<List<User>>
 
-    fun getTurnEffectCount(userId: Long, effect: Effect): Flow<Int>
+    fun getTurnEffectCount(userId: String, effect: Effect): Flow<Int>
 }

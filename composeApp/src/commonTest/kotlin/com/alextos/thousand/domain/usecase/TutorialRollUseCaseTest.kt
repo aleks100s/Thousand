@@ -178,9 +178,11 @@ class TutorialRollUseCaseTest {
 
         override fun getAllUsers(): Flow<List<User>> = flowOf(emptyList())
 
+        override suspend fun getMainUser(): User? = null
+
         override suspend fun saveUser(user: User) = Unit
 
-        override suspend fun deleteUser(userId: Long) = Unit
+        override suspend fun deleteUser(userId: String) = Unit
 
         override suspend fun createGame(game: Game): Game = game
 

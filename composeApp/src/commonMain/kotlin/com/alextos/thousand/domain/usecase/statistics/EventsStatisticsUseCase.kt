@@ -91,7 +91,7 @@ data class EventsStatistics(
 )
 
 data class PlayerWithEventsStatistics(
-    val userId: Long,
+    val userId: String,
     val userName: String,
     val pitFalls: Int,
     val overtakes: Int,

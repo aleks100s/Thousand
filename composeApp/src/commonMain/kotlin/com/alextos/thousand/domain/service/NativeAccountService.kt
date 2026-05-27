@@ -26,7 +26,7 @@ open class MutableNativeAccountService : NativeAccountService {
     override fun signOut() = Unit
 
     fun updateUserProfile(id: String, name: String) {
-        _userProfile.value = User(multiplayerToken = id, name = name)
+        _userProfile.value = User(id = id, name = name)
     }
 
     fun clearUserProfile() {

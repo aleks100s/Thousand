@@ -51,7 +51,7 @@ data class TurnsStatistics(
 )
 
 data class PlayerWithTurnStatistics(
-    val userId: Long,
+    val userId: String,
     val userName: String,
     val turns: Int,
     val averageTurn: Double,

@@ -20,5 +20,5 @@ interface TurnEffectDao {
         WHERE players.userId = :userId AND turn_effects.effectType = :effectType
         """,
     )
-    fun getEffectsCount(userId: Long, effectType: String): Flow<Int>
+    fun getEffectsCount(userId: String, effectType: String): Flow<Int>
 }

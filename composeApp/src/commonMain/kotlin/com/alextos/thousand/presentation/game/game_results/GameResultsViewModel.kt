@@ -91,8 +91,8 @@ class GameResultsViewModel(
 
     private fun Game.buildPlayerStatistics(
         turns: List<Turn>,
-        globalAverageTurns: Map<Long, Double>,
-        globalAverageRolls: Map<Long, Double>,
+        globalAverageTurns: Map<String, Double>,
+        globalAverageRolls: Map<String, Double>,
     ): List<GameResultsPlayerStatistics> {
         return players.map { player ->
             val playerTurns = turns.filter { turn -> turn.player.sameUserAs(player) }

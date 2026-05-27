@@ -48,7 +48,7 @@ data class GamesStatistics(
 )
 
 data class PlayerWithStatistics(
-    val userId: Long,
+    val userId: String,
     val userName: String,
     val games: Int,
     val wins: Int,

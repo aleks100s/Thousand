@@ -47,7 +47,7 @@ class GameRepositoryImpl(
         userDao.upsert(user.toEntity())
     }
 
-    override suspend fun deleteUser(userId: Long) {
+    override suspend fun deleteUser(userId: String) {
         userDao.delete(userId)
     }
 

@@ -71,7 +71,7 @@ data class DiceStatistics(
 )
 
 data class PlayerWithDiceStatistics(
-    val userId: Long,
+    val userId: String,
     val userName: String,
     val dice: Int,
     val averageDie: Double,

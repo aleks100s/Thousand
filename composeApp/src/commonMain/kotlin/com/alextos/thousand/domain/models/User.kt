@@ -1,8 +1,11 @@
 package com.alextos.thousand.domain.models
 
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+
+@OptIn(ExperimentalUuidApi::class)
 data class User(
-    val id: Long = 0,
+    val id: String = Uuid.random().toString(),
     val name: String,
-    val kind: UserKind = UserKind.LocalUser,
-    val multiplayerToken: String? = null
+    val kind: UserKind = UserKind.LocalUser
 )

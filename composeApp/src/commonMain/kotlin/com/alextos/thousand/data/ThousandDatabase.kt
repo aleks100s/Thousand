@@ -13,10 +13,6 @@ import com.alextos.thousand.data.dao.TurnDao
 import com.alextos.thousand.data.dao.TurnEffectDao
 import com.alextos.thousand.data.dao.TurnResultDao
 import com.alextos.thousand.data.dao.UserDao
-import com.alextos.thousand.data.migration.MIGRATION_1_2
-import com.alextos.thousand.data.migration.MIGRATION_2_3
-import com.alextos.thousand.data.migration.MIGRATION_3_4
-import com.alextos.thousand.data.migration.MIGRATION_4_5
 import com.alextos.thousand.data.models.DiceRollEntity
 import com.alextos.thousand.data.models.DieEntity
 import com.alextos.thousand.data.models.GameEntity
@@ -39,7 +35,7 @@ internal const val THOUSAND_DATABASE_FILE_NAME = "thousand.db"
         TurnEffectEntity::class,
         TurnResultEntity::class,
     ],
-    version = 5,
+    version = 1,
     exportSchema = true,
 )
 @ConstructedBy(ThousandDatabaseConstructor::class)
@@ -61,9 +57,5 @@ expect object ThousandDatabaseConstructor : RoomDatabaseConstructor<ThousandData
 fun getRoomDatabase(builder: RoomDatabase.Builder<ThousandDatabase>): ThousandDatabase {
     return builder
         .setDriver(BundledSQLiteDriver())
-        .addMigrations(MIGRATION_1_2)
-        .addMigrations(MIGRATION_2_3)
-        .addMigrations(MIGRATION_3_4)
-        .addMigrations(MIGRATION_4_5)
         .build()
 }

@@ -10,16 +10,24 @@ class SaveUserUseCase(
     suspend operator fun invoke(
         name: String,
         kind: UserKind = UserKind.LocalUser,
-        id: Long = 0,
-        multiplayerToken: String? = null,
+        id: String? = null,
     ) {
-        gameRepository.saveUser(
+        val userName = name.trim()
+        val user = if (id == null) {
+            User(
+                name = userName,
+                kind = kind,
+            )
+        } else {
             User(
                 id = id,
-                name = name.trim(),
+                name = userName,
                 kind = kind,
-                multiplayerToken = multiplayerToken
-            ),
+            )
+        }
+
+        gameRepository.saveUser(
+            user,
         )
     }
 }

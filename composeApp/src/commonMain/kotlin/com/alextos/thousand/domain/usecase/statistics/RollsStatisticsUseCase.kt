@@ -72,7 +72,7 @@ data class RollsStatistics(
 )
 
 data class PlayerWithRollStatistics(
-    val userId: Long,
+    val userId: String,
     val userName: String,
     val rolls: Int,
     val averageRoll: Double,

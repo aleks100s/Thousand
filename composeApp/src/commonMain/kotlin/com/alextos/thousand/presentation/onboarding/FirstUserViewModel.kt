@@ -67,7 +67,6 @@ class FirstUserViewModel(
             saveUserUseCase(
                 name = name,
                 kind = UserKind.MainUser,
-                multiplayerToken = Uuid.random().toHexString()
             )
 
             _state.update {

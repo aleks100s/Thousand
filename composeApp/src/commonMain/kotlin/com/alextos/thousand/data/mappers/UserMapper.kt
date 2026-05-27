@@ -8,12 +8,10 @@ fun User.toEntity(): UserEntity = UserEntity(
     id = id,
     name = name,
     kind = kind.ordinal,
-    multiplayerToken = multiplayerToken,
 )
 
 fun UserEntity.toDomain(): User = User(
     id = id,
     name = name,
     kind = UserKind.entries.getOrElse(kind) { UserKind.LocalUser },
-    multiplayerToken = multiplayerToken,
 )

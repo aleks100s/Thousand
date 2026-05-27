@@ -38,7 +38,7 @@ class StatisticsRepositoryImpl(
         }
     }
 
-    override fun getTurnEffectCount(userId: Long, effect: Effect): Flow<Int> {
+    override fun getTurnEffectCount(userId: String, effect: Effect): Flow<Int> {
         return turnEffectDao.getEffectsCount(
             userId = userId,
             effectType = effect.toStorageValue(),

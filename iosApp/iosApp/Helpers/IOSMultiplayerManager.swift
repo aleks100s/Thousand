@@ -50,7 +50,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
                 }
 
                 
-                guard let currentPlayer = self?.currentPlayer(), lobby.players.contains(where: { $0.multiplayerToken == currentUser.uid }) == false else {
+                guard let currentPlayer = self?.currentPlayer(), lobby.players.contains(where: { $0.id == currentUser.uid }) == false else {
                     let error = NSError(
                         domain: "IOSMultiplayerManager",
                         code: 1,
@@ -108,7 +108,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
         if lobby.host == currentUser.uid {
             try await reference.removeValue()
         } else {
-            lobby.players = lobby.players.filter { $0.multiplayerToken != currentUser.uid }
+            lobby.players = lobby.players.filter { $0.id != currentUser.uid }
             try await reference.setValue(dictionary(from: lobby))
         }
     }
@@ -130,7 +130,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
             let lobbies = snapshot.children.allObjects.compactMap { child -> Lobby? in
                 guard let childSnapshot = child as? DataSnapshot,
                       let lobby = self.lobby(from: childSnapshot.value),
-                      lobby.players.contains(where: { $0.multiplayerToken == currentUserId }) else {
+                      lobby.players.contains(where: { $0.id == currentUserId }) else {
                     return nil
                 }
 
@@ -158,10 +158,9 @@ private extension IOSMultiplayerManager {
     func currentPlayer() -> ComposeApp.User {
         let currentUser = Auth.auth().currentUser
         return User(
-            id: 0,
+            id: currentUser?.uid ?? UUID().uuidString,
             name: currentUser?.displayName ?? "Без имени",
-            kind: UserKind.remote,
-            multiplayerToken: currentUser?.uid
+            kind: UserKind.remote
         )
     }
 
@@ -170,12 +169,13 @@ private extension IOSMultiplayerManager {
             "settings": dictionary(from: lobby.settings),
             "players": lobby.players.map {
                 [
-                    "id": $0.multiplayerToken ?? "",
+                    "id": $0.id,
                     "name": $0.name
                 ]
             },
             "host": lobby.host,
-            "id": lobby.id
+            "id": lobby.id,
+            "game": lobby.game
         ]
     }
 
@@ -256,11 +256,11 @@ private extension IOSMultiplayerManager {
     }
 
     func player(from dictionary: [String: Any]) -> ComposeApp.User {
-        User(
-            id: 0,
+        let id = dictionary["id"] as? String ?? UUID().uuidString
+        return User(
+            id: id,
             name: dictionary["name"] as? String ?? "Без имени",
-            kind: UserKind.remote,
-            multiplayerToken: dictionary["id"] as? String ?? ""
+            kind: UserKind.remote
         )
     }
 }
