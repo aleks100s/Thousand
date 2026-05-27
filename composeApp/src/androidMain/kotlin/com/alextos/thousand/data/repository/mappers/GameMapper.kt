@@ -9,14 +9,11 @@ import kotlin.time.Instant
 internal fun DataSnapshot.toGame(): Game? {
     if (!exists()) return null
 
-    return FirebaseGameMapper.game(
-        from = getValue(),
-        fallbackId = key.orEmpty(),
-    )
+    return FirebaseGameMapper.game(from = value)
 }
 
 internal fun Game.toDatabaseMap(): Map<String, Any> =
     FirebaseGameMapper.dictionary(from = this)
 
 internal fun DataSnapshot.instantValue(): Instant? =
-    FirebaseValueMapper.optionalInstant(from = getValue())
+    FirebaseValueMapper.optionalInstant(from = value)

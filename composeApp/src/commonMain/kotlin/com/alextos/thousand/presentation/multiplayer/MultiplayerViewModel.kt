@@ -150,7 +150,7 @@ class MultiplayerViewModel(
                     it.copy(isJoinLobbySheetVisible = false, lobbyId = "")
                 }
                 _events.emit(MultiplayerEvent.OpenLobby(lobbyId))
-            } catch (e: Exception) {}
+            } catch (_: Exception) {}
         }
     }
 

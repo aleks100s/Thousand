@@ -6,8 +6,8 @@ object FirebaseGameMapper {
     fun dictionary(from: Game): Map<String, Any> =
         from.toFirebaseMap()
 
-    fun game(from: Any?, fallbackId: String = ""): Game? =
-        from.asFirebaseMap()?.toFirebaseGame(fallbackId)
+    fun game(from: Any?): Game? =
+        from.asFirebaseMap()?.toFirebaseGame()
 }
 
 internal fun Game.toFirebaseMap(): Map<String, Any> =
@@ -22,9 +22,9 @@ internal fun Game.toFirebaseMap(): Map<String, Any> =
         }
     }
 
-internal fun Map<*, *>.toFirebaseGame(fallbackId: String = ""): Game =
+internal fun Map<*, *>.toFirebaseGame(): Game =
     Game(
-        id = long("id") ?: fallbackId.toLongOrNull() ?: 0L,
+        id = long("id") ?: 0L,
         startedAt = FirebaseValueMapper.instant(get("startedAt")),
         finishedAt = FirebaseValueMapper.optionalInstant(get("finishedAt")),
         settings = get("settings").asFirebaseMap().toFirebaseGameSettings(),

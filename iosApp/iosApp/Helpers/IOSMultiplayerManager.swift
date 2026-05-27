@@ -130,10 +130,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
 
             let lobbies = snapshot.children.allObjects.compactMap { child -> Lobby? in
                 guard let childSnapshot = child as? DataSnapshot,
-                      let lobby = self.lobby(
-                          from: childSnapshot.firebaseDictionary,
-                          fallbackId: childSnapshot.key
-                      ),
+                      let lobby = self.lobby(from: childSnapshot.firebaseDictionary),
                       lobby.players.contains(where: { $0.id == currentUserId }) else {
                     return nil
                 }
@@ -209,10 +206,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
 
             let games = snapshot.children.allObjects.compactMap { child -> Game? in
                 guard let childSnapshot = child as? DataSnapshot,
-                      let game = self.game(
-                          from: childSnapshot.firebaseDictionary,
-                          fallbackId: childSnapshot.key
-                      ),
+                      let game = self.game(from: childSnapshot.firebaseDictionary),
                       game.players.contains(where: { $0.user.id == currentUserId }) else {
                     return nil
                 }

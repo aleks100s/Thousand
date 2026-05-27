@@ -6,8 +6,8 @@ object FirebaseLobbyMapper {
     fun dictionary(from: Lobby): Map<String, Any> =
         from.toFirebaseMap()
 
-    fun lobby(from: Any?, fallbackId: String = ""): Lobby? =
-        from.asFirebaseMap()?.toFirebaseLobby(fallbackId)
+    fun lobby(from: Any?): Lobby? =
+        from.asFirebaseMap()?.toFirebaseLobby()
 }
 
 internal fun Lobby.toFirebaseMap(): Map<String, Any> =
@@ -19,9 +19,9 @@ internal fun Lobby.toFirebaseMap(): Map<String, Any> =
         "game" to game,
     )
 
-internal fun Map<*, *>.toFirebaseLobby(fallbackId: String = ""): Lobby =
+internal fun Map<*, *>.toFirebaseLobby(): Lobby =
     Lobby(
-        id = string("id") ?: fallbackId,
+        id = string("id").orEmpty(),
         settings = get("settings").asFirebaseMap().toFirebaseGameSettings(),
         players = get("players").asFirebaseMapList().map { player -> player.toFirebaseLobbyPlayer() },
         host = string("host").orEmpty(),
