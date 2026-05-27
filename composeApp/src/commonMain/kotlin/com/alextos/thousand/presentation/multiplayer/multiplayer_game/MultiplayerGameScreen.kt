@@ -18,7 +18,7 @@ fun MultiplayerGameScreen(
 
     Screen(
         modifier = Modifier,
-        title = "Игра ${state.lobbyId}",
+        title = "Игра ${state.gameCode}",
         goBack = goBack,
     ) { modifier ->
         Box(

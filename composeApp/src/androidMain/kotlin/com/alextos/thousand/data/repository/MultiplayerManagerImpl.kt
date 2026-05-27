@@ -1,14 +1,18 @@
 package com.alextos.thousand.data.repository
 
+import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.repository.MultiplayerManager
 import com.alextos.thousand.domain.models.GameSettings
 import com.alextos.thousand.domain.models.Lobby
+import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.User
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.MutableData
+import com.google.firebase.database.Transaction
 import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -182,20 +186,59 @@ class MultiplayerManagerImpl : MultiplayerManager {
         val lobbyReference = FirebaseDatabase.getInstance().reference
             .child(LOBBIES_NODE)
             .child(id)
-        val gamesRoot = FirebaseDatabase.getInstance().reference
-            .child(GAMES_NODE)
 
-        val gameID = Uuid.random().toString()
+        val lobby: Lobby = suspendCancellableCoroutine { continuation ->
+            lobbyReference
+                .addListenerForSingleValueEvent(object: ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        val lobby = snapshot.toLobby() ?: run {
+                            continuation.cancel(IllegalStateException("Failed to start game."))
+                            return
+                        }
 
-        // gamesRoot.setValue()
-        lobbyReference
-            .child("game")
-            .setValue(gameID)
-            .addOnSuccessListener {
-                lobbyReference
-                    .removeValue()
-                    .addOnSuccessListener {  }
+                        continuation.resume(lobby)
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                        continuation.cancel(error.toException())
+                    }
+                })
+        }
+
+        val game = Game(
+            id = id.toLongOrNull() ?: 0L,
+            settings = lobby.settings,
+            players = lobby.players.shuffled().map {
+                Player(user = it)
             }
+        )
+        val gameID = Uuid.random().toString()
+        val gamesReference = FirebaseDatabase.getInstance().reference
+            .child(GAMES_NODE)
+            .child(gameID)
+
+        return suspendCancellableCoroutine { continuation ->
+            gamesReference
+                .setValue(game)
+                .addOnSuccessListener {
+                    lobbyReference
+                        .child("game")
+                        .setValue(gameID)
+                        .addOnSuccessListener {
+                            lobbyReference
+                                .removeValue()
+                                .addOnSuccessListener {
+                                    continuation.resume(Unit)
+                                }
+                        }
+                        .addOnFailureListener {
+                            continuation.cancel(it)
+                        }
+                }
+                .addOnFailureListener {
+                    continuation.cancel(it)
+                }
+        }
     }
 
     override fun userLobbies(): Flow<List<Lobby>> {
