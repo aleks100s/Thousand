@@ -16,6 +16,7 @@ import com.alextos.thousand.data.dao.UserDao
 import com.alextos.thousand.data.models.DiceRollEntity
 import com.alextos.thousand.data.models.DieEntity
 import com.alextos.thousand.data.models.GameEntity
+import com.alextos.thousand.data.models.GameSettingsEntity
 import com.alextos.thousand.data.models.PlayerEntity
 import com.alextos.thousand.data.models.TurnEffectEntity
 import com.alextos.thousand.data.models.TurnEntity
@@ -28,6 +29,7 @@ internal const val THOUSAND_DATABASE_FILE_NAME = "thousand.db"
     entities = [
         UserEntity::class,
         GameEntity::class,
+        GameSettingsEntity::class,
         PlayerEntity::class,
         TurnEntity::class,
         DiceRollEntity::class,

@@ -93,11 +93,11 @@ class PlayGameViewModel(
             val game = loadGameUseCase(route.gameId)
             _state.update {
                 it.copy(
-                    isManualInputEnabled = game?.isVirtualDiceEnabled?.not() ?: false,
-                    isNotificationEnabled = game?.isNotificationEnabled ?: true,
+                    isManualInputEnabled = game?.settings?.isVirtualDiceEnabled?.not() ?: false,
+                    isNotificationEnabled = game?.settings?.isNotificationEnabled ?: true,
                 )
             }
-            isShakeEnabled = game?.isShakeEnabled ?: true
+            isShakeEnabled = game?.settings?.isShakeEnabled ?: true
             gameServer.initGame(game)
         }
     }

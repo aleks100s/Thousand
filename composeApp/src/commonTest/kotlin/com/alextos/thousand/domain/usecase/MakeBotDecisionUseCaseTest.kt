@@ -3,6 +3,7 @@ package com.alextos.thousand.domain.usecase
 import com.alextos.thousand.domain.usecase.game.BotDecision
 import com.alextos.thousand.domain.usecase.game.MakeBotDecisionUseCase
 import com.alextos.thousand.domain.models.Game
+import com.alextos.thousand.domain.models.GameSettings
 import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.RollAbility
 import com.alextos.thousand.domain.models.User
@@ -218,9 +219,11 @@ class MakeBotDecisionUseCaseTest {
         isBarrel3Active: Boolean = false,
     ): Game {
         return Game(
-            isBarrel1Active = isBarrel1Active,
-            isBarrel2Active = isBarrel2Active,
-            isBarrel3Active = isBarrel3Active,
+            settings = GameSettings(
+                isBarrel1Active = isBarrel1Active,
+                isBarrel2Active = isBarrel2Active,
+                isBarrel3Active = isBarrel3Active,
+            ),
             players = listOf(bot),
         )
     }

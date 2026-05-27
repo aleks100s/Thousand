@@ -55,7 +55,7 @@ fun GameHeaderView(
     val shouldScroll = game.players.size > 2
 
     val content: @Composable (Player) -> Unit = { player ->
-        PlayerView(player, currentPlayer == player, showBolts && game.isTripleBoltFineActive)
+        PlayerView(player, currentPlayer == player, showBolts && game.settings.isTripleBoltFineActive)
     }
 
     if (shouldScroll) {

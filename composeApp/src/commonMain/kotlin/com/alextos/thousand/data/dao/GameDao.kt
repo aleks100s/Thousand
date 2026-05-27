@@ -7,7 +7,9 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import androidx.room.Upsert
 import com.alextos.thousand.data.models.GameEntity
+import com.alextos.thousand.data.models.GameSettingsEntity
 import com.alextos.thousand.data.models.combined.GameWithRelations
 import kotlinx.coroutines.flow.Flow
 
@@ -26,6 +28,9 @@ interface GameDao {
 
     @Update
     suspend fun upsert(game: GameEntity)
+
+    @Upsert
+    suspend fun upsert(settings: GameSettingsEntity)
 
     @Query("DELETE FROM games WHERE id = :gameId")
     suspend fun delete(gameId: Long)

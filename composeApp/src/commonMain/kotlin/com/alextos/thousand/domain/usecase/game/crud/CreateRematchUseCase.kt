@@ -16,15 +16,7 @@ class CreateRematchUseCase(
         return repository.createGame(
             Game(
                 players = players.shuffled(),
-                isShakeEnabled = sourceGame.isShakeEnabled,
-                isVirtualDiceEnabled = sourceGame.isVirtualDiceEnabled,
-                isNotificationEnabled = sourceGame.isNotificationEnabled,
-                hasStartLimit = sourceGame.hasStartLimit,
-                isBarrel1Active = sourceGame.isBarrel1Active,
-                isBarrel2Active = sourceGame.isBarrel2Active,
-                isBarrel3Active = sourceGame.isBarrel3Active,
-                isTripleBoltFineActive = sourceGame.isTripleBoltFineActive,
-                isOvertakeFineActive = sourceGame.isOvertakeFineActive,
+                settings = sourceGame.settings,
             )
         )
     }

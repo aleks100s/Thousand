@@ -24,13 +24,13 @@ class ApplyDiceRollRestrictionsUseCase {
     }
 
     private fun Player.mustPassStartLimit(game: Game, turnTotal: Int): Boolean {
-        return game.hasStartLimit && hasPassedStartLimit.not() && turnTotal < STARTING_LIMIT
+        return game.settings.hasStartLimit && hasPassedStartLimit.not() && turnTotal < STARTING_LIMIT
     }
 
     private fun Player.isStuckInBarrel(game: Game, turnTotal: Int): Boolean {
         val proposedScore = currentScore + turnTotal
-        return game.isBarrel1Active && currentScore in BARREL_1 && proposedScore in BARREL_1 ||
-            game.isBarrel2Active && currentScore in BARREL_2 && proposedScore in BARREL_2 ||
-            game.isBarrel3Active && currentScore in BARREL_3 && proposedScore in BARREL_3
+        return game.settings.isBarrel1Active && currentScore in BARREL_1 && proposedScore in BARREL_1 ||
+            game.settings.isBarrel2Active && currentScore in BARREL_2 && proposedScore in BARREL_2 ||
+            game.settings.isBarrel3Active && currentScore in BARREL_3 && proposedScore in BARREL_3
     }
 }

@@ -167,18 +167,9 @@ class CreateGameViewModel(
     private fun createGame() {
         viewModelScope.launch {
             val state = state.value
-            val settings = state.gameSettings
             val game = createGameUseCase(
                 users = state.selectedUsers,
-                isShakeEnabled = settings.isShakeEnabled,
-                isVirtualDiceEnabled = settings.isVirtualDiceEnabled,
-                isNotificationEnabled = settings.isNotificationEnabled,
-                hasStartLimit = settings.hasStartLimit,
-                isBarrel1Active = settings.isBarrel1Active,
-                isBarrel2Active = settings.isBarrel2Active,
-                isBarrel3Active = settings.isBarrel3Active,
-                isTripleBoltFineActive = settings.isTripleBoltFineActive,
-                isOvertakeFineActive = settings.isOvertakeFineActive,
+                settings = state.gameSettings,
             )
             _events.emit(CreateGameEvent.OpenGame(game.id))
         }

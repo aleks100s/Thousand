@@ -21,8 +21,8 @@ class MakeBotDecisionUseCase {
             RollAbility.UNAVAILABLE -> return BotDecision.FINISH
             RollAbility.REQUIRED -> return BotDecision.CONTINUE
             else -> {
-                if (game.hasStartLimit && bot.hasPassedStartLimit.not() && turnTotal < STARTING_LIMIT) return BotDecision.CONTINUE
-                if (game.hasStartLimit && bot.hasPassedStartLimit.not() && turnTotal >= STARTING_LIMIT) return BotDecision.FINISH
+                if (game.settings.hasStartLimit && bot.hasPassedStartLimit.not() && turnTotal < STARTING_LIMIT) return BotDecision.CONTINUE
+                if (game.settings.hasStartLimit && bot.hasPassedStartLimit.not() && turnTotal >= STARTING_LIMIT) return BotDecision.FINISH
                 if (bot.currentScore + turnTotal >= GAME_GOAL) return BotDecision.FINISH
                 if (bot.currentScore + turnTotal == PIT_SCORE) return BotDecision.CONTINUE
                 if (bot.isInBarrel(game, turnTotal)) return BotDecision.CONTINUE
@@ -37,9 +37,9 @@ class MakeBotDecisionUseCase {
 
     private fun Player.isInBarrel(game: Game, turnTotal: Int): Boolean {
         val score = currentScore + turnTotal
-        return game.isBarrel1Active && score in BARREL_1 && currentScore in BARREL_1 ||
-            game.isBarrel2Active && score in BARREL_2 && currentScore in BARREL_2 ||
-            game.isBarrel3Active && score in BARREL_3 && currentScore in BARREL_3
+        return game.settings.isBarrel1Active && score in BARREL_1 && currentScore in BARREL_1 ||
+            game.settings.isBarrel2Active && score in BARREL_2 && currentScore in BARREL_2 ||
+            game.settings.isBarrel3Active && score in BARREL_3 && currentScore in BARREL_3
     }
 
     private companion object {

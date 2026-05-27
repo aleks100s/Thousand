@@ -19,8 +19,8 @@ fun Game.toUi(): GameUi {
         },
         finishedAt = "${finishedAt?.formatForUi()} \uD83C\uDFC1",
         isFinished = isFinished(),
-        isVirtualDiceEnabled,
-        isNotificationEnabled
+        isVirtualDiceEnabled = settings.isVirtualDiceEnabled,
+        isNotificationEnabled = settings.isNotificationEnabled,
     )
 }
 

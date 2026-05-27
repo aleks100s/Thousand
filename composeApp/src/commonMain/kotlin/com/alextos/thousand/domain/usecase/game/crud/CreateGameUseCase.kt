@@ -1,6 +1,7 @@
 package com.alextos.thousand.domain.usecase.game.crud
 
 import com.alextos.thousand.domain.models.Game
+import com.alextos.thousand.domain.models.GameSettings
 import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.User
 import com.alextos.thousand.domain.repository.GameRepository
@@ -10,15 +11,7 @@ class CreateGameUseCase(
 ) {
     suspend operator fun invoke(
         users: Set<User>,
-        isShakeEnabled: Boolean = true,
-        isVirtualDiceEnabled: Boolean = true,
-        isNotificationEnabled: Boolean = true,
-        hasStartLimit: Boolean = true,
-        isBarrel1Active: Boolean = true,
-        isBarrel2Active: Boolean = true,
-        isBarrel3Active: Boolean = false,
-        isTripleBoltFineActive: Boolean = true,
-        isOvertakeFineActive: Boolean = true
+        settings: GameSettings = GameSettings(),
     ): Game {
         val players = users.map {
             Player(user = it)
@@ -26,15 +19,7 @@ class CreateGameUseCase(
         return repository.createGame(
             Game(
                 players = players.shuffled(),
-                isShakeEnabled = isShakeEnabled,
-                isVirtualDiceEnabled = isVirtualDiceEnabled,
-                isNotificationEnabled = isNotificationEnabled,
-                hasStartLimit = hasStartLimit,
-                isBarrel1Active = isBarrel1Active,
-                isBarrel2Active = isBarrel2Active,
-                isBarrel3Active = isBarrel3Active,
-                isTripleBoltFineActive = isTripleBoltFineActive,
-                isOvertakeFineActive = isOvertakeFineActive
+                settings = settings,
             )
         )
     }

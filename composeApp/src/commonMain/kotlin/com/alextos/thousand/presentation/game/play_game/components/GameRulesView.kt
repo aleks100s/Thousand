@@ -40,27 +40,27 @@ fun GameRulesView(
             )
             RuleRow(
                 title = "Открытие игры",
-                value = if (game.hasStartLimit) "$STARTING_LIMIT очков" else "Отключено",
+                value = if (game.settings.hasStartLimit) "$STARTING_LIMIT очков" else "Отключено",
             )
             RuleRow(
                 title = "Первая бочка",
-                value = if (game.isBarrel1Active) "$BARREL_1" else "Отключено",
+                value = if (game.settings.isBarrel1Active) "$BARREL_1" else "Отключено",
             )
             RuleRow(
                 title = "Вторая бочка",
-                value = if (game.isBarrel2Active) "$BARREL_2" else "Отключено",
+                value = if (game.settings.isBarrel2Active) "$BARREL_2" else "Отключено",
             )
             RuleRow(
                 title = "Третья бочка",
-                value = if (game.isBarrel3Active) "$BARREL_3" else "Отключено",
+                value = if (game.settings.isBarrel3Active) "$BARREL_3" else "Отключено",
             )
             RuleRow(
                 title = "Штраф за 3 болта",
-                value = if (game.isTripleBoltFineActive) "$BOLT_FINE" else "Отключено",
+                value = if (game.settings.isTripleBoltFineActive) "$BOLT_FINE" else "Отключено",
             )
             RuleRow(
                 title = "Штраф за обгон",
-                value = if (game.isOvertakeFineActive) "$OVERTAKE_FINE" else "Отключено",
+                value = if (game.settings.isOvertakeFineActive) "$OVERTAKE_FINE" else "Отключено",
             )
         }
     }
