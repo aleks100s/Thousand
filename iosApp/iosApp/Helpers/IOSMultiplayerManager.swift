@@ -150,7 +150,46 @@ final class IOSMultiplayerManager: MultiplayerManager {
     }
     
     func startGame(id: String) async throws {
-        
+        let lobbyReference = Database.database().reference()
+            .child("lobbies")
+            .child(id)
+
+        let snapshot = try await lobbyReference.getData()
+        guard let lobby = lobby(from: snapshot.value) else {
+            throw NSError(
+                domain: "IOSMultiplayerManager",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "Failed to start game."]
+            )
+        }
+
+        let gameID = UUID().uuidString
+        let game = Game(
+            id: Int64(id) ?? 0,
+            startedAt: KotlinInstant.companion.fromEpochMilliseconds(
+                epochMilliseconds: Int64(Date().timeIntervalSince1970 * 1000)
+            ),
+            finishedAt: nil,
+            settings: lobby.settings,
+            players: lobby.players.shuffled().map { user in
+                Player(
+                    id: 0,
+                    user: user,
+                    currentScore: 0,
+                    isWinner: false,
+                    boltCount: 0,
+                    hasPassedStartLimit: false
+                )
+            }
+        )
+
+        try await Database.database().reference()
+            .child("games")
+            .child(gameID)
+            .setValue(dictionary(from: game))
+
+        try await lobbyReference.child("game").setValue(gameID)
+        try await lobbyReference.removeValue()
     }
 }
 
@@ -190,6 +229,19 @@ private extension IOSMultiplayerManager {
             "isBarrel3Active": gameSettings.isBarrel3Active,
             "isTripleBoltFineActive": gameSettings.isTripleBoltFineActive,
             "isOvertakeFineActive": gameSettings.isOvertakeFineActive
+        ]
+    }
+
+    func dictionary(from game: Game) -> [String: Any] {
+        [
+            "id": game.id,
+            "settings": dictionary(from: game.settings),
+            "players": game.players.map { player in
+                [
+                    "id": player.user.id,
+                    "name": player.user.name
+                ]
+            }
         ]
     }
 
