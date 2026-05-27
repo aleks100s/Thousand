@@ -100,7 +100,7 @@ class MultiplayerManagerImpl : MultiplayerManager {
                 }
 
             }
-            reference.addValueEventListener(listener)
+            reference.addListenerForSingleValueEvent(listener)
         }
     }
 
