@@ -15,7 +15,7 @@ class MultiplayerGameViewModel(
 
     private val _state = MutableStateFlow(
         MultiplayerGameState(
-            gameCode = route.lobbyId,
+            gameCode = route.gameId,
         ),
     )
     val state: StateFlow<MultiplayerGameState> = _state.asStateFlow()

@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.InfoCardView
 import com.alextos.thousand.common.Screen
-import com.alextos.thousand.domain.models.Lobby
+import com.alextos.thousand.domain.models.User
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
 import thousand.composeapp.generated.resources.diversity_3_24px
@@ -44,6 +44,7 @@ import thousand.composeapp.generated.resources.diversity_3_24px
 fun MultiplayerScreen(
     openCreateLobby: () -> Unit,
     openLobby: (String) -> Unit,
+    openGame: (String) -> Unit,
 ) {
     val viewModel: MultiplayerViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -85,7 +86,7 @@ fun MultiplayerScreen(
                 )
             }
 
-            if (state.lobbies.isNotEmpty()) {
+            if (state.games.isNotEmpty()) {
                 item {
                     Text(
                         "Активные игры",
@@ -94,10 +95,34 @@ fun MultiplayerScreen(
                 }
             }
 
+            items(state.games) { game ->
+                LobbyOrGameCard(
+                    players = game.players.map { it.user },
+                    host = "",
+                    code = game.id.toString(),
+                    onTap = {
+                        openGame("")
+                    },
+                )
+            }
+
+            if (state.lobbies.isNotEmpty()) {
+                item {
+                    Text(
+                        "Активные лобби",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+            }
+
             items(state.lobbies) { lobby ->
-                LobbyCard(
-                    lobby = lobby,
-                    openLobby = openLobby,
+                LobbyOrGameCard(
+                    players = lobby.players,
+                    host = lobby.host,
+                    code = lobby.id,
+                    onTap = {
+                        openLobby(lobby.id)
+                    },
                 )
             }
 
@@ -134,12 +159,14 @@ fun MultiplayerScreen(
 }
 
 @Composable
-private fun LobbyCard(
-    lobby: Lobby,
-    openLobby: (String) -> Unit,
+private fun LobbyOrGameCard(
+    players: List<User>,
+    host: String,
+    code: String,
+    onTap: () -> Unit,
 ) {
-    val hostName = lobby.players
-        .firstOrNull { player -> player.id == lobby.host }
+    val hostName = players
+        .firstOrNull { player -> player.id == host }
         ?.name
         ?: "Без имени"
 
@@ -149,7 +176,7 @@ private fun LobbyCard(
             containerColor = MaterialTheme.colorScheme.surfaceContainer,
         ),
         onClick = {
-            openLobby(lobby.id)
+            onTap()
         },
     ) {
         Column(
@@ -163,7 +190,7 @@ private fun LobbyCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Игра ${lobby.id}",
+                    text = "Игра $code",
                     style = MaterialTheme.typography.titleMedium,
                 )
 
@@ -184,7 +211,7 @@ private fun LobbyCard(
                 )
 
                 Text(
-                    text = "Игроков: ${lobby.players.count()}",
+                    text = "Игроков: ${players.count()}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -71,15 +72,20 @@ class MultiplayerViewModel(
 
     private fun observeLobbies() {
         viewModelScope.launch {
-            multiplayerManager.userLobbies()
+           combine(
+               multiplayerManager.userLobbies(),
+               multiplayerManager.userGames()
+           ) { lobbies, games ->
+               lobbies to games
+           }
                 .catch {
                     _state.update {
-                        it.copy(lobbies = emptyList())
+                        it.copy(lobbies = emptyList(), games = emptyList())
                     }
                 }
-                .collect { lobbies ->
+                .collect { pair ->
                     _state.update {
-                        it.copy(lobbies = lobbies)
+                        it.copy(lobbies = pair.first, games = pair.second)
                     }
                 }
         }

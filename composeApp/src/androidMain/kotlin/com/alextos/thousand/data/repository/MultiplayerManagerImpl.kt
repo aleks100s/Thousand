@@ -1,5 +1,8 @@
 package com.alextos.thousand.data.repository
 
+import com.alextos.thousand.data.repository.mappers.toDatabaseMap
+import com.alextos.thousand.data.repository.mappers.toGame
+import com.alextos.thousand.data.repository.mappers.toLobby
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.repository.MultiplayerManager
 import com.alextos.thousand.domain.models.GameSettings
@@ -11,8 +14,6 @@ import com.google.firebase.auth.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.MutableData
-import com.google.firebase.database.Transaction
 import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -219,7 +220,7 @@ class MultiplayerManagerImpl : MultiplayerManager {
 
         return suspendCancellableCoroutine { continuation ->
             gamesReference
-                .setValue(game)
+                .setValue(game.toDatabaseMap())
                 .addOnSuccessListener {
                     lobbyReference
                         .child("game")
@@ -273,61 +274,35 @@ class MultiplayerManagerImpl : MultiplayerManager {
         }
     }
 
-    private fun DataSnapshot.toLobby(): Lobby? {
-        if (!exists()) return null
+    override fun userGames(): Flow<List<Game>> {
+        val currentUser = Firebase.auth.currentUser ?: return emptyFlow()
 
-        return Lobby(
-            id = child("id").getValue(String::class.java) ?: "",
-            settings = child("settings").toGameSettings(),
-            players = child("players").children.map { playerSnapshot ->
-                User(
-                    id = playerSnapshot.child("id").getValue(String::class.java).orEmpty(),
-                    name = playerSnapshot.child("name").getValue(String::class.java) ?: "Без имени",
-                )
-            },
-            host = child("host").getValue(String::class.java).orEmpty(),
-            game = child("game").getValue(String::class.java).orEmpty()
-        )
+        return callbackFlow {
+            val reference = FirebaseDatabase.getInstance().reference
+                .child(GAMES_NODE)
+
+            val listener = object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val games = mutableListOf<Game>()
+                    for (child in snapshot.children) {
+                        val game: Game = child.toGame() ?: continue
+                        if (game.players.map { it.user.id }.toSet().contains(currentUser.uid)) {
+                            games.add(game)
+                        }
+                    }
+                    trySend(games)
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    close(error.toException())
+                }
+            }
+
+            reference.addValueEventListener(listener)
+
+            awaitClose {
+                reference.removeEventListener(listener)
+            }
+        }
     }
-
-    private fun Lobby.toDatabaseMap(): Map<String, Any?> =
-        mapOf(
-            "id" to id,
-            "settings" to settings.toDatabaseMap(),
-            "players" to players.map { player -> player.toLobbyPlayerMap() },
-            "host" to host,
-            "game" to game,
-        )
-
-    private fun User.toLobbyPlayerMap(): Map<String, Any?> =
-        mapOf(
-            "id" to id,
-            "name" to name,
-        )
-
-    private fun GameSettings.toDatabaseMap(): Map<String, Any> =
-        mapOf(
-            "isNotificationEnabled" to isNotificationEnabled,
-            "isVirtualDiceEnabled" to isVirtualDiceEnabled,
-            "isShakeEnabled" to isShakeEnabled,
-            "hasStartLimit" to hasStartLimit,
-            "isBarrel1Active" to isBarrel1Active,
-            "isBarrel2Active" to isBarrel2Active,
-            "isBarrel3Active" to isBarrel3Active,
-            "isTripleBoltFineActive" to isTripleBoltFineActive,
-            "isOvertakeFineActive" to isOvertakeFineActive,
-        )
-
-    private fun DataSnapshot.toGameSettings(): GameSettings =
-        GameSettings(
-            isNotificationEnabled = child("isNotificationEnabled").getValue(Boolean::class.java) ?: true,
-            isVirtualDiceEnabled = child("isVirtualDiceEnabled").getValue(Boolean::class.java) ?: true,
-            isShakeEnabled = child("isShakeEnabled").getValue(Boolean::class.java) ?: true,
-            hasStartLimit = child("hasStartLimit").getValue(Boolean::class.java) ?: true,
-            isBarrel1Active = child("isBarrel1Active").getValue(Boolean::class.java) ?: true,
-            isBarrel2Active = child("isBarrel2Active").getValue(Boolean::class.java) ?: true,
-            isBarrel3Active = child("isBarrel3Active").getValue(Boolean::class.java) ?: false,
-            isTripleBoltFineActive = child("isTripleBoltFineActive").getValue(Boolean::class.java) ?: true,
-            isOvertakeFineActive = child("isOvertakeFineActive").getValue(Boolean::class.java) ?: true,
-        )
 }

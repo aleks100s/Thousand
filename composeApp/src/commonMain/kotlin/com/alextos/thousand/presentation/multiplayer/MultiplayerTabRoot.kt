@@ -24,6 +24,9 @@ fun MultiplayerTabRoot() {
                 openLobby = { lobbyId ->
                     navController.navigate(MultiplayerRoute.Lobby(lobbyId))
                 },
+                openGame = { gameId ->
+                    navController.navigate(MultiplayerRoute.MultiplayerGame(gameId))
+                }
             )
         }
         horizontalTransition<MultiplayerRoute.CreateLobby> {

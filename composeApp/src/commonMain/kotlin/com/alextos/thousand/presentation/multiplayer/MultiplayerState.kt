@@ -1,5 +1,6 @@
 package com.alextos.thousand.presentation.multiplayer
 
+import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Lobby
 
 data class MultiplayerState(
@@ -16,7 +17,8 @@ data class MultiplayerState(
     val canLogIn: Boolean = false,
     val canJoinLobby: Boolean = false,
     val error: String? = null,
-    val lobbies: List<Lobby> = emptyList()
+    val lobbies: List<Lobby> = emptyList(),
+    val games: List<Game> = emptyList()
 ) {
     val loginSheetButtonsEnabled: Boolean
         get() = isLoginInProgress.not() && isSignUpInProgress.not() && canLogIn

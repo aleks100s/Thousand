@@ -8,6 +8,7 @@
 import ComposeApp
 import FirebaseAuth
 import FirebaseDatabase
+import Foundation
 
 final class IOSMultiplayerManager: MultiplayerManager {
     func createLobby(gameSettings: GameSettings) async throws -> String {
@@ -155,7 +156,8 @@ final class IOSMultiplayerManager: MultiplayerManager {
             .child(id)
 
         let snapshot = try await lobbyReference.getData()
-        guard let lobby = lobby(from: snapshot.value) else {
+        let data = snapshot.value as? [String: [String: Any]]
+        guard let lobby = lobby(from: data?[id] ?? [:]) else {
             throw NSError(
                 domain: "IOSMultiplayerManager",
                 code: 1,
@@ -191,128 +193,36 @@ final class IOSMultiplayerManager: MultiplayerManager {
         try await lobbyReference.child("game").setValue(gameID)
         try await lobbyReference.removeValue()
     }
-}
+    
+    func userGames() -> any Kotlinx_coroutines_coreFlow {
+        let bridge = GameListFlowBridge()
+        let currentUserId = Auth.auth().currentUser?.uid ?? ""
+        let reference = Database.database().reference().child("games")
 
-private extension IOSMultiplayerManager {
-    func currentPlayer() -> ComposeApp.User {
-        let currentUser = Auth.auth().currentUser
-        return User(
-            id: currentUser?.uid ?? UUID().uuidString,
-            name: currentUser?.displayName ?? "Без имени",
-            kind: UserKind.remote
-        )
-    }
-
-    func dictionary(from lobby: Lobby) -> [String: Any] {
-        [
-            "settings": dictionary(from: lobby.settings),
-            "players": lobby.players.map {
-                [
-                    "id": $0.id,
-                    "name": $0.name
-                ]
-            },
-            "host": lobby.host,
-            "id": lobby.id,
-            "game": lobby.game
-        ]
-    }
-
-    func dictionary(from gameSettings: GameSettings) -> [String: Any] {
-        [
-            "isNotificationEnabled": gameSettings.isNotificationEnabled,
-            "isVirtualDiceEnabled": gameSettings.isVirtualDiceEnabled,
-            "isShakeEnabled": gameSettings.isShakeEnabled,
-            "hasStartLimit": gameSettings.hasStartLimit,
-            "isBarrel1Active": gameSettings.isBarrel1Active,
-            "isBarrel2Active": gameSettings.isBarrel2Active,
-            "isBarrel3Active": gameSettings.isBarrel3Active,
-            "isTripleBoltFineActive": gameSettings.isTripleBoltFineActive,
-            "isOvertakeFineActive": gameSettings.isOvertakeFineActive
-        ]
-    }
-
-    func dictionary(from game: Game) -> [String: Any] {
-        [
-            "id": game.id,
-            "settings": dictionary(from: game.settings),
-            "players": game.players.map { player in
-                [
-                    "id": player.user.id,
-                    "name": player.user.name
-                ]
+        reference.observe(.value, with: { [weak self] snapshot in
+            guard let self else {
+                return
             }
-        ]
-    }
+            guard !currentUserId.isEmpty else {
+                bridge.emit(games: [])
+                return
+            }
 
-    func lobby(from value: Any?) -> Lobby? {
-        guard let dictionary = value as? [String: Any] else {
-            return nil
-        }
+            let games = snapshot.children.allObjects.compactMap { child -> Game? in
+                guard let childSnapshot = child as? DataSnapshot,
+                      let game = self.game(from: childSnapshot.value, fallbackId: childSnapshot.key),
+                      game.players.contains(where: { $0.user.id == currentUserId }) else {
+                    return nil
+                }
 
-        return Lobby(
-            settings: gameSettings(from: dictionary["settings"]),
-            players: players(from: dictionary["players"]),
-            host: dictionary["host"] as? String ?? "",
-            id: dictionary["id"] as? String ?? "",
-            game: dictionary["game"] as? String ?? ""
-        )
-    }
+                return game
+            }
 
-    func gameSettings(from value: Any?) -> GameSettings {
-        guard let dictionary = value as? [String: Any] else {
-            return defaultGameSettings()
-        }
+            bridge.emit(games: games)
+        }, withCancel: { error in
+            bridge.closeWithError(message: error.localizedDescription)
+        })
 
-        return GameSettings(
-            isNotificationEnabled: dictionary["isNotificationEnabled"] as? Bool ?? true,
-            isVirtualDiceEnabled: dictionary["isVirtualDiceEnabled"] as? Bool ?? true,
-            isShakeEnabled: dictionary["isShakeEnabled"] as? Bool ?? true,
-            hasStartLimit: dictionary["hasStartLimit"] as? Bool ?? true,
-            isBarrel1Active: dictionary["isBarrel1Active"] as? Bool ?? true,
-            isBarrel2Active: dictionary["isBarrel2Active"] as? Bool ?? true,
-            isBarrel3Active: dictionary["isBarrel3Active"] as? Bool ?? false,
-            isTripleBoltFineActive: dictionary["isTripleBoltFineActive"] as? Bool ?? true,
-            isOvertakeFineActive: dictionary["isOvertakeFineActive"] as? Bool ?? true
-        )
-    }
-
-    func defaultGameSettings() -> GameSettings {
-        GameSettings(
-            isNotificationEnabled: true,
-            isVirtualDiceEnabled: true,
-            isShakeEnabled: true,
-            hasStartLimit: true,
-            isBarrel1Active: true,
-            isBarrel2Active: true,
-            isBarrel3Active: false,
-            isTripleBoltFineActive: true,
-            isOvertakeFineActive: true
-        )
-    }
-
-    func players(from value: Any?) -> [ComposeApp.User] {
-        if let players = value as? [[String: Any]] {
-            return players.map(player(from:))
-        }
-
-        if let players = value as? [Any] {
-            return players.compactMap { $0 as? [String: Any] }.map(player(from:))
-        }
-
-        if let players = value as? [String: [String: Any]] {
-            return players.values.map(player(from:))
-        }
-
-        return []
-    }
-
-    func player(from dictionary: [String: Any]) -> ComposeApp.User {
-        let id = dictionary["id"] as? String ?? UUID().uuidString
-        return User(
-            id: id,
-            name: dictionary["name"] as? String ?? "Без имени",
-            kind: UserKind.remote
-        )
+        return bridge.flow
     }
 }
