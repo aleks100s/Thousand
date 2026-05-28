@@ -59,7 +59,7 @@ fun MultiplayerGameScreen(
                 Text(state.error ?: "")
 
                 Button(onClick = goBack) {
-                    Text("Понятно")
+                    Text("Выйти в меню")
                 }
             }
         }

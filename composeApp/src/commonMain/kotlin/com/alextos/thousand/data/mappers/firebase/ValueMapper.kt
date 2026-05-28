@@ -1,15 +1,6 @@
 package com.alextos.thousand.data.mappers.firebase
 
-import kotlin.time.Clock
 import kotlin.time.Instant
-
-object FirebaseValueMapper {
-    fun instant(from: Any?): Instant =
-        optionalInstant(from) ?: Clock.System.now()
-
-    fun optionalInstant(from: Any?): Instant? =
-        from.asInstant()
-}
 
 internal fun Any?.asFirebaseMap(): Map<*, *>? =
     this as? Map<*, *>
@@ -62,22 +53,3 @@ private fun Any?.asLong(): Long? =
         is String -> toLongOrNull()
         else -> null
     }
-
-private fun Any?.asInstant(): Instant? {
-    asLong()?.let { epochMilliseconds ->
-        return Instant.fromEpochMilliseconds(epochMilliseconds)
-    }
-
-    val map = asFirebaseMap()
-    val epochSeconds = map.long("epochSeconds")
-    if (epochSeconds != null) {
-        return Instant.fromEpochSeconds(
-            epochSeconds = epochSeconds,
-            nanosecondAdjustment = map.int("nanosecondsOfSecond") ?: 0,
-        )
-    }
-
-    return (this as? String)?.let { value ->
-        runCatching { Instant.parse(value) }.getOrNull()
-    }
-}

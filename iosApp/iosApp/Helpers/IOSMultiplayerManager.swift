@@ -164,9 +164,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
         let gameID = UUID().uuidString
         let game = Game(
             id: Int64(id) ?? 0,
-            startedAt: KotlinInstant.companion.fromEpochMilliseconds(
-                epochMilliseconds: Int64(Date().timeIntervalSince1970 * 1000)
-            ),
+            startedAt: KotlinInstant.companion.DISTANT_PAST,
             finishedAt: nil,
             settings: lobby.settings,
             players: lobby.players.shuffled().map { user in
@@ -179,7 +177,8 @@ final class IOSMultiplayerManager: MultiplayerManager {
                     hasPassedStartLimit: false
                 )
             },
-            host: Auth.auth().currentUser?.uid ?? ""
+            host: Auth.auth().currentUser?.uid ?? "",
+            key: gameID
         )
 
         try await Database.database().reference()

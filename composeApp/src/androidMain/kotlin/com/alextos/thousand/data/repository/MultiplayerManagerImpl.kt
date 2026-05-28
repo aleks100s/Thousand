@@ -208,15 +208,16 @@ class MultiplayerManagerImpl : MultiplayerManager {
                 })
         }
 
+        val gameID = Uuid.random().toString()
         val game = Game(
             id = id.toLongOrNull() ?: 0L,
             settings = lobby.settings,
             players = lobby.players.shuffled().map {
                 Player(user = it)
             },
-            host = user.uid
+            host = user.uid,
+            key = gameID
         )
-        val gameID = Uuid.random().toString()
         val gamesReference = FirebaseDatabase.getInstance().reference
             .child(GAMES_NODE)
             .child(gameID)

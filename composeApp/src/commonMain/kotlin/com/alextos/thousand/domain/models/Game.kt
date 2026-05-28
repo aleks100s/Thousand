@@ -9,7 +9,8 @@ data class Game(
     var finishedAt: Instant? = null,
     val settings: GameSettings = GameSettings(),
     val players: List<Player>,
-    val host: String = ""
+    val host: String = "",
+    val key: String = ""
 ) {
     fun isFinished(): Boolean = finishedAt != null
 }

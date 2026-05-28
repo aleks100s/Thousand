@@ -101,7 +101,7 @@ fun MultiplayerScreen(
                     host = game.host,
                     code = game.id.toString(),
                     onTap = {
-                        openGame("d853bee9-3ca4-4364-ab81-384be52ed13a")
+                        openGame(game.key)
                     },
                 )
             }

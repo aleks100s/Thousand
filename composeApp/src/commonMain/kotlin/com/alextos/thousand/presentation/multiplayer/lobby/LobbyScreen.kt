@@ -77,7 +77,7 @@ fun LobbyScreen(
                 Text(state.error ?: "")
 
                 Button(onClick = goBack) {
-                    Text("Понятно")
+                    Text("Выйти в меню")
                 }
             }
         }
@@ -94,7 +94,7 @@ fun LobbyScreen(
                     onClick = {
                         viewModel.onAction(LobbyAction.LeaveGame)
                     },
-                    colors = ButtonDefaults.buttonColors(
+                    colors = ButtonDefaults.textButtonColors(
                         contentColor = MaterialTheme.colorScheme.error,
                     )
                 ) {
