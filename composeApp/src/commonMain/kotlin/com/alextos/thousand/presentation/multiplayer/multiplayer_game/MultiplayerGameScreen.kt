@@ -16,10 +16,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -35,21 +37,51 @@ fun MultiplayerGameScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     var isDeleteGameSheetVisible by remember { mutableStateOf(false) }
 
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                MultiplayerGameEvent.GameDeleted -> goBack()
+            }
+        }
+    }
+
+    if (state.error != null) {
+        ModalBottomSheet(
+            onDismissRequest = goBack
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(state.error ?: "")
+
+                Button(onClick = goBack) {
+                    Text("Понятно")
+                }
+            }
+        }
+    }
+
     Screen(
         modifier = Modifier,
         title = "Игра ${state.gameCode}",
         goBack = goBack,
         actions = {
             {
-                TextButton(
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error,
-                    ),
-                    onClick = {
-                        isDeleteGameSheetVisible = true
-                    },
-                ) {
-                    Text("Удалить игру")
+                if (state.isHost) {
+                    TextButton(
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error,
+                        ),
+                        onClick = {
+                            isDeleteGameSheetVisible = true
+                        },
+                    ) {
+                        Text("Удалить игру")
+                    }
                 }
             }
         },

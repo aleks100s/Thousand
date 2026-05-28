@@ -13,6 +13,7 @@ interface MultiplayerManager {
     suspend fun startGame(id: String)
     fun observeGame(id: String): Flow<Game>
     suspend fun updateGame(id: String, game: Game)
+    suspend fun deleteGame(id: String)
     fun userLobbies(): Flow<List<Lobby>>
     fun userGames(): Flow<List<Game>>
 }

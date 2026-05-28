@@ -222,4 +222,42 @@ final class IOSMultiplayerManager: MultiplayerManager {
 
         return bridge.flow
     }
+    
+    func observeGame(id: String) -> any Kotlinx_coroutines_coreFlow {
+        let bridge = GameFlowBridge()
+        guard Auth.auth().currentUser != nil else {
+            return bridge.flow
+        }
+
+        let reference = Database.database().reference()
+            .child("games")
+            .child(id)
+
+        reference.observe(.value, with: { [weak self] snapshot in
+            guard let self, let game = self.game(from: snapshot.firebaseDictionary) else {
+                bridge.closeWithError(message: "Failed to fetch game")
+                return
+            }
+
+            bridge.emit(game: game)
+        }, withCancel: { error in
+            bridge.closeWithError(message: error.localizedDescription)
+        })
+
+        return bridge.flow
+    }
+    
+    func updateGame(id: String, game: Game) async throws {
+        try await Database.database().reference()
+            .child("games")
+            .child(id)
+            .setValue(dictionary(from: game))
+    }
+    
+    func deleteGame(id: String) async throws {
+        try await Database.database().reference()
+            .child("games")
+            .child(id)
+            .removeValue()
+    }
 }

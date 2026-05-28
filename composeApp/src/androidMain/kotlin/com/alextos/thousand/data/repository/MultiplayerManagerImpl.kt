@@ -291,6 +291,22 @@ class MultiplayerManagerImpl : MultiplayerManager {
         }
     }
 
+    override suspend fun deleteGame(id: String) {
+        suspendCancellableCoroutine { continuation ->
+            FirebaseDatabase.getInstance().reference
+                .child(GAMES_NODE)
+                .child(id)
+                .removeValue()
+                .addOnSuccessListener {
+                    continuation.resume(Unit)
+                }
+                .addOnFailureListener {
+                    continuation.cancel(it)
+                }
+        }
+
+    }
+
     override fun userLobbies(): Flow<List<Lobby>> {
         val currentUser = Firebase.auth.currentUser ?: return emptyFlow()
 
