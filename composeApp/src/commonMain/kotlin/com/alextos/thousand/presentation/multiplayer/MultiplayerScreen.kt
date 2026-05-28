@@ -98,10 +98,10 @@ fun MultiplayerScreen(
             items(state.games) { game ->
                 LobbyOrGameCard(
                     players = game.players.map { it.user },
-                    host = "",
+                    host = game.host,
                     code = game.id.toString(),
                     onTap = {
-                        openGame("")
+                        openGame("d853bee9-3ca4-4364-ab81-384be52ed13a")
                     },
                 )
             }

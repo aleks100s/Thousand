@@ -245,6 +245,52 @@ class MultiplayerManagerImpl : MultiplayerManager {
         }
     }
 
+    override fun observeGame(id: String): Flow<Game> {
+        val user = Firebase.auth.currentUser ?: return emptyFlow()
+
+        return callbackFlow {
+            val reference = FirebaseDatabase.getInstance().reference
+                .child(GAMES_NODE)
+                .child(id)
+
+            val listener = object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val game = snapshot.toGame() ?: run {
+                        close(IllegalStateException("Failed to fetch game"))
+                        return
+                    }
+
+                    trySend(game)
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    close(error.toException())
+                }
+            }
+
+            reference.addValueEventListener(listener)
+
+            awaitClose {
+                reference.removeEventListener(listener)
+            }
+        }
+    }
+
+    override suspend fun updateGame(id: String, game: Game) {
+        suspendCancellableCoroutine { continuation ->
+            FirebaseDatabase.getInstance().reference
+                .child(GAMES_NODE)
+                .child(id)
+                .setValue(game)
+                .addOnSuccessListener {
+                    continuation.resume(Unit)
+                }
+                .addOnFailureListener {
+                    continuation.cancel(it)
+                }
+        }
+    }
+
     override fun userLobbies(): Flow<List<Lobby>> {
         val currentUser = Firebase.auth.currentUser ?: return emptyFlow()
 

@@ -1,3 +1,5 @@
 package com.alextos.thousand.presentation.multiplayer.multiplayer_game
 
-sealed interface MultiplayerGameAction
+sealed interface MultiplayerGameAction {
+    data object DeleteGame : MultiplayerGameAction
+}

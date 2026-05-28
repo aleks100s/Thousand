@@ -3,11 +3,9 @@ package com.alextos.thousand.data.mappers.firebase
 import com.alextos.thousand.domain.models.Game
 
 object FirebaseGameMapper {
-    fun dictionary(from: Game): Map<String, Any> =
-        from.toFirebaseMap()
+    fun dictionary(from: Game): Map<String, Any> = from.toFirebaseMap()
 
-    fun game(from: Any?): Game? =
-        from.asFirebaseMap()?.toFirebaseGame()
+    fun game(from: Any?): Game? = from.asFirebaseMap()?.toFirebaseGame()
 }
 
 internal fun Game.toFirebaseMap(): Map<String, Any> =
