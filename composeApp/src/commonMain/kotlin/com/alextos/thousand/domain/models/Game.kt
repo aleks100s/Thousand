@@ -8,7 +8,8 @@ data class Game(
     val startedAt: Instant = Clock.System.now(),
     var finishedAt: Instant? = null,
     val settings: GameSettings = GameSettings(),
-    val players: List<Player>
+    val players: List<Player>,
+    val host: String = ""
 ) {
     fun isFinished(): Boolean = finishedAt != null
 }

@@ -178,7 +178,8 @@ final class IOSMultiplayerManager: MultiplayerManager {
                     boltCount: 0,
                     hasPassedStartLimit: false
                 )
-            }
+            },
+            host: Auth.auth().currentUser?.uid ?? ""
         )
 
         try await Database.database().reference()

@@ -16,7 +16,7 @@ internal fun Game.toFirebaseMap(): Map<String, Any> =
         put("startedAt", startedAt.toEpochMilliseconds())
         put("settings", settings.toFirebaseMap())
         put("players", players.map { player -> player.toFirebaseMap() })
-
+        put("host", host)
         finishedAt?.let { value ->
             put("finishedAt", value.toEpochMilliseconds())
         }
@@ -29,4 +29,5 @@ internal fun Map<*, *>.toFirebaseGame(): Game =
         finishedAt = FirebaseValueMapper.optionalInstant(get("finishedAt")),
         settings = get("settings").asFirebaseMap().toFirebaseGameSettings(),
         players = get("players").asFirebaseMapList().map { player -> player.toFirebasePlayer() },
+        host = string("host") ?: ""
     )

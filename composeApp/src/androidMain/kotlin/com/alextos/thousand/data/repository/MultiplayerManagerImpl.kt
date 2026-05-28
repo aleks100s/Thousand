@@ -184,6 +184,8 @@ class MultiplayerManagerImpl : MultiplayerManager {
 
     @OptIn(ExperimentalUuidApi::class)
     override suspend fun startGame(id: String) {
+        val user = Firebase.auth.currentUser ?: return
+
         val lobbyReference = FirebaseDatabase.getInstance().reference
             .child(LOBBIES_NODE)
             .child(id)
@@ -211,7 +213,8 @@ class MultiplayerManagerImpl : MultiplayerManager {
             settings = lobby.settings,
             players = lobby.players.shuffled().map {
                 Player(user = it)
-            }
+            },
+            host = user.uid
         )
         val gameID = Uuid.random().toString()
         val gamesReference = FirebaseDatabase.getInstance().reference
