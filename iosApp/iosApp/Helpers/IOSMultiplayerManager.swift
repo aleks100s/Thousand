@@ -16,22 +16,26 @@ final class IOSMultiplayerManager: MultiplayerManager {
         let currentUser = Auth.auth().currentUser
         let host = currentUser?.uid ?? ""
         let hostPlayer = currentPlayer()
+        let key = UUID().uuidString
         let lobby = Lobby(
             id: gameID,
+            key: key,
             settings: gameSettings,
             players: [hostPlayer],
             host: host,
             game: ""
         )
 
-        try await Database.database().reference().child("lobbies").child(gameID)
+        try await Database.database().reference()
+            .child("lobbies")
+            .child(key)
             .setValue(dictionary(from: lobby))
-        return gameID
+        return key
     }
 
-    func joinLobby(id: String) async throws {
+    func joinLobby(id: String) async throws -> String {
         guard let currentUser = Auth.auth().currentUser else {
-            return
+            return ""
         }
 
         let lobbies = Database.database().reference()
@@ -43,7 +47,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
         let lobby: (key: String, lobby: Lobby)? = try await withCheckedThrowingContinuation { continuation in
             query.observeSingleEvent(of: .value, with: { [weak self] snapshot in
                 guard let childSnapshot = snapshot.children.allObjects.first as? DataSnapshot,
-                      let lobby = self?.lobby(from: childSnapshot.firebaseDictionary) else {
+                      let lobby = self?.lobby(from: childSnapshot.firebaseDictionary, key: childSnapshot.key) else {
                     let error = NSError(
                         domain: "IOSMultiplayerManager",
                         code: 1,
@@ -71,20 +75,21 @@ final class IOSMultiplayerManager: MultiplayerManager {
         }
         
         guard let lobby else {
-            return
+            return ""
         }
         
         try await lobbies
             .child(lobby.key)
             .setValue(dictionary(from: lobby.lobby))
+        return lobby.key
     }
 
-    func connectToLobby(id: String) -> any Kotlinx_coroutines_coreFlow {
+    func connectToLobby(key: String) -> any Kotlinx_coroutines_coreFlow {
         let bridge = GameSettingsFlowBridge()
-        let reference = Database.database().reference().child("lobbies").child(id)
+        let reference = Database.database().reference().child("lobbies").child(key)
 
         reference.observe(.value, with: { [weak self] snapshot in
-            guard let self, let lobby = self.lobby(from: snapshot.firebaseDictionary) else {
+            guard let self, let lobby = self.lobby(from: snapshot.firebaseDictionary, key: snapshot.key) else {
                 bridge.closeWithError(message: "Failed to connect")
                 return
             }
@@ -97,17 +102,17 @@ final class IOSMultiplayerManager: MultiplayerManager {
         return bridge.flow
     }
 
-    func disconnectFromLobby(id: String) async throws {
+    func disconnectFromLobby(key: String) async throws {
         guard let currentUser = Auth.auth().currentUser else {
             return
         }
 
         let reference = Database.database().reference()
             .child("lobbies")
-            .child(id)
+            .child(key)
         let snapshot = try await reference.getData()
         let data = snapshot.value as? [String: [String: Any]]
-        guard let lobby = lobby(from: data?[id] ?? [:]) else {
+        guard let lobby = lobby(from: data?[key] ?? [:], key: key) else {
             return
         }
 
@@ -135,7 +140,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
 
             let lobbies = snapshot.children.allObjects.compactMap { child -> Lobby? in
                 guard let childSnapshot = child as? DataSnapshot,
-                      let lobby = self.lobby(from: childSnapshot.firebaseDictionary),
+                      let lobby = self.lobby(from: childSnapshot.firebaseDictionary, key: childSnapshot.key),
                       lobby.players.contains(where: { $0.id == currentUserId }) else {
                     return nil
                 }
@@ -151,14 +156,14 @@ final class IOSMultiplayerManager: MultiplayerManager {
         return bridge.flow
     }
     
-    func startGame(id: String) async throws {
+    func startGame(key: String) async throws {
         let lobbyReference = Database.database().reference()
             .child("lobbies")
-            .child(id)
+            .child(key)
 
         let snapshot = try await lobbyReference.getData()
         let data = snapshot.value as? [String: [String: Any]]
-        guard let lobby = lobby(from: data?[id] ?? [:]) else {
+        guard let lobby = lobby(from: data?[key] ?? [:], key: key) else {
             throw NSError(
                 domain: "IOSMultiplayerManager",
                 code: 1,
@@ -168,7 +173,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
 
         let gameID = UUID().uuidString
         let game = Game(
-            id: Int64(id) ?? 0,
+            id: Int64(lobby.id) ?? 0,
             startedAt: KotlinInstant.companion.DISTANT_PAST,
             finishedAt: nil,
             settings: lobby.settings,
@@ -227,7 +232,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
         return bridge.flow
     }
     
-    func observeGame(id: String) -> any Kotlinx_coroutines_coreFlow {
+    func observeGame(key: String) -> any Kotlinx_coroutines_coreFlow {
         let bridge = GameFlowBridge()
         guard Auth.auth().currentUser != nil else {
             return bridge.flow
@@ -235,7 +240,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
 
         let reference = Database.database().reference()
             .child("games")
-            .child(id)
+            .child(key)
 
         reference.observe(.value, with: { [weak self] snapshot in
             guard let self, let game = self.game(from: snapshot.firebaseDictionary, key: snapshot.key) else {
@@ -251,17 +256,17 @@ final class IOSMultiplayerManager: MultiplayerManager {
         return bridge.flow
     }
     
-    func updateGame(id: String, game: Game) async throws {
+    func updateGame(game: Game) async throws {
         try await Database.database().reference()
             .child("games")
-            .child(id)
+            .child(game.key)
             .setValue(dictionary(from: game))
     }
     
-    func deleteGame(id: String) async throws {
+    func deleteGame(key: String) async throws {
         try await Database.database().reference()
             .child("games")
-            .child(id)
+            .child(key)
             .removeValue()
     }
 }

@@ -23,7 +23,7 @@ class LobbyViewModel(
 ) : ViewModel() {
     private val lobbyId = savedStateHandle.toRoute<MultiplayerRoute.Lobby>().lobbyId
 
-    private val _state = MutableStateFlow(LobbyState(lobbyId = lobbyId))
+    private val _state = MutableStateFlow(LobbyState())
     val state: StateFlow<LobbyState> = _state.asStateFlow()
 
     private val _events = MutableSharedFlow<LobbyEvent>()
@@ -55,6 +55,7 @@ class LobbyViewModel(
                     } else {
                         _state.update {
                             it.copy(
+                                lobbyId = lobby.id,
                                 gameSettings = lobby.settings,
                                 players = lobby.players,
                                 error = null,

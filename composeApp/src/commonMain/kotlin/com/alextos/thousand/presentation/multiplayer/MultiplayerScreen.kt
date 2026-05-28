@@ -121,7 +121,7 @@ fun MultiplayerScreen(
                     host = lobby.host,
                     code = lobby.id,
                     onTap = {
-                        openLobby(lobby.id)
+                        openLobby(lobby.key)
                     },
                 )
             }

@@ -9,7 +9,7 @@ import com.google.firebase.database.DataSnapshot
 internal fun DataSnapshot.toLobby(): Lobby? {
     if (!exists()) return null
 
-    return FirebaseLobbyMapper.lobby(from = value)
+    return FirebaseLobbyMapper.lobby(from = value, key)
 }
 
 internal fun Lobby.toDatabaseMap(): Map<String, Any> =

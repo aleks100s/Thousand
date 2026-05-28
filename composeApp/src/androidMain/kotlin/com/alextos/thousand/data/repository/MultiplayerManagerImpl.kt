@@ -32,6 +32,7 @@ class MultiplayerManagerImpl : MultiplayerManager {
         private const val GAMES_NODE = "games"
     }
 
+    @OptIn(ExperimentalUuidApi::class)
     override suspend fun createLobby(gameSettings: GameSettings): String {
         val lobbyID = Random.nextInt(1000, 10000).toString()
         val currentUser = Firebase.auth.currentUser
@@ -42,21 +43,23 @@ class MultiplayerManagerImpl : MultiplayerManager {
                 name = currentUser?.displayName ?: "Без имени",
             )
         )
+        val key = Uuid.random().toString()
         val lobby = Lobby(
             settings = gameSettings,
             players = players,
             host = host,
-            id = lobbyID
+            id = lobbyID,
+            key = key
         )
         return suspendCancellableCoroutine { continuation ->
             FirebaseDatabase.getInstance().reference
                 .child(LOBBIES_NODE)
-                .child(lobbyID)
+                .child(key)
                 .setValue(lobby.toDatabaseMap())
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         if (continuation.isActive) {
-                            continuation.resume(lobbyID)
+                            continuation.resume(key)
                         }
                     } else {
                         continuation.cancel(
@@ -67,8 +70,8 @@ class MultiplayerManagerImpl : MultiplayerManager {
         }
     }
 
-    override suspend fun joinLobby(id: String) {
-        val currentUser = Firebase.auth.currentUser ?: return
+    override suspend fun joinLobby(id: String): String {
+        val currentUser = Firebase.auth.currentUser ?: return ""
 
         val lobbies = FirebaseDatabase.getInstance().reference
             .child(LOBBIES_NODE)
@@ -101,7 +104,7 @@ class MultiplayerManagerImpl : MultiplayerManager {
                             .setValue(lobby.toDatabaseMap())
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful && continuation.isActive) {
-                                    continuation.resume(Unit)
+                                    continuation.resume(key)
                                 } else {
                                     continuation.cancel(task.exception)
                                 }
@@ -118,11 +121,11 @@ class MultiplayerManagerImpl : MultiplayerManager {
         }
     }
 
-    override fun connectToLobby(id: String): Flow<Lobby> {
+    override fun connectToLobby(key: String): Flow<Lobby> {
         return callbackFlow {
             val reference = FirebaseDatabase.getInstance().reference
                 .child(LOBBIES_NODE)
-                .child(id)
+                .child(key)
 
             val listener = object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -147,12 +150,12 @@ class MultiplayerManagerImpl : MultiplayerManager {
         }
     }
 
-    override suspend fun disconnectFromLobby(id: String) {
+    override suspend fun disconnectFromLobby(key: String) {
         val currentUser = Firebase.auth.currentUser ?: return
 
         val lobbyReference = FirebaseDatabase.getInstance().reference
             .child(LOBBIES_NODE)
-            .child(id)
+            .child(key)
 
         suspendCancellableCoroutine { continuation ->
             lobbyReference
@@ -192,12 +195,12 @@ class MultiplayerManagerImpl : MultiplayerManager {
     }
 
     @OptIn(ExperimentalUuidApi::class)
-    override suspend fun startGame(id: String) {
+    override suspend fun startGame(key: String) {
         val user = Firebase.auth.currentUser ?: return
 
         val lobbyReference = FirebaseDatabase.getInstance().reference
             .child(LOBBIES_NODE)
-            .child(id)
+            .child(key)
 
         val lobby: Lobby = suspendCancellableCoroutine { continuation ->
             lobbyReference
@@ -219,7 +222,7 @@ class MultiplayerManagerImpl : MultiplayerManager {
 
         val gameID = Uuid.random().toString()
         val game = Game(
-            id = id.toLongOrNull() ?: 0L,
+            id = lobby.id.toLongOrNull() ?: 0L,
             settings = lobby.settings,
             players = lobby.players.shuffled().map {
                 Player(user = it)
@@ -255,13 +258,13 @@ class MultiplayerManagerImpl : MultiplayerManager {
         }
     }
 
-    override fun observeGame(id: String): Flow<Game> {
+    override fun observeGame(key: String): Flow<Game> {
         val user = Firebase.auth.currentUser ?: return emptyFlow()
 
         return callbackFlow {
             val reference = FirebaseDatabase.getInstance().reference
                 .child(GAMES_NODE)
-                .child(id)
+                .child(key)
 
             val listener = object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -286,11 +289,11 @@ class MultiplayerManagerImpl : MultiplayerManager {
         }
     }
 
-    override suspend fun updateGame(id: String, game: Game) {
+    override suspend fun updateGame(game: Game) {
         suspendCancellableCoroutine { continuation ->
             FirebaseDatabase.getInstance().reference
                 .child(GAMES_NODE)
-                .child(id)
+                .child(game.key)
                 .setValue(game)
                 .addOnSuccessListener {
                     continuation.resume(Unit)
@@ -301,11 +304,11 @@ class MultiplayerManagerImpl : MultiplayerManager {
         }
     }
 
-    override suspend fun deleteGame(id: String) {
+    override suspend fun deleteGame(key: String) {
         suspendCancellableCoroutine { continuation ->
             FirebaseDatabase.getInstance().reference
                 .child(GAMES_NODE)
-                .child(id)
+                .child(key)
                 .removeValue()
                 .addOnSuccessListener {
                     continuation.resume(Unit)

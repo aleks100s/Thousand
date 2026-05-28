@@ -21,6 +21,6 @@ internal fun Map<*, *>.toFirebaseGame(key: String?): Game =
         id = long("id") ?: 0L,
         settings = get("settings").asFirebaseMap().toFirebaseGameSettings(),
         players = get("players").asFirebaseMapList().map { player -> player.toFirebasePlayer() },
-        host = string("host") ?: "",
-        key = key ?: ""
+        host = string("host").orEmpty(),
+        key = key.orEmpty()
     )

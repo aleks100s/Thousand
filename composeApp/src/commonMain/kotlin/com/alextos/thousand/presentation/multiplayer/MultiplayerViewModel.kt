@@ -145,11 +145,11 @@ class MultiplayerViewModel(
 
         viewModelScope.launch {
             try {
-                multiplayerManager.joinLobby(lobbyId)
+                val key = multiplayerManager.joinLobby(lobbyId)
                 _state.update {
                     it.copy(isJoinLobbySheetVisible = false, lobbyId = "")
                 }
-                _events.emit(MultiplayerEvent.OpenLobby(lobbyId))
+                _events.emit(MultiplayerEvent.OpenLobby(key))
             } catch (_: Exception) {}
         }
     }
