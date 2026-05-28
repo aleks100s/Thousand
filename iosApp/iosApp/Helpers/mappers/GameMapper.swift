@@ -5,13 +5,13 @@ extension IOSMultiplayerManager {
         swiftDictionary(from: FirebaseGameMapper.shared.dictionary(from: game))
     }
 
-    func game(from value: Any?) -> Game? {
-        FirebaseGameMapper.shared.game(from: firebaseDictionary(from: value))
+    func game(from value: Any?, key: String?) -> Game? {
+        FirebaseGameMapper.shared.game(from: firebaseDictionary(from: value), key: key)
     }
 
-    func gamePlayers(from value: Any?) -> [Player] {
+    func gamePlayers(from value: Any?, key: String?) -> [Player] {
         guard let dictionary = firebaseDictionary(from: ["players": value as Any]),
-              let game = FirebaseGameMapper.shared.game(from: dictionary) else {
+              let game = FirebaseGameMapper.shared.game(from: dictionary, key: key) else {
             return []
         }
 

@@ -70,14 +70,21 @@ class MultiplayerManagerImpl : MultiplayerManager {
     override suspend fun joinLobby(id: String) {
         val currentUser = Firebase.auth.currentUser ?: return
 
-        val reference = FirebaseDatabase.getInstance().reference
+        val lobbies = FirebaseDatabase.getInstance().reference
             .child(LOBBIES_NODE)
-            .child(id)
+
+        val query = lobbies.orderByChild("id").equalTo(id)
 
         return suspendCancellableCoroutine { continuation ->
             val listener = object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    val lobby = snapshot.toLobby() ?: run {
+                    val child = snapshot.children.firstOrNull()
+                    val lobby = child?.toLobby() ?: run {
+                        continuation.cancel(IllegalStateException("Failed to join lobby."))
+                        return
+                    }
+
+                    val key = child.key ?: run {
                         continuation.cancel(IllegalStateException("Failed to join lobby."))
                         return
                     }
@@ -89,7 +96,9 @@ class MultiplayerManagerImpl : MultiplayerManager {
 
                     if (lobby.players.none { it.id == currentPlayer.id }) {
                         lobby.players += currentPlayer
-                        reference.setValue(lobby.toDatabaseMap())
+                        lobbies
+                            .child(key)
+                            .setValue(lobby.toDatabaseMap())
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful && continuation.isActive) {
                                     continuation.resume(Unit)
@@ -105,7 +114,7 @@ class MultiplayerManagerImpl : MultiplayerManager {
                 }
 
             }
-            reference.addListenerForSingleValueEvent(listener)
+            query.addListenerForSingleValueEvent(listener)
         }
     }
 

@@ -7,7 +7,7 @@ import com.google.firebase.database.DataSnapshot
 internal fun DataSnapshot.toGame(): Game? {
     if (!exists()) return null
 
-    return FirebaseGameMapper.game(from = value)
+    return FirebaseGameMapper.game(from = value, key)
 }
 
 internal fun Game.toDatabaseMap(): Map<String, Any> =

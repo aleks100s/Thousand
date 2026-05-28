@@ -17,10 +17,10 @@ final class IOSMultiplayerManager: MultiplayerManager {
         let host = currentUser?.uid ?? ""
         let hostPlayer = currentPlayer()
         let lobby = Lobby(
+            id: gameID,
             settings: gameSettings,
             players: [hostPlayer],
             host: host,
-            id: gameID,
             game: ""
         )
 
@@ -34,13 +34,16 @@ final class IOSMultiplayerManager: MultiplayerManager {
             return
         }
 
-        let reference = Database.database().reference()
+        let lobbies = Database.database().reference()
             .child("lobbies")
-            .child(id)
+        let query = lobbies
+            .queryOrdered(byChild: "id")
+            .queryEqual(toValue: id)
         
-        let lobby: Lobby = try await withCheckedThrowingContinuation { continuation in
-            reference.observeSingleEvent(of: .value, with: { [weak self] snapshot in
-                guard let lobby = self?.lobby(from: snapshot.firebaseDictionary) else {
+        let lobby: (key: String, lobby: Lobby)? = try await withCheckedThrowingContinuation { continuation in
+            query.observeSingleEvent(of: .value, with: { [weak self] snapshot in
+                guard let childSnapshot = snapshot.children.allObjects.first as? DataSnapshot,
+                      let lobby = self?.lobby(from: childSnapshot.firebaseDictionary) else {
                     let error = NSError(
                         domain: "IOSMultiplayerManager",
                         code: 1,
@@ -50,14 +53,10 @@ final class IOSMultiplayerManager: MultiplayerManager {
                     return
                 }
 
+                let key = childSnapshot.key
                 
                 guard let currentPlayer = self?.currentPlayer(), lobby.players.contains(where: { $0.id == currentUser.uid }) == false else {
-                    let error = NSError(
-                        domain: "IOSMultiplayerManager",
-                        code: 1,
-                        userInfo: [NSLocalizedDescriptionKey: "Failed to join lobby."]
-                    )
-                    continuation.resume(throwing: error)
+                    continuation.resume(returning: nil)
                     return
                 }
 
@@ -65,13 +64,19 @@ final class IOSMultiplayerManager: MultiplayerManager {
                 players.append(currentPlayer)
                 lobby.players = players
                 
-                continuation.resume(returning: lobby)
+                continuation.resume(returning: (key, lobby))
             }, withCancel: { error in
                 continuation.resume(throwing: error)
             })
         }
         
-        try await reference.setValue(dictionary(from: lobby))
+        guard let lobby else {
+            return
+        }
+        
+        try await lobbies
+            .child(lobby.key)
+            .setValue(dictionary(from: lobby.lobby))
     }
 
     func connectToLobby(id: String) -> any Kotlinx_coroutines_coreFlow {
@@ -206,7 +211,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
 
             let games = snapshot.children.allObjects.compactMap { child -> Game? in
                 guard let childSnapshot = child as? DataSnapshot,
-                      let game = self.game(from: childSnapshot.firebaseDictionary),
+                      let game = self.game(from: childSnapshot.firebaseDictionary, key: childSnapshot.key),
                       game.players.contains(where: { $0.user.id == currentUserId }) else {
                     return nil
                 }
@@ -233,7 +238,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
             .child(id)
 
         reference.observe(.value, with: { [weak self] snapshot in
-            guard let self, let game = self.game(from: snapshot.firebaseDictionary) else {
+            guard let self, let game = self.game(from: snapshot.firebaseDictionary, key: snapshot.key) else {
                 bridge.closeWithError(message: "Failed to fetch game")
                 return
             }
