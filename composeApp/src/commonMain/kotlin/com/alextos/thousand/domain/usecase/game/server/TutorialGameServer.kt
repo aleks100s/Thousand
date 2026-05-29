@@ -131,7 +131,7 @@ class TutorialGameServer(
             currentPlayer = player,
             rolls = state.value.currentTurn,
             game = game,
-            isTutorial = true,
+            skipSaving = true,
         )
 
         if (turn.effects.isNotEmpty()) {
@@ -146,7 +146,7 @@ class TutorialGameServer(
             }
         }
 
-        when (updateGame(game, turn, isTutorial = true)) {
+        when (updateGame(game, turn, skipSaving = true)) {
             GameStatus.ONGOING -> continueGame(game, turn)
             GameStatus.FINISHED -> finishGame()
         }

@@ -15,9 +15,14 @@ import com.alextos.thousand.domain.service.DiceHapticsService
 import com.alextos.thousand.domain.service.NativeAccountService
 import com.alextos.thousand.domain.usecase.game.CalculateDiceRollScoreUseCase
 import com.alextos.thousand.domain.usecase.game.DetermineAvailableButtonsUseCase
+import com.alextos.thousand.domain.usecase.game.FormatTurnEffectUseCase
+import com.alextos.thousand.domain.usecase.game.MakeBotReplyUseCase
 import com.alextos.thousand.domain.usecase.game.RollTheDiceUseCase
+import com.alextos.thousand.domain.usecase.game.SaveTurnUseCase
+import com.alextos.thousand.domain.usecase.game.crud.UpdateGameUseCase
 import com.alextos.thousand.domain.usecase.game.server.GameAction
 import com.alextos.thousand.domain.usecase.game.server.GameState
+import com.alextos.thousand.domain.usecase.game.server.GameStatus
 import com.alextos.thousand.presentation.multiplayer.MultiplayerRoute
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,6 +32,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.collections.emptyList
 
 class MultiplayerGameViewModel(
     savedStateHandle: SavedStateHandle,
@@ -35,6 +41,10 @@ class MultiplayerGameViewModel(
     private val rollTheDice: RollTheDiceUseCase,
     private val calculateDiceRollScore: CalculateDiceRollScoreUseCase,
     private val determineAvailableButtons: DetermineAvailableButtonsUseCase,
+    private val saveTurn: SaveTurnUseCase,
+    private val formatTurnEffect: FormatTurnEffectUseCase,
+    private val makeBotReply: MakeBotReplyUseCase,
+    private val updateGame: UpdateGameUseCase,
     private val hapticsService: DiceHapticsService
 ) : ViewModel() {
     private val gameId = savedStateHandle.toRoute<MultiplayerRoute.MultiplayerGame>().gameId
@@ -147,9 +157,7 @@ class MultiplayerGameViewModel(
         val currentTurn = state.value.gameState.currentTurn.toMutableList()
         currentTurn.add(roll)
         rollBlocked = true
-        val gameState = state.value.gameState
         val newGame = remoteGame?.copy(
-            currentPlayer = gameState.currentPlayer,
             currentTurn = currentTurn,
             currentRoll = roll,
             rollAbility = rawResult.rerollAbility,
@@ -172,70 +180,67 @@ class MultiplayerGameViewModel(
     }
 
     private suspend fun finishTurn() {
-//        val game = state.value.game
-//        val player = state.value.currentPlayer
-//        if (game == null || player == null) {
-//            return
-//        }
-//
-//        val turn = saveTurn(
-//            currentPlayer = player,
-//            rolls = state.value.currentTurn,
-//            game = game,
-//            isTutorial = false,
-//        )
-//
-//        turn.effects.forEach { effect ->
-//            _events.emit(GameEvent.Notification(formatTurnEffect(effect, player, isTutorial = false)))
-//        }
-//        if (state.value.currentPlayer?.isBot() == true && turn.effects.isNotEmpty()) {
-//            _events.emit(GameEvent.Reply(makeBotReply(turn.effects.last().effect)))
-//        }
-//
-//        when (updateGame(game, turn)) {
-//            GameStatus.ONGOING -> continueGame(game, turn)
-//            GameStatus.FINISHED -> finishGame()
-//        }
+        val game = remoteGame?.let {
+            Game(settings = it.settings, players = it.players)
+        } ?: return
+
+        val player = remoteGame?.currentPlayer ?: return
+
+        val turn = saveTurn(
+            currentPlayer = player,
+            rolls = state.value.gameState.currentTurn,
+            game = game,
+            skipSaving = true,
+        )
+
+        turn.effects.forEach { effect ->
+            _events.emit(MultiplayerGameEvent.ShowMessage(
+                message = formatTurnEffect(effect, player, isTutorial = false),
+                isReply = false
+            ))
+        }
+        if (player.isBot() && turn.effects.isNotEmpty()) {
+            _events.emit(MultiplayerGameEvent.ShowMessage(
+                message = makeBotReply(turn.effects.last().effect),
+                isReply = true
+            ))
+        }
+
+        when (updateGame(game, turn, skipSaving = true)) {
+            GameStatus.ONGOING -> continueGame(game)
+            GameStatus.FINISHED -> finishGame(game)
+        }
     }
 
-//    private fun updateGame(): GameStatus {
-//        var status = GameStatus.ONGOING
-//        game.players.forEach { player ->
-//            val turnResult = currentTurn.results.firstOrNull { it.player == player }
-//            if (turnResult != null) {
-//                player.isWinner = turnResult.newScore >= GameConstants.GAME_GOAL
-//                status = if (player.isWinner) {
-//                    GameStatus.FINISHED
-//                } else {
-//                    GameStatus.ONGOING
-//                }
-//            }
-//        }
-//        game.finishedAt = if (status == GameStatus.FINISHED) Clock.System.now() else null
-//        repository.saveGame(game)
-//        return status
-//    }
+    private suspend fun continueGame(game: Game) {
+        val remoteGame = remoteGame ?: return
+        val currentPlayerIndex = game.players.indexOfFirst { it.user.id == remoteGame.currentPlayer?.user?.id }
+        val nextPlayer = if (currentPlayerIndex == -1) {
+            game.players.firstOrNull()
+        } else {
+            game.players.getOrNull(currentPlayerIndex + 1) ?: game.players.firstOrNull()
+        }
 
-    private suspend fun continueGame(game: Game, turn: Turn) {
-//        val nextPlayer = findCurrentPlayer(game, turn) ?: return
-//        _state.update {
-//            it.copy(
-//                rollAbility = RollAbility.REQUIRED,
-//                currentRoll = null,
-//                currentTurn = emptyList(),
-//                currentPlayer = nextPlayer,
-//                buttons = determineAvailableButtons(nextPlayer, isFirstRoll = true, isGameOver = false, rollAbility = RollAbility.REQUIRED, isTutorial = false)
-//            )
-//        }
-//
-//        if (nextPlayer.isBot()) {
-//            makeBotTurn()
-//        }
+        val newGame = remoteGame.copy(
+            currentPlayer = nextPlayer,
+            currentTurn = emptyList(),
+            currentRoll = null,
+            rollAbility = RollAbility.REQUIRED,
+            buttons = determineAvailableButtons(
+                nextPlayer,
+                isFirstRoll = true,
+                isGameOver = false,
+                rollAbility = RollAbility.REQUIRED,
+                isTutorial = false
+            )
+        )
+        multiplayerManager.updateGame(newGame)
     }
 
-    private fun finishGame() {
+    private fun finishGame(game: Game) {
         viewModelScope.launch {
             val game = remoteGame?.copy(
+                players = game.players,
                 rollAbility = RollAbility.UNAVAILABLE,
                 currentRoll = null,
                 currentTurn = emptyList(),

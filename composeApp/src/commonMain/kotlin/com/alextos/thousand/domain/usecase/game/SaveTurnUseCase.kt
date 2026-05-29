@@ -17,28 +17,28 @@ class SaveTurnUseCase(
         currentPlayer: Player,
         rolls: List<DiceRoll>,
         game: Game,
-        isTutorial: Boolean = false,
+        skipSaving: Boolean = false,
     ): Turn {
         val turnTotal = calculateTurnResult(rolls)
 
         checkStartingLimit(currentPlayer, turnTotal, game)?.let {
-            return saveTurn(currentPlayer, rolls, turnTotal, it.first, listOf(it.second), game, isTutorial)
+            return saveTurn(currentPlayer, rolls, turnTotal, it.first, listOf(it.second), game, skipSaving)
         }
 
         checkGameGoal(currentPlayer, turnTotal)?.let {
-            return saveTurn(currentPlayer, rolls, turnTotal, listOf(it.first), listOf(it.second), game, isTutorial)
+            return saveTurn(currentPlayer, rolls, turnTotal, listOf(it.first), listOf(it.second), game, skipSaving)
         }
 
         checkPitFall(currentPlayer, turnTotal)?.let {
-            return saveTurn(currentPlayer, rolls, turnTotal, listOf(it.first), listOf(it.second), game, isTutorial)
+            return saveTurn(currentPlayer, rolls, turnTotal, listOf(it.first), listOf(it.second), game, skipSaving)
         }
 
         checkBarrels(currentPlayer, turnTotal, game)?.let {
-            return saveTurn(currentPlayer, rolls, turnTotal, it.first, it.second, game, isTutorial)
+            return saveTurn(currentPlayer, rolls, turnTotal, it.first, it.second, game, skipSaving)
         }
 
         val (effects, results) = calculateResults(game, currentPlayer, turnTotal)
-        return saveTurn(currentPlayer, rolls, turnTotal, effects, results, game, isTutorial)
+        return saveTurn(currentPlayer, rolls, turnTotal, effects, results, game, skipSaving)
     }
 
     private fun calculateTurnResult(
@@ -253,7 +253,7 @@ class SaveTurnUseCase(
         effects: List<TurnEffect>,
         results: List<TurnResult>,
         game: Game,
-        isTutorial: Boolean
+        skipSaving: Boolean
     ): Turn {
         val turn = Turn(
             player = currentPlayer,
@@ -262,7 +262,7 @@ class SaveTurnUseCase(
             effects = effects,
             results = results
         )
-        return if (isTutorial) {
+        return if (skipSaving) {
             turn
         } else {
             repository.saveTurn(turn, game)

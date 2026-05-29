@@ -3,9 +3,7 @@ package com.alextos.thousand.domain.usecase.game.server
 import com.alextos.thousand.domain.models.Game
 
 interface GameEvent {
-    data class Notification(
-        val message: String,
-    ) : GameEvent
+    data class Notification(val message: String) : GameEvent
 
     data class Reply(val reply: String): GameEvent
 

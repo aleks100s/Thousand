@@ -120,7 +120,7 @@ class LocalGameServer(
             currentPlayer = player,
             rolls = state.value.currentTurn,
             game = game,
-            isTutorial = false,
+            skipSaving = false,
         )
 
         turn.effects.forEach { effect ->
@@ -130,7 +130,7 @@ class LocalGameServer(
             _events.emit(GameEvent.Reply(makeBotReply(turn.effects.last().effect)))
         }
 
-        when (updateGame(game, turn, isTutorial = false)) {
+        when (updateGame(game, turn, skipSaving = false)) {
             GameStatus.ONGOING -> continueGame(game, turn)
             GameStatus.FINISHED -> finishGame()
         }
