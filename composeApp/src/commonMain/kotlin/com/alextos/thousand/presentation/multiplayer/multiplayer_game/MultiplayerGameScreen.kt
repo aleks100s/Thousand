@@ -1,7 +1,6 @@
 package com.alextos.thousand.presentation.multiplayer.multiplayer_game
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
+import com.alextos.thousand.presentation.game.components.GameView
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -86,8 +86,16 @@ fun MultiplayerGameScreen(
             }
         },
     ) { modifier ->
-        Box(
+        GameView(
             modifier = modifier.fillMaxSize(),
+            isManualInputEnabled = false,
+            state = state.gameState,
+            onAction = { action ->
+                viewModel.onAction(MultiplayerGameAction.SendGameAction(action))
+            },
+            onFinishGame = {
+                goBack()
+            },
         )
     }
 

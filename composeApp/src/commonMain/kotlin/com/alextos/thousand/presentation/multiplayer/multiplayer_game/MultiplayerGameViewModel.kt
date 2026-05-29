@@ -53,6 +53,7 @@ class MultiplayerGameViewModel(
     fun onAction(action: MultiplayerGameAction) {
         when (action) {
             MultiplayerGameAction.DeleteGame -> deleteGame()
+            is MultiplayerGameAction.SendGameAction -> Unit
         }
     }
 
