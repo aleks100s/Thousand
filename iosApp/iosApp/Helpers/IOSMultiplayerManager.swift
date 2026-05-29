@@ -172,21 +172,27 @@ final class IOSMultiplayerManager: MultiplayerManager {
         }
 
         let gameID = UUID().uuidString
+        let players = lobby.players.shuffled().map { user in
+            Player(
+                id: 0,
+                user: user,
+                currentScore: 0,
+                isWinner: false,
+                boltCount: 0,
+                hasPassedStartLimit: false
+            )
+        }
         let game = RemoteGame(
             id: Int64(lobby.id) ?? 0,
             settings: lobby.settings,
-            players: lobby.players.shuffled().map { user in
-                Player(
-                    id: 0,
-                    user: user,
-                    currentScore: 0,
-                    isWinner: false,
-                    boltCount: 0,
-                    hasPassedStartLimit: false
-                )
-            },
+            players: players,
             host: Auth.auth().currentUser?.uid ?? "",
-            key: gameID
+            key: gameID,
+            currentPlayer: players.first,
+            currentTurn: [],
+            currentRoll: nil,
+            rollAbility: RollAbility.required,
+            buttons: []
         )
 
         try await Database.database().reference()

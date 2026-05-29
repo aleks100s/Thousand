@@ -221,14 +221,16 @@ class MultiplayerManagerImpl : MultiplayerManager {
         }
 
         val gameID = Uuid.random().toString()
+        val players = lobby.players.shuffled().map { player ->
+            Player(user = player)
+        }
         val game = RemoteGame(
             id = lobby.id.toLongOrNull() ?: 0L,
             settings = lobby.settings,
-            players = lobby.players.shuffled().map {
-                Player(user = it)
-            },
+            players = players,
             host = user.uid,
-            key = gameID
+            key = gameID,
+            currentPlayer = players.firstOrNull(),
         )
         val gamesReference = FirebaseDatabase.getInstance().reference
             .child(GAMES_NODE)

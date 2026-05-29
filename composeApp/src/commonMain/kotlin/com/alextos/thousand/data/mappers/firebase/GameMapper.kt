@@ -1,6 +1,7 @@
 package com.alextos.thousand.data.mappers.firebase
 
 import com.alextos.thousand.domain.models.RemoteGame
+import com.alextos.thousand.domain.models.User
 
 object FirebaseGameMapper {
     fun dictionary(from: RemoteGame): Map<String, Any> = from.toFirebaseMap()
@@ -14,13 +15,43 @@ internal fun RemoteGame.toFirebaseMap(): Map<String, Any> =
         put("settings", settings.toFirebaseMap())
         put("players", players.map { player -> player.toFirebaseMap() })
         put("host", host)
+        put("currentTurn", currentTurn.map { roll -> roll.toFirebaseMap() })
+        put("rollAbility", rollAbility.name)
+        put("buttons", buttons.map { button -> button.name })
+
+        currentPlayer?.let { player ->
+            put("currentPlayer", player.toFirebaseMap())
+        }
+
+        currentRoll?.let { roll ->
+            put("currentRoll", roll.toFirebaseMap())
+        }
     }
 
-internal fun Map<*, *>.toFirebaseGame(key: String?): RemoteGame =
-    RemoteGame(
+internal fun Map<*, *>.toFirebaseGame(key: String?): RemoteGame {
+    val players = get("players").asFirebaseMapList().map { player -> player.toFirebasePlayer() }
+
+    return RemoteGame(
         id = long("id") ?: 0L,
         settings = get("settings").asFirebaseMap().toFirebaseGameSettings(),
-        players = get("players").asFirebaseMapList().map { player -> player.toFirebasePlayer() },
+        players = players,
         host = string("host").orEmpty(),
-        key = key.orEmpty()
+        key = key.orEmpty(),
+        currentPlayer = get("currentPlayer").asFirebaseMap()?.toFirebasePlayer()
+            ?: players.firstOrNull()
+            ?: com.alextos.thousand.domain.models.Player(user = User(name = "Без имени")),
+        currentTurn = get("currentTurn").asFirebaseMapList().map { roll -> roll.toFirebaseDiceRoll() },
+        currentRoll = get("currentRoll").asFirebaseMap()?.toFirebaseDiceRoll(),
+        rollAbility = get("rollAbility").toFirebaseRollAbility(),
+        buttons = when (val value = get("buttons")) {
+            is List<*> -> value.mapNotNull { item -> item.toFirebaseGameButton() }
+            is Map<*, *> -> value.entries
+                .sortedWith(
+                    compareBy<Map.Entry<*, *>> { entry -> entry.key.toString().toIntOrNull() ?: Int.MAX_VALUE }
+                        .thenBy { entry -> entry.key.toString() },
+                )
+                .mapNotNull { entry -> entry.value.toFirebaseGameButton() }
+            else -> emptyList()
+        },
     )
+}
