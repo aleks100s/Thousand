@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 class MultiplayerGameViewModel(
     savedStateHandle: SavedStateHandle,
     private val accountService: NativeAccountService,
-    private val multiplayerManager: MultiplayerManager
+    private val multiplayerManager: MultiplayerManager,
 ) : ViewModel() {
     private val gameId = savedStateHandle.toRoute<MultiplayerRoute.MultiplayerGame>().gameId
 

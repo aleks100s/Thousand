@@ -3,6 +3,7 @@ package com.alextos.thousand.domain.repository
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.GameSettings
 import com.alextos.thousand.domain.models.Lobby
+import com.alextos.thousand.domain.models.RemoteGame
 import kotlinx.coroutines.flow.Flow
 
 interface MultiplayerManager {

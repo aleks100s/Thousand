@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-class DefaultGameServer(
+class LocalGameServer(
     private val loadGameTurns: LoadGameTurnsUseCase,
     private val findCurrentPlayer: FindCurrentPlayerUseCase,
     private val rollTheDice: RollTheDiceUseCase,

@@ -8,6 +8,7 @@ import com.alextos.thousand.domain.repository.MultiplayerManager
 import com.alextos.thousand.domain.models.GameSettings
 import com.alextos.thousand.domain.models.Lobby
 import com.alextos.thousand.domain.models.Player
+import com.alextos.thousand.domain.models.RemoteGame
 import com.alextos.thousand.domain.models.User
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
