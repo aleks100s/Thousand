@@ -192,7 +192,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
             currentTurn: [],
             currentRoll: nil,
             rollAbility: RollAbility.required,
-            buttons: []
+            buttons: [GameButton.rollTheDice]
         )
 
         try await Database.database().reference()

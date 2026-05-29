@@ -3,11 +3,13 @@ package com.alextos.thousand.data.repository
 import com.alextos.thousand.data.repository.mappers.toDatabaseMap
 import com.alextos.thousand.data.repository.mappers.toGame
 import com.alextos.thousand.data.repository.mappers.toLobby
+import com.alextos.thousand.domain.models.GameButton
 import com.alextos.thousand.domain.repository.MultiplayerManager
 import com.alextos.thousand.domain.models.GameSettings
 import com.alextos.thousand.domain.models.Lobby
 import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.RemoteGame
+import com.alextos.thousand.domain.models.RollAbility
 import com.alextos.thousand.domain.models.User
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -231,6 +233,8 @@ class MultiplayerManagerImpl : MultiplayerManager {
             host = user.uid,
             key = gameID,
             currentPlayer = players.firstOrNull(),
+            rollAbility = RollAbility.REQUIRED,
+            buttons = listOf(GameButton.ROLL_THE_DICE)
         )
         val gamesReference = FirebaseDatabase.getInstance().reference
             .child(GAMES_NODE)
@@ -248,6 +252,9 @@ class MultiplayerManagerImpl : MultiplayerManager {
                                 .removeValue()
                                 .addOnSuccessListener {
                                     continuation.resume(Unit)
+                                }
+                                .addOnFailureListener {
+                                    continuation.cancel(it)
                                 }
                         }
                         .addOnFailureListener {

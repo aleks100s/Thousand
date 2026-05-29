@@ -41,6 +41,7 @@ fun MultiplayerGameScreen(
         viewModel.events.collect { event ->
             when (event) {
                 MultiplayerGameEvent.GameDeleted -> goBack()
+                is MultiplayerGameEvent.FinishGame -> goBack()
             }
         }
     }
