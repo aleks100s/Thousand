@@ -232,7 +232,7 @@ class MultiplayerManagerImpl : MultiplayerManager {
             players = players,
             host = user.uid,
             key = gameID,
-            currentPlayer = players.firstOrNull(),
+            currentPlayerIndex = 0,
             rollAbility = RollAbility.REQUIRED,
             buttons = listOf(GameButton.ROLL_THE_DICE)
         )

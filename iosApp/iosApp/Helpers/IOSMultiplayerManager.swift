@@ -188,7 +188,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
             players: players,
             host: Auth.auth().currentUser?.uid ?? "",
             key: gameID,
-            currentPlayer: players.first,
+            currentPlayerIndex: 0,
             currentTurn: [],
             currentRoll: nil,
             rollAbility: RollAbility.required,

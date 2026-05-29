@@ -9,7 +9,6 @@ import com.alextos.thousand.domain.models.Die
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.RemoteGame
 import com.alextos.thousand.domain.models.RollAbility
-import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.repository.MultiplayerManager
 import com.alextos.thousand.domain.service.DiceHapticsService
 import com.alextos.thousand.domain.service.NativeAccountService
@@ -93,7 +92,8 @@ class MultiplayerGameViewModel(
     }
 
     private fun mapToGameState(game: RemoteGame): GameState {
-        val isCurrentPlayer = accountService.userProfile.value?.id == game.currentPlayer?.user?.id
+        val currentPlayer = game.currentPlayer()
+        val isCurrentUser = accountService.userProfile.value?.id == currentPlayer?.user?.id
         return GameState(
             isLoading = false,
             game = Game(
@@ -101,11 +101,11 @@ class MultiplayerGameViewModel(
                 settings = game.settings,
                 players = game.players,
             ),
-            currentPlayer = game.currentPlayer,
+            currentPlayer = currentPlayer,
             currentTurn = game.currentTurn,
             currentRoll = game.currentRoll,
-            rollAbility = if (isCurrentPlayer) game.rollAbility else RollAbility.UNAVAILABLE,
-            buttons = if (isCurrentPlayer) game.buttons else emptyList()
+            rollAbility = if (isCurrentUser) game.rollAbility else RollAbility.UNAVAILABLE,
+            buttons = if (isCurrentUser) game.buttons else emptyList()
         )
     }
 
@@ -148,8 +148,7 @@ class MultiplayerGameViewModel(
 
     private fun applyDiceRoll(dice: List<Die>) {
         val rawResult = calculateDiceRollScore(dice)
-        val currentState = state.value
-        val currentPlayer = currentState.gameState.currentPlayer ?: return
+        val currentPlayer = remoteGame?.currentPlayer() ?: return
         val roll = DiceRoll(
             dice = dice,
             result = rawResult.score,
@@ -180,11 +179,9 @@ class MultiplayerGameViewModel(
     }
 
     private suspend fun finishTurn() {
-        val game = remoteGame?.let {
-            Game(settings = it.settings, players = it.players)
-        } ?: return
-
-        val player = remoteGame?.currentPlayer ?: return
+        val remoteGame = remoteGame ?: return
+        val game = Game(settings = remoteGame.settings, players = remoteGame.players)
+        val player = remoteGame.currentPlayer() ?: return
 
         val turn = saveTurn(
             currentPlayer = player,
@@ -214,20 +211,15 @@ class MultiplayerGameViewModel(
 
     private suspend fun continueGame(game: Game) {
         val remoteGame = remoteGame ?: return
-        val currentPlayerIndex = game.players.indexOfFirst { it.user.id == remoteGame.currentPlayer?.user?.id }
-        val nextPlayer = if (currentPlayerIndex == -1) {
-            game.players.firstOrNull()
-        } else {
-            game.players.getOrNull(currentPlayerIndex + 1) ?: game.players.firstOrNull()
-        }
-
+        val nextPlayerIndex = (remoteGame.currentPlayerIndex + 1) % remoteGame.players.count()
         val newGame = remoteGame.copy(
-            currentPlayer = nextPlayer,
+            players = game.players,
+            currentPlayerIndex = nextPlayerIndex,
             currentTurn = emptyList(),
             currentRoll = null,
             rollAbility = RollAbility.REQUIRED,
             buttons = determineAvailableButtons(
-                nextPlayer,
+                game.players.getOrNull(nextPlayerIndex),
                 isFirstRoll = true,
                 isGameOver = false,
                 rollAbility = RollAbility.REQUIRED,
@@ -244,7 +236,7 @@ class MultiplayerGameViewModel(
                 rollAbility = RollAbility.UNAVAILABLE,
                 currentRoll = null,
                 currentTurn = emptyList(),
-                currentPlayer = null,
+                currentPlayerIndex = -1,
                 buttons = determineAvailableButtons(
                     isFirstRoll = false,
                     isGameOver = true,

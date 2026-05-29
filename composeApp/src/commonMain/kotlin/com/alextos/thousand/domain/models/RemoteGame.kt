@@ -6,11 +6,12 @@ data class RemoteGame(
     val players: List<Player>,
     val host: String,
     val key: String,
-    val currentPlayer: Player?,
+    val currentPlayerIndex: Int = 0,
     val currentTurn: List<DiceRoll> = emptyList(),
     val currentRoll: DiceRoll? = null,
     val rollAbility: RollAbility = RollAbility.REQUIRED,
     val buttons: List<GameButton> = emptyList(),
 ) {
     fun isFinished(): Boolean = players.any { it.isWinner }
+    fun currentPlayer() = players.getOrNull(currentPlayerIndex)
 }

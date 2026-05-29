@@ -18,10 +18,7 @@ internal fun RemoteGame.toFirebaseMap(): Map<String, Any> =
         put("currentTurn", currentTurn.map { roll -> roll.toFirebaseMap() })
         put("rollAbility", rollAbility.name)
         put("buttons", buttons.map { button -> button.name })
-
-        currentPlayer?.let { player ->
-            put("currentPlayer", player.toFirebaseMap())
-        }
+        put("currentPlayerIndex", currentPlayerIndex)
 
         currentRoll?.let { roll ->
             put("currentRoll", roll.toFirebaseMap())
@@ -37,9 +34,7 @@ internal fun Map<*, *>.toFirebaseGame(key: String?): RemoteGame {
         players = players,
         host = string("host").orEmpty(),
         key = key.orEmpty(),
-        currentPlayer = get("currentPlayer").asFirebaseMap()?.toFirebasePlayer()
-            ?: players.firstOrNull()
-            ?: com.alextos.thousand.domain.models.Player(user = User(name = "Без имени")),
+        currentPlayerIndex = int("currentPlayerIndex") ?: 0,
         currentTurn = get("currentTurn").asFirebaseMapList().map { roll -> roll.toFirebaseDiceRoll() },
         currentRoll = get("currentRoll").asFirebaseMap()?.toFirebaseDiceRoll(),
         rollAbility = get("rollAbility").toFirebaseRollAbility(),
