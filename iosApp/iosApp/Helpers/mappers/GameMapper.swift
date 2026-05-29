@@ -1,11 +1,11 @@
 import ComposeApp
 
 extension IOSMultiplayerManager {
-    func dictionary(from game: Game) -> [String: Any] {
+    func dictionary(from game: RemoteGame) -> [String: Any] {
         swiftDictionary(from: FirebaseGameMapper.shared.dictionary(from: game))
     }
 
-    func game(from value: Any?, key: String?) -> Game? {
+    func game(from value: Any?, key: String?) -> RemoteGame? {
         FirebaseGameMapper.shared.game(from: firebaseDictionary(from: value), key: key)
     }
 

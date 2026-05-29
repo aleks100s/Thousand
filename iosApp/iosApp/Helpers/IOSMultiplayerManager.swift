@@ -172,10 +172,8 @@ final class IOSMultiplayerManager: MultiplayerManager {
         }
 
         let gameID = UUID().uuidString
-        let game = Game(
+        let game = RemoteGame(
             id: Int64(lobby.id) ?? 0,
-            startedAt: KotlinInstant.companion.DISTANT_PAST,
-            finishedAt: nil,
             settings: lobby.settings,
             players: lobby.players.shuffled().map { user in
                 Player(
@@ -214,7 +212,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
                 return
             }
 
-            let games = snapshot.children.allObjects.compactMap { child -> Game? in
+            let games = snapshot.children.allObjects.compactMap { child -> RemoteGame? in
                 guard let childSnapshot = child as? DataSnapshot,
                       let game = self.game(from: childSnapshot.firebaseDictionary, key: childSnapshot.key),
                       game.players.contains(where: { $0.user.id == currentUserId }) else {
@@ -256,7 +254,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
         return bridge.flow
     }
     
-    func updateGame(game: Game) async throws {
+    func updateGame(game: RemoteGame) async throws {
         try await Database.database().reference()
             .child("games")
             .child(game.key)

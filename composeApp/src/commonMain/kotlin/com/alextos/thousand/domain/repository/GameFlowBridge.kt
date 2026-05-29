@@ -1,16 +1,16 @@
 package com.alextos.thousand.domain.repository
 
-import com.alextos.thousand.domain.models.Game
+import com.alextos.thousand.domain.models.RemoteGame
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
 
 class GameFlowBridge {
-    private val channel = Channel<Game>(Channel.BUFFERED)
+    private val channel = Channel<RemoteGame>(Channel.BUFFERED)
 
-    val flow: Flow<Game> = channel.receiveAsFlow()
+    val flow: Flow<RemoteGame> = channel.receiveAsFlow()
 
-    fun emit(game: Game) {
+    fun emit(game: RemoteGame) {
         channel.trySend(game)
     }
 

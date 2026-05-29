@@ -42,7 +42,8 @@ class MultiplayerGameViewModel(
                     _state.update {
                         it.copy(
                             isHost = game.host == accountService.userProfile.value?.id,
-                            gameCode = game.id.toString()
+                            gameCode = game.id.toString(),
+                            game = game,
                         )
                     }
                 }

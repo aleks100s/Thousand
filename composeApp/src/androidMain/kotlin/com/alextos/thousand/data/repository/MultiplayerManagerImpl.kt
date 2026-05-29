@@ -3,7 +3,6 @@ package com.alextos.thousand.data.repository
 import com.alextos.thousand.data.repository.mappers.toDatabaseMap
 import com.alextos.thousand.data.repository.mappers.toGame
 import com.alextos.thousand.data.repository.mappers.toLobby
-import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.repository.MultiplayerManager
 import com.alextos.thousand.domain.models.GameSettings
 import com.alextos.thousand.domain.models.Lobby
@@ -222,7 +221,7 @@ class MultiplayerManagerImpl : MultiplayerManager {
         }
 
         val gameID = Uuid.random().toString()
-        val game = Game(
+        val game = RemoteGame(
             id = lobby.id.toLongOrNull() ?: 0L,
             settings = lobby.settings,
             players = lobby.players.shuffled().map {
@@ -259,7 +258,7 @@ class MultiplayerManagerImpl : MultiplayerManager {
         }
     }
 
-    override fun observeGame(key: String): Flow<Game> {
+    override fun observeGame(key: String): Flow<RemoteGame> {
         val user = Firebase.auth.currentUser ?: return emptyFlow()
 
         return callbackFlow {
@@ -290,12 +289,12 @@ class MultiplayerManagerImpl : MultiplayerManager {
         }
     }
 
-    override suspend fun updateGame(game: Game) {
+    override suspend fun updateGame(game: RemoteGame) {
         suspendCancellableCoroutine { continuation ->
             FirebaseDatabase.getInstance().reference
                 .child(GAMES_NODE)
                 .child(game.key)
-                .setValue(game)
+                .setValue(game.toDatabaseMap())
                 .addOnSuccessListener {
                     continuation.resume(Unit)
                 }
@@ -353,7 +352,7 @@ class MultiplayerManagerImpl : MultiplayerManager {
         }
     }
 
-    override fun userGames(): Flow<List<Game>> {
+    override fun userGames(): Flow<List<RemoteGame>> {
         val currentUser = Firebase.auth.currentUser ?: return emptyFlow()
 
         return callbackFlow {
@@ -362,9 +361,9 @@ class MultiplayerManagerImpl : MultiplayerManager {
 
             val listener = object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    val games = mutableListOf<Game>()
+                    val games = mutableListOf<RemoteGame>()
                     for (child in snapshot.children) {
-                        val game: Game = child.toGame() ?: continue
+                        val game: RemoteGame = child.toGame() ?: continue
                         if (game.players.map { it.user.id }.toSet().contains(currentUser.uid)) {
                             games.add(game)
                         }

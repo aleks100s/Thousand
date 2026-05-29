@@ -13,7 +13,6 @@ data class GameState(
     val currentPlayer: Player? = null,
     val currentTurn: List<DiceRoll> = emptyList(),
     val currentRoll: DiceRoll? = null,
-    val rollBlocked: Boolean = false,
     val rollAbility: RollAbility = RollAbility.REQUIRED,
     val buttons: List<GameButton> = emptyList(),
     val isTutorial: Boolean = false,

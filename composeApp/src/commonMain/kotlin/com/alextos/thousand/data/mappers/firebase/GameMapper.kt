@@ -1,14 +1,14 @@
 package com.alextos.thousand.data.mappers.firebase
 
-import com.alextos.thousand.domain.models.Game
+import com.alextos.thousand.domain.models.RemoteGame
 
 object FirebaseGameMapper {
-    fun dictionary(from: Game): Map<String, Any> = from.toFirebaseMap()
+    fun dictionary(from: RemoteGame): Map<String, Any> = from.toFirebaseMap()
 
-    fun game(from: Any?, key: String?): Game? = from.asFirebaseMap()?.toFirebaseGame(key)
+    fun game(from: Any?, key: String?): RemoteGame? = from.asFirebaseMap()?.toFirebaseGame(key)
 }
 
-internal fun Game.toFirebaseMap(): Map<String, Any> =
+internal fun RemoteGame.toFirebaseMap(): Map<String, Any> =
     buildMap {
         put("id", id)
         put("settings", settings.toFirebaseMap())
@@ -16,8 +16,8 @@ internal fun Game.toFirebaseMap(): Map<String, Any> =
         put("host", host)
     }
 
-internal fun Map<*, *>.toFirebaseGame(key: String?): Game =
-    Game(
+internal fun Map<*, *>.toFirebaseGame(key: String?): RemoteGame =
+    RemoteGame(
         id = long("id") ?: 0L,
         settings = get("settings").asFirebaseMap().toFirebaseGameSettings(),
         players = get("players").asFirebaseMapList().map { player -> player.toFirebasePlayer() },
