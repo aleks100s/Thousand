@@ -43,6 +43,15 @@ private func normalizedFirebaseDictionary(from value: Any?) -> [String: Any]? {
 }
 
 private func normalizedFirebaseValue(from value: Any) -> Any {
+    if let boolean = value as? KotlinBoolean {
+        return boolean.boolValue
+    }
+
+    if let number = value as? NSNumber,
+       CFGetTypeID(number) == CFBooleanGetTypeID() {
+        return number.boolValue
+    }
+
     if let dictionary = normalizedFirebaseDictionary(from: value) {
         return dictionary
     }

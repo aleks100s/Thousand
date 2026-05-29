@@ -28,7 +28,30 @@ internal fun Map<*, *>?.string(key: String): String? =
     this?.get(key) as? String
 
 private fun Any?.asBoolean(): Boolean? =
-    this as? Boolean
+    when (this) {
+        is Boolean -> this
+        is Int -> toBooleanOrNull()
+        is Long -> toInt().toBooleanOrNull()
+        is Short -> toInt().toBooleanOrNull()
+        is Byte -> toInt().toBooleanOrNull()
+        is Double -> toInt().takeIf { value -> value.toDouble() == this }?.toBooleanOrNull()
+        is Float -> toInt().takeIf { value -> value.toFloat() == this }?.toBooleanOrNull()
+        is String -> when (lowercase()) {
+            "true" -> true
+            "false" -> false
+            "1" -> true
+            "0" -> false
+            else -> null
+        }
+        else -> null
+    }
+
+private fun Int.toBooleanOrNull(): Boolean? =
+    when (this) {
+        1 -> true
+        0 -> false
+        else -> null
+    }
 
 private fun Any?.asInt(): Int? =
     when (this) {
