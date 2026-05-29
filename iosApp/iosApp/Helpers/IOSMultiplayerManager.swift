@@ -190,9 +190,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
             key: gameID,
             currentPlayer: players.first,
             currentTurn: [],
-            currentRoll: nil,
-            rollAbility: RollAbility.required,
-            buttons: []
+            currentRoll: nil
         )
 
         try await Database.database().reference()

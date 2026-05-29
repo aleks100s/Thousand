@@ -18,14 +18,10 @@ data class MultiplayerGameState(
                     id = remoteGame.id,
                     settings = remoteGame.settings,
                     players = remoteGame.players,
-                    host = remoteGame.host,
-                    key = remoteGame.key,
                 )
             },
             currentPlayer = game?.currentPlayer,
             currentTurn = game?.currentTurn.orEmpty(),
             currentRoll = game?.currentRoll,
-            rollAbility = game?.rollAbility ?: GameState().rollAbility,
-            buttons = game?.buttons.orEmpty(),
         )
 }
