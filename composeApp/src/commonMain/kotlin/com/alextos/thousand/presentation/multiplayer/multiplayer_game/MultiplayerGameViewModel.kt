@@ -12,6 +12,8 @@ import com.alextos.thousand.domain.models.RollAbility
 import com.alextos.thousand.domain.repository.MultiplayerManager
 import com.alextos.thousand.domain.service.DiceHapticsService
 import com.alextos.thousand.domain.service.NativeAccountService
+import com.alextos.thousand.domain.service.ShakeDeviceObserver
+import com.alextos.thousand.domain.service.ShakeDeviceObserverDelegate
 import com.alextos.thousand.domain.usecase.game.CalculateDiceRollScoreUseCase
 import com.alextos.thousand.domain.usecase.game.DetermineAvailableButtonsUseCase
 import com.alextos.thousand.domain.usecase.game.FormatTurnEffectUseCase
@@ -35,6 +37,7 @@ import kotlin.collections.emptyList
 
 class MultiplayerGameViewModel(
     savedStateHandle: SavedStateHandle,
+    shakeDeviceObserver: ShakeDeviceObserver,
     private val accountService: NativeAccountService,
     private val multiplayerManager: MultiplayerManager,
     private val rollTheDice: RollTheDiceUseCase,
@@ -45,7 +48,7 @@ class MultiplayerGameViewModel(
     private val makeBotReply: MakeBotReplyUseCase,
     private val updateGame: UpdateGameUseCase,
     private val hapticsService: DiceHapticsService
-) : ViewModel() {
+) : ViewModel(), ShakeDeviceObserverDelegate {
     private val gameId = savedStateHandle.toRoute<MultiplayerRoute.MultiplayerGame>().gameId
 
     private val _state = MutableStateFlow(MultiplayerGameState(gameCode = gameId),)
@@ -58,6 +61,7 @@ class MultiplayerGameViewModel(
     private var remoteGame: RemoteGame? = null
 
     init {
+        shakeDeviceObserver.delegate = this
         viewModelScope.launch {
             multiplayerManager
                 .observeGame(gameId)
@@ -69,6 +73,13 @@ class MultiplayerGameViewModel(
                 .collect { game ->
                     handleGameUpdate(game)
                 }
+        }
+    }
+
+    override fun deviceDidShake() {
+        val isCurrentUser = accountService.userProfile.value?.id == remoteGame?.currentPlayer()?.user?.id
+        if (isCurrentUser) {
+            rollDice()
         }
     }
 
