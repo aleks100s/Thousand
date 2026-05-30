@@ -35,7 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.InfoCardView
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.domain.models.User
-import com.alextos.thousand.presentation.game.components.GameStatusView
+import com.alextos.thousand.presentation.components.GameStatusView
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
 import thousand.composeapp.generated.resources.diversity_3_24px

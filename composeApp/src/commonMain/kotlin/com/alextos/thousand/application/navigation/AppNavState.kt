@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -30,9 +29,17 @@ class AppNavState(
         }
 
     fun navigateToTab(tab: BottomTab) {
+        val currentTab = BottomTab.entries.firstOrNull { currentTab ->
+            navController.currentDestination?.hierarchy?.any { it.route == currentTab.route } == true
+        }
+        if (currentTab == tab) return
+
         navController.navigate(tab.route) {
-            popUpTo(navController.graph.findStartDestination().id) {
-                saveState = true
+            currentTab?.let { tab ->
+                popUpTo(tab.route) {
+                    inclusive = true
+                    saveState = true
+                }
             }
             launchSingleTop = true
             restoreState = true

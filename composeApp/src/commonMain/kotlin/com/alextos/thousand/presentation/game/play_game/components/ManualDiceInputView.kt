@@ -19,7 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.alextos.thousand.domain.models.Die
 import com.alextos.thousand.domain.models.DieValue
-import com.alextos.thousand.presentation.game.components.SingleDieView
+import com.alextos.thousand.presentation.components.SingleDieView
 
 @Composable
 fun ManualDiceInputView(

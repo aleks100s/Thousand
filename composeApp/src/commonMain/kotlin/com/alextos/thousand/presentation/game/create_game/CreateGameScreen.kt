@@ -47,7 +47,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.domain.models.User
 import com.alextos.thousand.domain.models.UserKind
-import com.alextos.thousand.presentation.game.components.GameSettingsView
+import com.alextos.thousand.presentation.components.GameSettingsView
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res

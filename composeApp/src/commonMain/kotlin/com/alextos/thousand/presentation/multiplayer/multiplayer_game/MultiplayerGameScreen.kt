@@ -35,9 +35,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
-import com.alextos.thousand.presentation.game.components.GameView
+import com.alextos.thousand.presentation.components.GameView
 import com.alextos.thousand.presentation.game.play_game.components.GameSettingsSheet
-import com.alextos.thousand.presentation.other.game_rules.GameRulesContent
+import com.alextos.thousand.presentation.game.game_rules.GameRulesContent
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel

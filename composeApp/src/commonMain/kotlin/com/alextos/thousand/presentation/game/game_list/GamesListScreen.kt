@@ -41,7 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.InfoCardView
 import com.alextos.thousand.common.Screen
-import com.alextos.thousand.presentation.game.components.GameStatusView
+import com.alextos.thousand.presentation.components.GameStatusView
 import com.alextos.thousand.presentation.models.GameUi
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel

@@ -37,8 +37,8 @@ import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.models.TurnEffect
 import com.alextos.thousand.domain.models.TurnResult
-import com.alextos.thousand.presentation.game.components.GameHeaderView
-import com.alextos.thousand.presentation.game.components.SingleDieView
+import com.alextos.thousand.presentation.components.GameHeaderView
+import com.alextos.thousand.presentation.components.SingleDieView
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
