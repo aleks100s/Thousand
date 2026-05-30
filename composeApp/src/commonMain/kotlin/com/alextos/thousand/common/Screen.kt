@@ -1,8 +1,13 @@
 package com.alextos.thousand.common
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -42,68 +47,84 @@ fun Screen(
     bannerView: @Composable (() -> Unit)? = null,
     content: @Composable (Modifier) -> Unit
 ) {
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-    Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            TopAppBar(
-                modifier = Modifier.clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)),
-                title = {
-                    if (useDynamicTitle) {
-                        val scale by animateFloatAsState(
-                            max(min(1.2f + scrollBehavior.state.contentOffset / 150, 1.2f), 1f)
-                        )
-                        Text(
-                            text = title,
-                            maxLines = 1,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = TextUnit(
-                                value = MaterialTheme.typography.headlineSmall.fontSize.value * scale,
-                                type = MaterialTheme.typography.headlineSmall.fontSize.type
-                            )
-                        )
-                    } else {
-                        Text(
-                            text = title,
-                            maxLines = 1,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-                colors = color?.let {
-                    TopAppBarDefaults.topAppBarColors().copy(containerColor = it)
-                } ?: TopAppBarDefaults.topAppBarColors(),
-                actions = actions(MaterialTheme.colorScheme.onSurface),
-                navigationIcon = {
-                    if (goBack != null) {
-                        IconButton(
-                            onClick = {
-                                goBack()
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val isPhone = minOf(maxWidth, maxHeight) < 600.dp
+        val isLandscape = maxWidth > maxHeight
+        val isTopBarVisible = isPhone.not() || isLandscape.not()
+        val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
+        Scaffold(
+            modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+            topBar = {
+                if (isTopBarVisible) {
+                    TopAppBar(
+                        modifier = Modifier.clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)),
+                        title = {
+                            if (useDynamicTitle) {
+                                val scale by animateFloatAsState(
+                                    max(min(1.2f + scrollBehavior.state.contentOffset / 150, 1.2f), 1f)
+                                )
+                                Text(
+                                    text = title,
+                                    maxLines = 1,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    fontSize = TextUnit(
+                                        value = MaterialTheme.typography.headlineSmall.fontSize.value * scale,
+                                        type = MaterialTheme.typography.headlineSmall.fontSize.type
+                                    )
+                                )
+                            } else {
+                                Text(
+                                    text = title,
+                                    maxLines = 1,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
                             }
-                        ) {
-                            Icon(
-                                backButtonIcon,
-                                "Назад",
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
+                        },
+                        scrollBehavior = scrollBehavior,
+                        colors = color?.let {
+                            TopAppBarDefaults.topAppBarColors().copy(containerColor = it)
+                        } ?: TopAppBarDefaults.topAppBarColors(),
+                        actions = actions(MaterialTheme.colorScheme.onSurface),
+                        navigationIcon = {
+                            if (goBack != null) {
+                                IconButton(
+                                    onClick = {
+                                        goBack()
+                                    }
+                                ) {
+                                    Icon(
+                                        backButtonIcon,
+                                        "Назад",
+                                        tint = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
                         }
-                    }
+                    )
                 }
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background,
-        floatingActionButton = floatingActionButton,
-        snackbarHost = snackbarHost,
-        bottomBar = {
-            if (bannerView != null) {
-                bannerView()
+            },
+            containerColor = MaterialTheme.colorScheme.background,
+            floatingActionButton = floatingActionButton,
+            snackbarHost = snackbarHost,
+            bottomBar = {
+                if (bannerView != null) {
+                    bannerView()
+                }
             }
+        ) { innerPaddings ->
+            val topPadding = if (isTopBarVisible) {
+                innerPaddings.calculateTopPadding()
+            } else {
+                WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+            }
+
+            content(
+                Modifier.padding(
+                    top = topPadding,
+                    bottom = if (bannerView != null) innerPaddings.calculateBottomPadding() else 0.dp
+                )
+            )
         }
-    ) { innerPaddings ->
-        content(Modifier.padding(
-            top = innerPaddings.calculateTopPadding(),
-            bottom = if (bannerView != null) innerPaddings.calculateBottomPadding() else 0.dp
-        ))
     }
 }

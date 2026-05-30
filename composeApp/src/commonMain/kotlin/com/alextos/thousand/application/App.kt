@@ -1,6 +1,8 @@
 package com.alextos.thousand.application
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
@@ -10,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.application.navigation.AppNavHost
 import com.alextos.thousand.application.navigation.BottomBar
@@ -47,21 +50,33 @@ fun App() {
                 FirstUserScreen()
             }
             else -> {
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    bottomBar = {
-                        BottomBar(
-                            currentTab = currentTab,
-                            hideMultiplayer = state.hideMultiplayer,
-                            onTabSelected = appNavState::navigateToTab,
+                BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                    val isPhone = minOf(maxWidth, maxHeight) < 600.dp
+                    val isLandscape = maxWidth > maxHeight
+                    val isBottomBarVisible = isPhone.not() || isLandscape.not()
+
+                    Scaffold(
+                        modifier = Modifier.fillMaxSize(),
+                        bottomBar = {
+                            if (isBottomBarVisible) {
+                                BottomBar(
+                                    currentTab = currentTab,
+                                    hideMultiplayer = state.hideMultiplayer,
+                                    onTabSelected = appNavState::navigateToTab,
+                                )
+                            }
+                        },
+                    ) { innerPadding ->
+                        AppNavHost(
+                            appNavState = appNavState,
+                            contentAlignment = Alignment.Center,
+                            contentPadding = if (isBottomBarVisible) {
+                                innerPadding
+                            } else {
+                                PaddingValues()
+                            }
                         )
-                    },
-                ) { innerPadding ->
-                    AppNavHost(
-                        appNavState = appNavState,
-                        contentAlignment = Alignment.Center,
-                        contentPadding = innerPadding,
-                    )
+                    }
                 }
             }
         }
