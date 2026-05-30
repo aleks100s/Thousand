@@ -40,7 +40,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import thousand.composeapp.generated.resources.Res
-import thousand.composeapp.generated.resources.bolt_24px
+import thousand.composeapp.generated.resources.block_24px
 import thousand.composeapp.generated.resources.person_24px
 import thousand.composeapp.generated.resources.person_heart_24px
 import thousand.composeapp.generated.resources.robot_24px
@@ -157,7 +157,7 @@ private fun PlayerView(player: Player, isActive: Boolean, showBolts: Boolean) {
                     (1..player.boltCount).forEach { _ ->
                         Icon(
                             modifier = Modifier.size(16.dp),
-                            painter = painterResource(Res.drawable.bolt_24px),
+                            painter = painterResource(Res.drawable.block_24px),
                             tint = MaterialTheme.colorScheme.secondary,
                             contentDescription = "Пропущенный ход"
                         )
