@@ -36,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.presentation.game.components.GameView
+import com.alextos.thousand.presentation.game.play_game.components.GameSettingsSheet
+import com.alextos.thousand.presentation.other.game_rules.GameRulesContent
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
@@ -50,6 +52,8 @@ fun MultiplayerGameScreen(
     val messages = remember { mutableStateListOf<GameMessageBubble>() }
     var nextMessageId by remember { mutableStateOf(0L) }
     var isDeleteGameSheetVisible by remember { mutableStateOf(false) }
+    var isRulesSheetVisible by remember { mutableStateOf(false) }
+    var isSettingsSheetVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -95,6 +99,22 @@ fun MultiplayerGameScreen(
         goBack = goBack,
         actions = {
             {
+                TextButton(
+                    onClick = {
+                        isRulesSheetVisible = true
+                    },
+                ) {
+                    Text("Правила")
+                }
+
+                TextButton(
+                    onClick = {
+                        isSettingsSheetVisible = true
+                    },
+                ) {
+                    Text("Настройки")
+                }
+
                 if (state.isHost) {
                     TextButton(
                         colors = ButtonDefaults.textButtonColors(
@@ -175,6 +195,34 @@ fun MultiplayerGameScreen(
                 ) {
                     Text("Отмена")
                 }
+            }
+        }
+    }
+
+    if (isRulesSheetVisible) {
+        ModalBottomSheet(
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            onDismissRequest = {
+                isRulesSheetVisible = false
+            },
+        ) {
+            GameRulesContent(modifier = Modifier.fillMaxSize())
+        }
+    }
+
+    if (isSettingsSheetVisible) {
+        ModalBottomSheet(
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            onDismissRequest = {
+                isSettingsSheetVisible = false
+            },
+        ) {
+            state.gameState.game?.settings?.let { settings ->
+                GameSettingsSheet(
+                    settings = settings,
+                    isNotificationEnabled = settings.isNotificationEnabled,
+                    onNotificationEnabledChange = {},
+                )
             }
         }
     }

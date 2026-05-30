@@ -18,11 +18,11 @@ import com.alextos.thousand.domain.GameConstants.BARREL_3
 import com.alextos.thousand.domain.GameConstants.BOLT_FINE
 import com.alextos.thousand.domain.GameConstants.OVERTAKE_FINE
 import com.alextos.thousand.domain.GameConstants.STARTING_LIMIT
-import com.alextos.thousand.domain.models.Game
+import com.alextos.thousand.domain.models.GameSettings
 
 @Composable
-fun GameRulesView(
-    game: Game,
+fun GameSettingsSheet(
+    settings: GameSettings,
     isNotificationEnabled: Boolean,
     onNotificationEnabledChange: (Boolean) -> Unit,
 ) {
@@ -40,27 +40,27 @@ fun GameRulesView(
             )
             RuleRow(
                 title = "Открытие игры",
-                value = if (game.settings.hasStartLimit) "$STARTING_LIMIT очков" else "Отключено",
+                value = if (settings.hasStartLimit) "$STARTING_LIMIT очков" else "Отключено",
             )
             RuleRow(
                 title = "Первая бочка",
-                value = if (game.settings.isBarrel1Active) "$BARREL_1" else "Отключено",
+                value = if (settings.isBarrel1Active) "$BARREL_1" else "Отключено",
             )
             RuleRow(
                 title = "Вторая бочка",
-                value = if (game.settings.isBarrel2Active) "$BARREL_2" else "Отключено",
+                value = if (settings.isBarrel2Active) "$BARREL_2" else "Отключено",
             )
             RuleRow(
                 title = "Третья бочка",
-                value = if (game.settings.isBarrel3Active) "$BARREL_3" else "Отключено",
+                value = if (settings.isBarrel3Active) "$BARREL_3" else "Отключено",
             )
             RuleRow(
                 title = "Штраф за 3 болта",
-                value = if (game.settings.isTripleBoltFineActive) "$BOLT_FINE" else "Отключено",
+                value = if (settings.isTripleBoltFineActive) "$BOLT_FINE" else "Отключено",
             )
             RuleRow(
                 title = "Штраф за обгон",
-                value = if (game.settings.isOvertakeFineActive) "$OVERTAKE_FINE" else "Отключено",
+                value = if (settings.isOvertakeFineActive) "$OVERTAKE_FINE" else "Отключено",
             )
         }
     }

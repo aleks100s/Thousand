@@ -36,7 +36,7 @@ import com.alextos.thousand.common.Screen
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.presentation.game.components.GameView
 import com.alextos.thousand.presentation.other.game_rules.GameRulesContent
-import com.alextos.thousand.presentation.game.play_game.components.GameRulesView
+import com.alextos.thousand.presentation.game.play_game.components.GameSettingsSheet
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
@@ -152,8 +152,8 @@ fun PlayGameScreen(
             }
         ) {
             state.gameState.game?.let { game ->
-                GameRulesView(
-                    game = game,
+                GameSettingsSheet(
+                    settings = game.settings,
                     isNotificationEnabled = state.isNotificationEnabled,
                     onNotificationEnabledChange = { isEnabled ->
                         viewModel.onAction(PlayGameAction.SetNotificationEnabled(isEnabled))
