@@ -63,7 +63,7 @@ import com.alextos.thousand.presentation.multiplayer.create_lobby.CreateLobbyVie
 import com.alextos.thousand.presentation.multiplayer.lobby.LobbyViewModel
 import com.alextos.thousand.presentation.multiplayer.multiplayer_game.MultiplayerGameViewModel
 import com.alextos.thousand.presentation.game.tutorial_game.TutorialGameViewModel
-import com.alextos.thousand.presentation.game.onboarding.FirstUserViewModel
+import com.alextos.thousand.presentation.onboarding.FirstUserViewModel
 import com.alextos.thousand.presentation.game.users.UsersViewModel
 import com.alextos.thousand.presentation.game.statistics.dice_statistics.DiceStatisticsViewModel
 import com.alextos.thousand.presentation.game.statistics.events_statistics.EventsStatisticsViewModel

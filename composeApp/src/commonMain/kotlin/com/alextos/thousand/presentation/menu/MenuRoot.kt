@@ -1,4 +1,4 @@
-package com.alextos.thousand.presentation.other
+package com.alextos.thousand.presentation.menu
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
@@ -10,46 +10,47 @@ import com.alextos.thousand.presentation.game.tutorial_game.TutorialGameScreen
 import com.alextos.thousand.presentation.game.users.UsersScreen
 
 @Composable
-fun OtherTabRoot() {
+fun MenuRoot(goBack: () -> Unit) {
     val navController = rememberNavController()
 
     NavHost(
         navController = navController,
-        startDestination = OtherRoute.Other,
+        startDestination = MenuRoute.Menu,
     ) {
-        horizontalTransition<OtherRoute.Other> {
-            OtherScreen(
+        horizontalTransition<MenuRoute.Menu> {
+            MenuScreen(
+                goBack = goBack,
                 openRules = {
-                    navController.navigate(OtherRoute.Rules)
+                    navController.navigate(MenuRoute.Rules)
                 },
                 openTutorial = {
-                    navController.navigate(OtherRoute.Tutorial)
+                    navController.navigate(MenuRoute.Tutorial)
                 },
                 openStatistics = {
-                    navController.navigate(OtherRoute.Statistics)
+                    navController.navigate(MenuRoute.Statistics)
                 },
                 openUsers = {
-                    navController.navigate(OtherRoute.Users)
+                    navController.navigate(MenuRoute.Users)
                 },
             )
         }
-        horizontalTransition<OtherRoute.Rules> {
+        horizontalTransition<MenuRoute.Rules> {
             GameRulesScreen(
                 onGoBack = navController::popBackStack,
             )
         }
-        horizontalTransition<OtherRoute.Tutorial> {
+        horizontalTransition<MenuRoute.Tutorial> {
             TutorialGameScreen(
                 onGoBack = navController::popBackStack,
                 onFinish = navController::popBackStack,
             )
         }
-        horizontalTransition<OtherRoute.Statistics> {
+        horizontalTransition<MenuRoute.Statistics> {
             StatisticsTabRoot(
                 goBack = navController::popBackStack,
             )
         }
-        horizontalTransition<OtherRoute.Users> {
+        horizontalTransition<MenuRoute.Users> {
             UsersScreen(
                 onGoBack = navController::popBackStack,
             )

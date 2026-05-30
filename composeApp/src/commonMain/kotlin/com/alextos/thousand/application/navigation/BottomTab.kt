@@ -21,9 +21,4 @@ enum class BottomTab(
         title = "Мультиплеер",
         iconResource = Res.drawable.diversity_3_24px,
     ),
-    Other(
-        route = "tab_other",
-        title = "Меню",
-        iconResource = Res.drawable.menu_24px,
-    ),
 }

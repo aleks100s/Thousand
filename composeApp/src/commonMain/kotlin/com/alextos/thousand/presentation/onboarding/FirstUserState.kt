@@ -1,4 +1,4 @@
-package com.alextos.thousand.presentation.game.onboarding
+package com.alextos.thousand.presentation.onboarding
 
 data class FirstUserState(
     val name: String = "",

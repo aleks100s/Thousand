@@ -28,6 +28,7 @@ import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -59,6 +60,7 @@ fun GamesListScreen(
     openGame: (Long) -> Unit,
     onCreateGame: () -> Unit,
     onTutorialGame: () -> Unit,
+    openMenu: () -> Unit,
 ) {
     val viewModel: GamesListViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -79,6 +81,13 @@ fun GamesListScreen(
     Screen(
         modifier = Modifier,
         title = "Список игр",
+        actions = {
+            {
+                TextButton(onClick = openMenu) {
+                    Text("Меню")
+                }
+            }
+        },
         floatingActionButton = {
             if (state.isFABShown) {
                 ExtendedFloatingActionButton(

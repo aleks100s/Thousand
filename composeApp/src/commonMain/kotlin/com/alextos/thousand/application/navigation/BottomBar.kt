@@ -17,18 +17,18 @@ fun BottomBar(
         BottomTab.entries
             .filter { tab -> tab != BottomTab.Multiplayer || hideMultiplayer.not() }
             .forEach { tab ->
-            NavigationBarItem(
-                selected = currentTab == tab,
-                onClick = { onTabSelected(tab) },
-                icon = {
-                    Icon(
-                        painter = painterResource(tab.iconResource),
-                        contentDescription = tab.title
-                    )
-                },
-                label = { Text(tab.title) },
-                alwaysShowLabel = false
-            )
-        }
+                NavigationBarItem(
+                    selected = currentTab == tab,
+                    onClick = { onTabSelected(tab) },
+                    icon = {
+                        Icon(
+                            painter = painterResource(tab.iconResource),
+                            contentDescription = tab.title
+                        )
+                    },
+                    label = { Text(tab.title) },
+                    alwaysShowLabel = false
+                )
+            }
     }
 }

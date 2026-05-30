@@ -1,4 +1,4 @@
-package com.alextos.thousand.presentation.other
+package com.alextos.thousand.presentation.menu
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,7 +18,8 @@ import androidx.compose.ui.unit.dp
 import com.alextos.thousand.common.Screen
 
 @Composable
-fun OtherScreen(
+fun MenuScreen(
+    goBack: () -> Unit,
     openRules: () -> Unit,
     openTutorial: () -> Unit,
     openStatistics: () -> Unit,
@@ -27,6 +28,7 @@ fun OtherScreen(
     Screen(
         modifier = Modifier,
         title = "Меню",
+        goBack = goBack
     ) { modifier ->
         Column(
             modifier = modifier

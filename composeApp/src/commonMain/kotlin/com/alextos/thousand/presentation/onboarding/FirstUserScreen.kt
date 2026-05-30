@@ -1,4 +1,4 @@
-package com.alextos.thousand.presentation.game.onboarding
+package com.alextos.thousand.presentation.onboarding
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box

@@ -1,4 +1,4 @@
-package com.alextos.thousand.presentation.game.onboarding
+package com.alextos.thousand.presentation.onboarding
 
 sealed interface FirstUserAction {
     data class UpdateName(val value: String) : FirstUserAction

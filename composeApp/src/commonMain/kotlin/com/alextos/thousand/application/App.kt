@@ -19,7 +19,7 @@ import com.alextos.thousand.application.navigation.BottomBar
 import com.alextos.thousand.application.navigation.BottomTab
 import com.alextos.thousand.application.navigation.rememberAppNavState
 import com.alextos.thousand.application.theme.ThousandTheme
-import com.alextos.thousand.presentation.game.onboarding.FirstUserScreen
+import com.alextos.thousand.presentation.onboarding.FirstUserScreen
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
