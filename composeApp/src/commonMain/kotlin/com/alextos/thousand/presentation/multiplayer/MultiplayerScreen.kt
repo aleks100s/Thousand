@@ -35,6 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.InfoCardView
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.domain.models.User
+import com.alextos.thousand.presentation.game.components.GameStatusView
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
 import thousand.composeapp.generated.resources.diversity_3_24px
@@ -100,6 +101,7 @@ fun MultiplayerScreen(
                     players = game.players.map { it.user },
                     host = game.host,
                     code = game.id.toString(),
+                    isFinished = game.isFinished(),
                     onTap = {
                         openGame(game.key)
                     },
@@ -163,6 +165,7 @@ private fun LobbyOrGameCard(
     players: List<User>,
     host: String,
     code: String,
+    isFinished: Boolean? = null,
     onTap: () -> Unit,
 ) {
     val hostName = players
@@ -194,10 +197,14 @@ private fun LobbyOrGameCard(
                     style = MaterialTheme.typography.titleMedium,
                 )
 
-                Text(
-                    text = "Подключиться",
-                    color = MaterialTheme.colorScheme.primary
-                )
+                isFinished?.let {
+                    GameStatusView(it, finishedAt = null)
+                } ?: run {
+                    Text(
+                        text = "Подключиться",
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
 
             Row(

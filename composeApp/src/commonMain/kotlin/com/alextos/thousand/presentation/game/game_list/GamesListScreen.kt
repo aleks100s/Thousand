@@ -1,12 +1,6 @@
 package com.alextos.thousand.presentation.game.game_list
 
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,10 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -45,14 +37,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.InfoCardView
 import com.alextos.thousand.common.Screen
+import com.alextos.thousand.presentation.game.components.GameStatusView
 import com.alextos.thousand.presentation.models.GameUi
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -266,7 +255,7 @@ private fun GameItem(
                         )
                     }
 
-                    GameStatus(game)
+                    GameStatusView(game.isFinished, game.finishedAt)
                 }
 
                 Text(
@@ -303,62 +292,6 @@ private fun GameItem(
                     onDeleteGame()
                 },
                 colors = MenuDefaults.itemColors(textColor = MaterialTheme.colorScheme.error)
-            )
-        }
-    }
-}
-
-@Composable
-private fun GameStatus(game: GameUi) {
-    Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(50))
-            .background(MaterialTheme.colorScheme.tertiaryContainer)
-            .padding(vertical = 4.dp, horizontal = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        if (game.isFinished) {
-            Text(
-                text = game.finishedAt.orEmpty(),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onTertiaryContainer,
-            )
-        } else {
-            Text(
-                text = "В процессе",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onTertiaryContainer
-            )
-
-            val transition = rememberInfiniteTransition()
-            val alpha by transition.animateFloat(
-                initialValue = 0.35f,
-                targetValue = 1f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(durationMillis = 900),
-                    repeatMode = RepeatMode.Reverse,
-                ),
-            )
-            val scale by transition.animateFloat(
-                initialValue = 0.85f,
-                targetValue = 1.15f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(durationMillis = 900),
-                    repeatMode = RepeatMode.Reverse,
-                ),
-            )
-
-            Box(
-                modifier = Modifier
-                    .size(14.dp)
-                    .graphicsLayer {
-                        scaleX = scale
-                        scaleY = scale
-                    }
-                    .alpha(alpha)
-                    .clip(CircleShape)
-                    .background(Color.Red),
             )
         }
     }

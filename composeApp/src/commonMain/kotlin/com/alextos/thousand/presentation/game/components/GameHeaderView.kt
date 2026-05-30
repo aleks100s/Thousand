@@ -158,7 +158,7 @@ private fun PlayerView(player: Player, isActive: Boolean, showBolts: Boolean) {
                         Icon(
                             modifier = Modifier.size(16.dp),
                             painter = painterResource(Res.drawable.block_24px),
-                            tint = MaterialTheme.colorScheme.secondary,
+                            tint = MaterialTheme.colorScheme.error,
                             contentDescription = "Пропущенный ход"
                         )
                     }
