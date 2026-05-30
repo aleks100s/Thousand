@@ -40,6 +40,7 @@ class PlayGameViewModel(
 
     init {
         shakeDeviceObserver.delegate = this
+        loadGame()
 
         viewModelScope.launch {
             gameServer.state
@@ -80,7 +81,6 @@ class PlayGameViewModel(
 
     fun onAction(action: PlayGameAction) {
         when (action) {
-            PlayGameAction.LoadGame -> loadGame()
             PlayGameAction.FinishGame -> finishGame()
             is PlayGameAction.SendGameAction -> sendGameAction(action.action)
             is PlayGameAction.ApplyDiceRoll -> sendGameAction(GameAction.ApplyRoll(action.dice))

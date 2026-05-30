@@ -55,10 +55,6 @@ fun PlayGameScreen(
     var isRulesSheetVisible by remember { mutableStateOf(false) }
     var isSettingsSheetVisible by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        viewModel.onAction(PlayGameAction.LoadGame)
-    }
-
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
