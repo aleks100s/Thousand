@@ -5,5 +5,5 @@ import com.alextos.thousand.domain.models.Game
 sealed interface MultiplayerGameEvent {
     data object GameDeleted: MultiplayerGameEvent
     data class FinishGame(val game: Game): MultiplayerGameEvent
-    data class ShowMessage(val message: String, val isReply: Boolean) : MultiplayerGameEvent
+    data class ShowMessage(val message: String) : MultiplayerGameEvent
 }

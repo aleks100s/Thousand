@@ -45,7 +45,6 @@ class MultiplayerGameViewModel(
     private val determineAvailableButtons: DetermineAvailableButtonsUseCase,
     private val saveTurn: SaveTurnUseCase,
     private val formatTurnEffect: FormatTurnEffectUseCase,
-    private val makeBotReply: MakeBotReplyUseCase,
     private val updateGame: UpdateGameUseCase,
     private val hapticsService: DiceHapticsService
 ) : ViewModel(), ShakeDeviceObserverDelegate {
@@ -71,6 +70,7 @@ class MultiplayerGameViewModel(
                     }
                 }
                 .collect { game ->
+                    showMessagesIfNeeded(game.messagesToShow)
                     handleGameUpdate(game)
                 }
         }
@@ -87,6 +87,14 @@ class MultiplayerGameViewModel(
         when (action) {
             MultiplayerGameAction.DeleteGame -> deleteGame()
             is MultiplayerGameAction.SendGameAction -> reduceGameAction(action.action)
+        }
+    }
+
+    private fun showMessagesIfNeeded(messages: List<String>) {
+        viewModelScope.launch {
+            messages.forEach { message ->
+                _events.emit(MultiplayerGameEvent.ShowMessage(message))
+            }
         }
     }
 
@@ -201,26 +209,17 @@ class MultiplayerGameViewModel(
             skipSaving = true,
         )
 
-        turn.effects.forEach { effect ->
-            _events.emit(MultiplayerGameEvent.ShowMessage(
-                message = formatTurnEffect(effect, player, isTutorial = false),
-                isReply = false
-            ))
-        }
-        if (player.isBot() && turn.effects.isNotEmpty()) {
-            _events.emit(MultiplayerGameEvent.ShowMessage(
-                message = makeBotReply(turn.effects.last().effect),
-                isReply = true
-            ))
+        val messages = turn.effects.map { effect ->
+            formatTurnEffect(effect, player, isTutorial = false)
         }
 
         when (updateGame(game, turn, skipSaving = true)) {
-            GameStatus.ONGOING -> continueGame(game)
-            GameStatus.FINISHED -> finishGame(game)
+            GameStatus.ONGOING -> continueGame(game, messages)
+            GameStatus.FINISHED -> finishGame(game, messages)
         }
     }
 
-    private suspend fun continueGame(game: Game) {
+    private suspend fun continueGame(game: Game, messages: List<String>) {
         val remoteGame = remoteGame ?: return
         val nextPlayerIndex = (remoteGame.currentPlayerIndex + 1) % remoteGame.players.count()
         val newGame = remoteGame.copy(
@@ -240,7 +239,7 @@ class MultiplayerGameViewModel(
         multiplayerManager.updateGame(newGame)
     }
 
-    private fun finishGame(game: Game) {
+    private fun finishGame(game: Game, messages: List<String>) {
         viewModelScope.launch {
             val game = remoteGame?.copy(
                 players = game.players,

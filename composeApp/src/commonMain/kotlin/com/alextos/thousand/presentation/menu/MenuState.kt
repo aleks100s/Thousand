@@ -4,34 +4,10 @@ data class MenuState(
     val isFirstLaunch: Boolean = true,
     val tiles: List<MenuTile> = listOf(
         MenuTile(
-            title = "Игроки",
-            description = "Управление игроками",
-            size = MenuTileSize.Default,
-            action = MenuTileAction.Users,
-        ),
-        MenuTile(
-            title = "Игроки",
-            description = "Управление игроками",
-            size = MenuTileSize.Default,
-            action = MenuTileAction.Users,
-        ),
-        MenuTile(
-            title = "Обучение",
-            description = "Тестовая партия с подсказками",
-            size = MenuTileSize.Default,
-            action = MenuTileAction.Tutorial,
-        ),
-        MenuTile(
-            title = "Правила игры",
-            description = "Комбинации, бочки и болты",
-            size = MenuTileSize.Default,
-            action = MenuTileAction.Rules,
-        ),
-        MenuTile(
-            title = "История игр",
-            description = "Сохраненные партии",
-            size = MenuTileSize.Default,
-            action = MenuTileAction.GamesHistory,
+            title = "Новая игра",
+            description = "Создать новую партию",
+            size = MenuTileSize.Large,
+            action = MenuTileAction.NewGame,
         ),
         MenuTile(
             title = "Статистика",
@@ -40,10 +16,28 @@ data class MenuState(
             action = MenuTileAction.Statistics,
         ),
         MenuTile(
-            title = "Новая игра",
-            description = "Создать новую партию",
-            size = MenuTileSize.Large,
-            action = MenuTileAction.NewGame,
+            title = "История игр",
+            description = "Сохраненные партии",
+            size = MenuTileSize.Default,
+            action = MenuTileAction.GamesHistory,
+        ),
+        MenuTile(
+            title = "Правила игры",
+            description = "Комбинации, бочки и болты",
+            size = MenuTileSize.Default,
+            action = MenuTileAction.Rules,
+        ),
+        MenuTile(
+            title = "Обучение",
+            description = "Тестовая партия с подсказками",
+            size = MenuTileSize.Default,
+            action = MenuTileAction.Tutorial,
+        ),
+        MenuTile(
+            title = "Игроки",
+            description = "Управление игроками",
+            size = MenuTileSize.Default,
+            action = MenuTileAction.Users,
         ),
     ),
 )

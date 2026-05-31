@@ -196,7 +196,7 @@ private fun PlayersRollsStatisticsTableHeader() {
         bestRollChain = "Лучшая цепь",
         isHeader = true,
     )
-    HorizontalDivider(modifier = androidx.compose.ui.Modifier.Companion.width(
+    HorizontalDivider(modifier = Modifier.width(
         TABLE_WIDTH
     ))
 }
@@ -240,7 +240,7 @@ private fun RollsStatisticsTableRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            modifier = androidx.compose.ui.Modifier.Companion.width(
+            modifier = Modifier.width(
                 USER_COLUMN_WIDTH
             ),
             text = userName,
@@ -248,7 +248,7 @@ private fun RollsStatisticsTableRow(
             fontWeight = fontWeight,
         )
         Text(
-            modifier = androidx.compose.ui.Modifier.Companion.width(
+            modifier = Modifier.width(
                 METRIC_COLUMN_WIDTH
             ),
             text = rolls,
@@ -256,7 +256,7 @@ private fun RollsStatisticsTableRow(
             fontWeight = fontWeight,
         )
         Text(
-            modifier = androidx.compose.ui.Modifier.Companion.width(
+            modifier = Modifier.width(
                 METRIC_COLUMN_WIDTH
             ),
             text = averageRoll,
@@ -264,7 +264,7 @@ private fun RollsStatisticsTableRow(
             fontWeight = fontWeight,
         )
         Text(
-            modifier = androidx.compose.ui.Modifier.Companion.width(
+            modifier = Modifier.width(
                 METRIC_COLUMN_WIDTH
             ),
             text = bestRoll,
@@ -272,7 +272,7 @@ private fun RollsStatisticsTableRow(
             fontWeight = fontWeight,
         )
         Text(
-            modifier = androidx.compose.ui.Modifier.Companion.width(
+            modifier = Modifier.width(
                 CHAIN_COLUMN_WIDTH
             ),
             text = averageRollChain,
@@ -280,7 +280,7 @@ private fun RollsStatisticsTableRow(
             fontWeight = fontWeight,
         )
         Text(
-            modifier = androidx.compose.ui.Modifier.Companion.width(
+            modifier = Modifier.width(
                 CHAIN_COLUMN_WIDTH
             ),
             text = bestRollChain,

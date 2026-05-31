@@ -2,6 +2,7 @@ package com.alextos.thousand.presentation.menu
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +13,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,6 +23,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,46 +47,52 @@ fun MenuScreen(
 ) {
     val viewModel: MenuViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val gridState = rememberLazyGridState()
     var isTutorialSheetVisible by remember { mutableStateOf(false) }
 
     Screen(
         modifier = Modifier,
         title = "Меню",
     ) { modifier ->
-        LazyVerticalGrid(
-            modifier = modifier.fillMaxSize(),
-            columns = GridCells.Fixed(2),
-            contentPadding = PaddingValues(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            items(
-                items = state.tiles,
-                span = { tile ->
-                    GridItemSpan(
-                        if (tile.size == MenuTileSize.Large) maxLineSpan else 1
-                    )
-                },
-            ) { tile ->
-                MenuTileView(
-                    tile = tile,
-                    onClick = {
-                        when (tile.action) {
-                            MenuTileAction.Tutorial -> openTutorial()
-                            MenuTileAction.Rules -> openRules()
-                            MenuTileAction.GamesHistory -> openGamesHistory()
-                            MenuTileAction.Statistics -> openStatistics()
-                            MenuTileAction.Users -> openUsers()
-                            MenuTileAction.NewGame -> {
-                                if (state.isFirstLaunch) {
-                                    isTutorialSheetVisible = true
-                                } else {
-                                    onCreateGame()
+        BoxWithConstraints(modifier = modifier.fillMaxSize(),) {
+            val columns = if (maxWidth > maxHeight) 3 else 2
+
+            LazyVerticalGrid(
+                modifier = Modifier.fillMaxSize(),
+                state = gridState,
+                columns = GridCells.Fixed(columns),
+                contentPadding = PaddingValues(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                items(
+                    items = state.tiles,
+                    span = { tile ->
+                        GridItemSpan(
+                            if (tile.size == MenuTileSize.Large) maxLineSpan else 1
+                        )
+                    },
+                ) { tile ->
+                    MenuTileView(
+                        tile = tile,
+                        onClick = {
+                            when (tile.action) {
+                                MenuTileAction.Tutorial -> openTutorial()
+                                MenuTileAction.Rules -> openRules()
+                                MenuTileAction.GamesHistory -> openGamesHistory()
+                                MenuTileAction.Statistics -> openStatistics()
+                                MenuTileAction.Users -> openUsers()
+                                MenuTileAction.NewGame -> {
+                                    if (state.isFirstLaunch) {
+                                        isTutorialSheetVisible = true
+                                    } else {
+                                        onCreateGame()
+                                    }
                                 }
                             }
-                        }
-                    },
-                )
+                        },
+                    )
+                }
             }
         }
     }
