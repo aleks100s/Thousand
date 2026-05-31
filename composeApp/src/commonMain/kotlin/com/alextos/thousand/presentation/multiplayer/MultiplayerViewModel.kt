@@ -48,6 +48,8 @@ class MultiplayerViewModel(
             MultiplayerAction.SignOut -> signOut()
             MultiplayerAction.ShowLogoutSheet -> showLogout()
             MultiplayerAction.HideLogoutSheet -> hideLogout()
+            is MultiplayerAction.DeleteGame -> deleteGame(action.key)
+            is MultiplayerAction.DisconnectFromLobby -> disconnectFromLobby(action.key)
         }
     }
 
@@ -175,6 +177,22 @@ class MultiplayerViewModel(
                 lobbies = emptyList(),
                 isLogoutSheetVisible = false
             )
+        }
+    }
+
+    private fun deleteGame(key: String) {
+        viewModelScope.launch {
+            try {
+                multiplayerManager.deleteGame(key)
+            } catch (_: Exception) {}
+        }
+    }
+
+    private fun disconnectFromLobby(key: String) {
+        viewModelScope.launch {
+            try {
+                multiplayerManager.disconnectFromLobby(key)
+            } catch (_: Exception) {}
         }
     }
 

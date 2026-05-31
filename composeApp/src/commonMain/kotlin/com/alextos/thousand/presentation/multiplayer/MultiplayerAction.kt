@@ -14,4 +14,6 @@ sealed interface MultiplayerAction {
     data object SignUp : MultiplayerAction
     data object JoinLobby : MultiplayerAction
     data object SignOut : MultiplayerAction
+    data class DeleteGame(val key: String) : MultiplayerAction
+    data class DisconnectFromLobby(val key: String) : MultiplayerAction
 }

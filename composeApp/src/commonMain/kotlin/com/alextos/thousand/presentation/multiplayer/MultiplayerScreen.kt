@@ -1,5 +1,8 @@
 package com.alextos.thousand.presentation.multiplayer
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,8 +18,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -25,6 +31,9 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -40,7 +49,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
 import thousand.composeapp.generated.resources.diversity_3_24px
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun MultiplayerScreen(
     openCreateLobby: () -> Unit,
@@ -102,8 +111,12 @@ fun MultiplayerScreen(
                     host = game.host,
                     code = game.id.toString(),
                     isFinished = game.isFinished(),
-                    onTap = {
+                    onClick = {
                         openGame(game.key)
+                    },
+                    contextMenuText = "Удалить игру",
+                    onContextMenuClick = {
+                        viewModel.onAction(MultiplayerAction.DeleteGame(game.key))
                     },
                 )
             }
@@ -122,8 +135,12 @@ fun MultiplayerScreen(
                     players = lobby.players,
                     host = lobby.host,
                     code = lobby.id,
-                    onTap = {
+                    onClick = {
                         openLobby(lobby.key)
+                    },
+                    contextMenuText = "Покинуть лобби",
+                    onContextMenuClick = {
+                        viewModel.onAction(MultiplayerAction.DisconnectFromLobby(lobby.key))
                     },
                 )
             }
@@ -166,63 +183,92 @@ private fun LobbyOrGameCard(
     host: String,
     code: String,
     isFinished: Boolean? = null,
-    onTap: () -> Unit,
+    onClick: () -> Unit,
+    contextMenuText: String,
+    onContextMenuClick: () -> Unit,
 ) {
+    var isMenuExpanded by remember { mutableStateOf(false) }
     val hostName = players
         .firstOrNull { player -> player.id == host }
         ?.name
         ?: "Без имени"
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        ),
-        onClick = {
-            onTap()
-        },
-    ) {
-        Column(
+    Box {
+        Card(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "Игра $code",
-                    style = MaterialTheme.typography.titleMedium,
+                .combinedClickable(
+                    onLongClick = {
+                        isMenuExpanded = true
+                    },
+                    onClick = onClick
                 )
-
-                isFinished?.let {
-                    GameStatusView(it, finishedAt = null)
-                } ?: run {
+                .fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            ),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
                     Text(
-                        text = "Подключиться",
-                        color = MaterialTheme.colorScheme.primary
+                        text = "Игра $code",
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+
+                    isFinished?.let {
+                        GameStatusView(it, finishedAt = null)
+                    } ?: run {
+                        Text(
+                            text = "Подключиться",
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Хост: $hostName",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+
+                    Text(
+                        text = "Игроков: ${players.count()}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
+        }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "Хост: $hostName",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-
-                Text(
-                    text = "Игроков: ${players.count()}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+        DropdownMenu(
+            expanded = isMenuExpanded,
+            onDismissRequest = {
+                isMenuExpanded = false
+            },
+        ) {
+            DropdownMenuItem(
+                text = {
+                    Text(contextMenuText)
+                },
+                colors = MenuDefaults.itemColors(
+                    textColor = MaterialTheme.colorScheme.error,
+                ),
+                onClick = {
+                    isMenuExpanded = false
+                    onContextMenuClick()
+                },
+            )
         }
     }
 }
@@ -236,7 +282,7 @@ private fun MultiplayerHero(
     InfoCardView(
         icon = Res.drawable.diversity_3_24px,
         title = "Играйте с друзьями",
-        text = "Мультиплеер поможет собрать игроков в одну партию: один создает игру, остальные подключаются, а приложение синхронизирует ход, броски, эффекты и итоговый счет.",
+        text = "Мультиплеер поможет собрать игроков в одну партию. Хост создает игру и делится кодом подключения с другими",
     ) {
         MultiplayerActions(
             state = state,
