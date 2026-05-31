@@ -1,22 +1,20 @@
-package com.alextos.thousand.presentation.multiplayer.multiplayer_game
+package com.alextos.thousand.presentation.menu.play_game
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -35,32 +33,32 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
+import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.presentation.components.GameView
-import com.alextos.thousand.presentation.menu.play_game.components.GameSettingsSheet
 import com.alextos.thousand.presentation.menu.game_rules.GameRulesContent
+import com.alextos.thousand.presentation.menu.play_game.components.GameSettingsSheet
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun MultiplayerGameScreen(
-    goBack: () -> Unit,
+fun PlayGameScreen(
+    onGoBack: () -> Unit,
+    onScoreClick: (Game) -> Unit,
+    onFinishGame: (Game) -> Unit
 ) {
-    val viewModel: MultiplayerGameViewModel = koinViewModel()
+    val viewModel: PlayGameViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val messages = remember { mutableStateListOf<GameMessageBubble>() }
     var nextMessageId by remember { mutableStateOf(0L) }
-    var isDeleteGameSheetVisible by remember { mutableStateOf(false) }
     var isRulesSheetVisible by remember { mutableStateOf(false) }
     var isSettingsSheetVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
-                MultiplayerGameEvent.GameDeleted -> goBack()
-                is MultiplayerGameEvent.FinishGame -> goBack()
-                is MultiplayerGameEvent.ShowMessage -> {
+                is PlayGameEvent.ShowMessage -> {
                     messages.add(
                         GameMessageBubble(
                             id = nextMessageId++,
@@ -69,34 +67,17 @@ fun MultiplayerGameScreen(
                         )
                     )
                 }
-            }
-        }
-    }
-
-    if (state.error != null) {
-        ModalBottomSheet(
-            onDismissRequest = goBack
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(state.error ?: "")
-
-                Button(onClick = goBack) {
-                    Text("Выйти в меню")
+                is PlayGameEvent.FinishGame -> {
+                    onFinishGame(event.game)
                 }
             }
         }
     }
-
+    
     Screen(
         modifier = Modifier,
-        title = "Игра ${state.gameCode}",
-        goBack = goBack,
+        title = state.title,
+        goBack = onGoBack,
         actions = {
             {
                 TextButton(
@@ -110,103 +91,41 @@ fun MultiplayerGameScreen(
                 TextButton(
                     onClick = {
                         isSettingsSheetVisible = true
-                    },
+                    }
                 ) {
                     Text("Настройки")
                 }
 
-                if (state.isHost) {
-                    TextButton(
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error,
-                        ),
-                        onClick = {
-                            isDeleteGameSheetVisible = true
-                        },
-                    ) {
-                        Text("Удалить игру")
-                    }
-                } else {
-                    TextButton(
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error,
-                        ),
-                        onClick = {
-                            isDeleteGameSheetVisible = true
-                        },
-                    ) {
-                        Text("Покинуть игру")
+                state.gameState.game
+                    ?.let {
+                    TextButton(onClick = {
+                        onScoreClick(it)
+                    }, enabled = state.gameState.currentTurn.isEmpty()) {
+                        Text("Счет")
                     }
                 }
             }
-        },
+        }
     ) { modifier ->
-        GameView(
-            modifier = modifier.fillMaxSize(),
-            isManualInputEnabled = false,
-            state = state.gameState,
-            onAction = { action ->
-                viewModel.onAction(MultiplayerGameAction.SendGameAction(action))
-            },
-            onFinishGame = {
-                goBack()
-            },
-        )
-
-        GameMessagesOverlay(
-            messages = messages,
-            onMessageDismiss = { message ->
-                messages.remove(message)
-            },
-        )
-    }
-
-    if (isDeleteGameSheetVisible) {
-        ModalBottomSheet(
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-            onDismissRequest = {
-                isDeleteGameSheetVisible = false
-            },
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                Text(
-                    text = "Удалить эту игру?",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-
-                Text(
-                    text = "Это действие нельзя отменить. Игра будет удалена для всех участников.",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError,
-                    ),
-                    onClick = {
-                        isDeleteGameSheetVisible = false
-                        viewModel.onAction(MultiplayerGameAction.DeleteGame)
-                    },
-                ) {
-                    Text("Удалить игру")
+        Box(modifier = modifier.fillMaxSize()) {
+            GameView(
+                modifier = Modifier.fillMaxSize(),
+                isManualInputEnabled = state.isManualInputEnabled,
+                state = state.gameState,
+                onAction = { action ->
+                    viewModel.onAction(PlayGameAction.SendGameAction(action))
+                },
+                onFinishGame = {
+                    viewModel.onAction(PlayGameAction.FinishGame)
                 }
+            )
 
-                OutlinedButton(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = {
-                        isDeleteGameSheetVisible = false
-                    },
-                ) {
-                    Text("Отмена")
-                }
-            }
+            GameMessagesOverlay(
+                messages = messages,
+                onMessageDismiss = { message ->
+                    messages.remove(message)
+                },
+            )
         }
     }
 
@@ -215,7 +134,7 @@ fun MultiplayerGameScreen(
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             onDismissRequest = {
                 isRulesSheetVisible = false
-            },
+            }
         ) {
             GameRulesContent(modifier = Modifier.fillMaxSize())
         }
@@ -226,13 +145,19 @@ fun MultiplayerGameScreen(
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             onDismissRequest = {
                 isSettingsSheetVisible = false
-            },
+            }
         ) {
-            state.gameState.game?.settings?.let { settings ->
+            state.gameState.game?.let { game ->
                 GameSettingsSheet(
-                    settings = settings,
-                    isNotificationEnabled = settings.isNotificationEnabled,
-                    onNotificationEnabledChange = {},
+                    settings = game.settings,
+                    isNotificationEnabled = state.isNotificationEnabled,
+                    onNotificationEnabledChange = { isEnabled ->
+                        viewModel.onAction(
+                            PlayGameAction.SetNotificationEnabled(
+                                isEnabled
+                            )
+                        )
+                    },
                 )
             }
         }

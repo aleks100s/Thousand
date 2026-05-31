@@ -10,11 +10,26 @@ sealed interface MenuRoute {
     data object Rules : MenuRoute
 
     @Serializable
-    data object Tutorial : MenuRoute
+    data object TutorialGame : MenuRoute
+
+    @Serializable
+    data object GamesList : MenuRoute
+
+    @Serializable
+    data object CreateGame : MenuRoute
 
     @Serializable
     data object Statistics : MenuRoute
 
     @Serializable
     data object Users : MenuRoute
+
+    @Serializable
+    data class PlayGame(val gameId: Long) : MenuRoute
+
+    @Serializable
+    data class GameScore(val gameId: Long) : MenuRoute
+
+    @Serializable
+    data class GameResults(val gameId: Long) : MenuRoute
 }

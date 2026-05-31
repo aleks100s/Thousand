@@ -36,11 +36,11 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun MenuScreen(
     onCreateGame: () -> Unit,
-    onTutorialGame: () -> Unit,
     openGamesHistory: () -> Unit,
     openRules: () -> Unit,
     openTutorial: () -> Unit,
     openStatistics: () -> Unit,
+    openUsers: () -> Unit,
 ) {
     val viewModel: MenuViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -51,8 +51,7 @@ fun MenuScreen(
         title = "Меню",
     ) { modifier ->
         LazyVerticalGrid(
-            modifier = modifier
-                .fillMaxSize(),
+            modifier = modifier.fillMaxSize(),
             columns = GridCells.Fixed(2),
             contentPadding = PaddingValues(16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -74,6 +73,7 @@ fun MenuScreen(
                             MenuTileAction.Rules -> openRules()
                             MenuTileAction.GamesHistory -> openGamesHistory()
                             MenuTileAction.Statistics -> openStatistics()
+                            MenuTileAction.Users -> openUsers()
                             MenuTileAction.NewGame -> {
                                 if (state.isFirstLaunch) {
                                     isTutorialSheetVisible = true
@@ -111,7 +111,7 @@ fun MenuScreen(
                     onClick = {
                         isTutorialSheetVisible = false
                         viewModel.onAction(MenuAction.CompleteFirstLaunch)
-                        onTutorialGame()
+                        openTutorial()
                     },
                 ) {
                     Text("Да, хочу научиться")

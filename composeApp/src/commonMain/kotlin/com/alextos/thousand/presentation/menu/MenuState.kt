@@ -4,6 +4,18 @@ data class MenuState(
     val isFirstLaunch: Boolean = true,
     val tiles: List<MenuTile> = listOf(
         MenuTile(
+            title = "Игроки",
+            description = "Управление игроками",
+            size = MenuTileSize.Default,
+            action = MenuTileAction.Users,
+        ),
+        MenuTile(
+            title = "Игроки",
+            description = "Управление игроками",
+            size = MenuTileSize.Default,
+            action = MenuTileAction.Users,
+        ),
+        MenuTile(
             title = "Обучение",
             description = "Тестовая партия с подсказками",
             size = MenuTileSize.Default,
@@ -53,5 +65,6 @@ enum class MenuTileAction {
     Rules,
     GamesHistory,
     Statistics,
+    Users,
     NewGame,
 }

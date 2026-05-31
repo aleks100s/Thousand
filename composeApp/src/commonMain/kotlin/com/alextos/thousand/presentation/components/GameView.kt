@@ -37,7 +37,7 @@ import com.alextos.thousand.domain.usecase.game.server.GameAction
 import com.alextos.thousand.domain.usecase.game.server.GameState
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.GameButton
-import com.alextos.thousand.presentation.game.play_game.components.ManualDiceInputView
+import com.alextos.thousand.presentation.menu.play_game.components.ManualDiceInputView
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -205,7 +205,9 @@ private fun ButtonsView(
                 isManualInputShown = false
             }
         ) {
-            ManualDiceInputView(count = state.rollAbility.count) {
+            ManualDiceInputView(
+                count = state.rollAbility.count
+            ) {
                 isManualInputShown = false
                 onAction(GameAction.ApplyRoll(it))
             }
