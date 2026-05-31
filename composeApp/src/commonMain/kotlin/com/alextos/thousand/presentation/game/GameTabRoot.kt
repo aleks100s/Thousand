@@ -18,10 +18,24 @@ fun GameTabRoot() {
 
     NavHost(
         navController = navController,
-        startDestination = GameRoute.GamesList,
+        startDestination = GameRoute.Menu,
     ) {
+        horizontalTransition<GameRoute.Menu> { _ ->
+            MenuRoot(
+                onCreateGame = {
+                    navController.navigate(GameRoute.CreateGame)
+                },
+                onTutorialGame = {
+                    navController.navigate(GameRoute.TutorialGame)
+                },
+                openGamesHistory = {
+                    navController.navigate(GameRoute.GamesList)
+                },
+            )
+        }
         horizontalTransition<GameRoute.GamesList> { _ ->
             GamesListScreen(
+                goBack = navController::popBackStack,
                 onGameClick = { game ->
                     if (game.isFinished) {
                         navController.navigate(GameRoute.GameScore(game.id))
@@ -33,15 +47,6 @@ fun GameTabRoot() {
                     navController.navigate(GameRoute.PlayGame(it)) {
                         popUpTo(GameRoute.GamesList)
                     }
-                },
-                onCreateGame = {
-                    navController.navigate(GameRoute.CreateGame)
-                },
-                onTutorialGame = {
-                    navController.navigate(GameRoute.TutorialGame)
-                },
-                openMenu = {
-                    navController.navigate(GameRoute.Menu)
                 },
             )
         }
@@ -86,9 +91,6 @@ fun GameTabRoot() {
                 onGoBack = navController::popBackStack,
                 onFinish = navController::popBackStack
             )
-        }
-        horizontalTransition<GameRoute.Menu> { _ ->
-            MenuRoot(navController::popBackStack)
         }
     }
 }

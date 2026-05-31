@@ -1,5 +1,6 @@
 package com.alextos.thousand.di
 
+import com.alextos.thousand.application.AppViewModel
 import com.alextos.thousand.data.ThousandDatabase
 import com.alextos.thousand.data.dao.DiceRollDao
 import com.alextos.thousand.data.dao.DieDao
@@ -14,7 +15,6 @@ import com.alextos.thousand.data.local.KeyValueStorage
 import com.alextos.thousand.data.repository.GameRepositoryImpl
 import com.alextos.thousand.data.repository.StatisticsRepositoryImpl
 import com.alextos.thousand.data.service.StorageServiceImpl
-import com.alextos.thousand.application.AppViewModel
 import com.alextos.thousand.domain.repository.GameRepository
 import com.alextos.thousand.domain.repository.MultiplayerManager
 import com.alextos.thousand.domain.repository.StatisticsRepository
@@ -26,50 +26,51 @@ import com.alextos.thousand.domain.usecase.SignUpUseCase
 import com.alextos.thousand.domain.usecase.game.ApplyDiceRollRestrictionsUseCase
 import com.alextos.thousand.domain.usecase.game.CalculateDiceRollScoreUseCase
 import com.alextos.thousand.domain.usecase.game.DetermineAvailableButtonsUseCase
+import com.alextos.thousand.domain.usecase.game.FindCurrentPlayerUseCase
+import com.alextos.thousand.domain.usecase.game.FormatTurnEffectUseCase
+import com.alextos.thousand.domain.usecase.game.LoadGameTurnsUseCase
+import com.alextos.thousand.domain.usecase.game.LoadGameUseCase
+import com.alextos.thousand.domain.usecase.game.MakeBotDecisionUseCase
+import com.alextos.thousand.domain.usecase.game.MakeBotReplyUseCase
+import com.alextos.thousand.domain.usecase.game.RollTheDiceUseCase
+import com.alextos.thousand.domain.usecase.game.SaveTurnUseCase
+import com.alextos.thousand.domain.usecase.game.TutorialRollUseCase
 import com.alextos.thousand.domain.usecase.game.crud.CreateGameUseCase
 import com.alextos.thousand.domain.usecase.game.crud.CreateRematchUseCase
 import com.alextos.thousand.domain.usecase.game.crud.DeleteGameUseCase
-import com.alextos.thousand.domain.usecase.user.DeleteUserUseCase
-import com.alextos.thousand.domain.usecase.game.FindCurrentPlayerUseCase
-import com.alextos.thousand.domain.usecase.game.FormatTurnEffectUseCase
-import com.alextos.thousand.domain.usecase.game.MakeBotReplyUseCase
-import com.alextos.thousand.domain.usecase.game.MakeBotDecisionUseCase
+import com.alextos.thousand.domain.usecase.game.crud.GetAllGamesUseCase
+import com.alextos.thousand.domain.usecase.game.crud.UpdateGameUseCase
 import com.alextos.thousand.domain.usecase.game.server.LocalGameServer
 import com.alextos.thousand.domain.usecase.game.server.TutorialGameServer
-import com.alextos.thousand.domain.usecase.user.GenerateBotNameUseCase
-import com.alextos.thousand.domain.usecase.game.crud.GetAllGamesUseCase
-import com.alextos.thousand.domain.usecase.user.GetAllUsersUseCase
-import com.alextos.thousand.domain.usecase.game.LoadGameUseCase
-import com.alextos.thousand.domain.usecase.game.LoadGameTurnsUseCase
 import com.alextos.thousand.domain.usecase.statistics.DiceStatisticsUseCase
 import com.alextos.thousand.domain.usecase.statistics.EventsStatisticsUseCase
 import com.alextos.thousand.domain.usecase.statistics.GamesStatisticsUseCase
 import com.alextos.thousand.domain.usecase.statistics.RollsStatisticsUseCase
 import com.alextos.thousand.domain.usecase.statistics.TurnsStatisticsUseCase
-import com.alextos.thousand.domain.usecase.game.RollTheDiceUseCase
-import com.alextos.thousand.domain.usecase.game.SaveTurnUseCase
-import com.alextos.thousand.domain.usecase.game.TutorialRollUseCase
+import com.alextos.thousand.domain.usecase.user.DeleteUserUseCase
+import com.alextos.thousand.domain.usecase.user.GenerateBotNameUseCase
+import com.alextos.thousand.domain.usecase.user.GetAllUsersUseCase
 import com.alextos.thousand.domain.usecase.user.SaveUserUseCase
 import com.alextos.thousand.domain.usecase.user.UpdateUserUseCase
-import com.alextos.thousand.domain.usecase.game.crud.UpdateGameUseCase
 import com.alextos.thousand.presentation.game.create_game.CreateGameViewModel
 import com.alextos.thousand.presentation.game.game_list.GamesListViewModel
-import com.alextos.thousand.presentation.game.game_rules.GameRulesViewModel
 import com.alextos.thousand.presentation.game.game_results.GameResultsViewModel
+import com.alextos.thousand.presentation.game.game_rules.GameRulesViewModel
 import com.alextos.thousand.presentation.game.game_score.GameScoreViewModel
 import com.alextos.thousand.presentation.game.play_game.PlayGameViewModel
-import com.alextos.thousand.presentation.multiplayer.MultiplayerViewModel
-import com.alextos.thousand.presentation.multiplayer.create_lobby.CreateLobbyViewModel
-import com.alextos.thousand.presentation.multiplayer.lobby.LobbyViewModel
-import com.alextos.thousand.presentation.multiplayer.multiplayer_game.MultiplayerGameViewModel
-import com.alextos.thousand.presentation.game.tutorial_game.TutorialGameViewModel
-import com.alextos.thousand.presentation.onboarding.FirstUserViewModel
-import com.alextos.thousand.presentation.game.users.UsersViewModel
 import com.alextos.thousand.presentation.game.statistics.dice_statistics.DiceStatisticsViewModel
 import com.alextos.thousand.presentation.game.statistics.events_statistics.EventsStatisticsViewModel
 import com.alextos.thousand.presentation.game.statistics.games_statistics.GamesStatisticsViewModel
 import com.alextos.thousand.presentation.game.statistics.roll_statistics.RollsStatisticsViewModel
 import com.alextos.thousand.presentation.game.statistics.turn_statistics.TurnsStatisticsViewModel
+import com.alextos.thousand.presentation.game.tutorial_game.TutorialGameViewModel
+import com.alextos.thousand.presentation.game.users.UsersViewModel
+import com.alextos.thousand.presentation.menu.MenuViewModel
+import com.alextos.thousand.presentation.multiplayer.MultiplayerViewModel
+import com.alextos.thousand.presentation.multiplayer.create_lobby.CreateLobbyViewModel
+import com.alextos.thousand.presentation.multiplayer.lobby.LobbyViewModel
+import com.alextos.thousand.presentation.multiplayer.multiplayer_game.MultiplayerGameViewModel
+import com.alextos.thousand.presentation.onboarding.FirstUserViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
@@ -116,6 +117,7 @@ fun appModule(
     viewModelOf(::PlayGameViewModel)
     viewModelOf(::GameScoreViewModel)
     viewModelOf(::GameResultsViewModel)
+    viewModelOf(::MenuViewModel)
     viewModelOf(::MultiplayerViewModel)
     viewModelOf(::CreateLobbyViewModel)
     viewModelOf(::LobbyViewModel)

@@ -33,7 +33,7 @@ class AndroidAccountService(
         if (user == null) {
             startSilentAuthenticationFlow(activity)
         } else {
-            updateUserProfile(id = user.uid, name = user.displayName ?: user.uid)
+            updateUserProfile(id = user.uid, name = user.displayName ?: user.email ?: user.uid)
             if (user.providerData.none { it.providerId == "password" }) {
                 signInPlayGames(activity)
             }

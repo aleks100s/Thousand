@@ -10,7 +10,11 @@ import com.alextos.thousand.presentation.game.tutorial_game.TutorialGameScreen
 import com.alextos.thousand.presentation.game.users.UsersScreen
 
 @Composable
-fun MenuRoot(goBack: () -> Unit) {
+fun MenuRoot(
+    onCreateGame: () -> Unit,
+    onTutorialGame: () -> Unit,
+    openGamesHistory: () -> Unit,
+) {
     val navController = rememberNavController()
 
     NavHost(
@@ -19,7 +23,9 @@ fun MenuRoot(goBack: () -> Unit) {
     ) {
         horizontalTransition<MenuRoute.Menu> {
             MenuScreen(
-                goBack = goBack,
+                onCreateGame = onCreateGame,
+                onTutorialGame = onTutorialGame,
+                openGamesHistory = openGamesHistory,
                 openRules = {
                     navController.navigate(MenuRoute.Rules)
                 },
@@ -28,9 +34,6 @@ fun MenuRoot(goBack: () -> Unit) {
                 },
                 openStatistics = {
                     navController.navigate(MenuRoute.Statistics)
-                },
-                openUsers = {
-                    navController.navigate(MenuRoute.Users)
                 },
             )
         }

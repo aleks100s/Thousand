@@ -39,7 +39,7 @@ final class IOSAccountService: MutableNativeAccountService {
                 return
             }
             
-            self?.updateUserProfile(id: user.uid, name: user.displayName ?? user.uid)
+            self?.updateUserProfile(id: user.uid, name: user.displayName ?? user.email ?? user.uid)
             completionHandler(nil)
         }
     }

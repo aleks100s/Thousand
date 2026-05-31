@@ -14,22 +14,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -47,7 +41,6 @@ import com.alextos.thousand.presentation.models.GameUi
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
-import thousand.composeapp.generated.resources.add_24px
 import thousand.composeapp.generated.resources.casino_24px
 import thousand.composeapp.generated.resources.notifications_24px
 import thousand.composeapp.generated.resources.notifications_off_24px
@@ -56,15 +49,12 @@ import thousand.composeapp.generated.resources.sports_esports_24px
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun GamesListScreen(
+    goBack: () -> Unit,
     onGameClick: (GameUi) -> Unit,
     openGame: (Long) -> Unit,
-    onCreateGame: () -> Unit,
-    onTutorialGame: () -> Unit,
-    openMenu: () -> Unit,
 ) {
     val viewModel: GamesListViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
-    var isTutorialSheetVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.onAction(GamesListAction.LoadGames)
@@ -81,35 +71,7 @@ fun GamesListScreen(
     Screen(
         modifier = Modifier,
         title = "Список игр",
-        actions = {
-            {
-                TextButton(onClick = openMenu) {
-                    Text("Меню")
-                }
-            }
-        },
-        floatingActionButton = {
-            if (state.isFABShown) {
-                ExtendedFloatingActionButton(
-                    text = {
-                        Text("Начать игру")
-                    },
-                    icon = {
-                        Icon(
-                            painterResource(Res.drawable.add_24px),
-                            contentDescription = null
-                        )
-                    },
-                    onClick = {
-                        if (state.isFirstLaunch) {
-                            isTutorialSheetVisible = true
-                        } else {
-                            onCreateGame()
-                        }
-                    },
-                )
-            }
-        },
+        goBack = goBack
     ) { modifier ->
         if (state.isLoading) {
             Box(modifier.fillMaxSize(), Alignment.Center) {
@@ -125,20 +87,7 @@ fun GamesListScreen(
                     icon = Res.drawable.casino_24px,
                     title = "Здесь будут ваши игры",
                     text = "Создайте новую партию, чтобы собрать игроков, бросать кубики и сохранить историю счета.",
-                ) {
-                    Button(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = {
-                            if (state.isFirstLaunch) {
-                                isTutorialSheetVisible = true
-                            } else {
-                                onCreateGame()
-                            }
-                        },
-                    ) {
-                        Text("Начать игру")
-                    }
-                }
+                )
             }
         } else {
             LazyColumn(
@@ -165,49 +114,6 @@ fun GamesListScreen(
 
                 item {
                     Spacer(Modifier.height(100.dp))
-                }
-            }
-        }
-    }
-
-    if (isTutorialSheetVisible) {
-        ModalBottomSheet(
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-            onDismissRequest = {
-                isTutorialSheetVisible = false
-            },
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                Text(
-                    text = "Хотите пройти обучение и сыграть тестовую игру?",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = {
-                        isTutorialSheetVisible = false
-                        viewModel.onAction(GamesListAction.CompleteFirstLaunch)
-                        onTutorialGame()
-                    },
-                ) {
-                    Text("Да, хочу научиться")
-                }
-
-                OutlinedButton(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = {
-                        isTutorialSheetVisible = false
-                        viewModel.onAction(GamesListAction.CompleteFirstLaunch)
-                        onCreateGame()
-                    },
-                ) {
-                    Text("Нет, я умею играть")
                 }
             }
         }
