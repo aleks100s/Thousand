@@ -1,5 +1,7 @@
 package com.alextos.thousand.application.navigation
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,7 +27,13 @@ fun AppNavHost(
             .fillMaxSize()
             .padding(bottom = contentPadding.calculateBottomPadding()),
     ) {
-        composable(BottomTab.Game.route) {
+        composable(
+            enterTransition = { fadeIn() },
+            exitTransition = { fadeOut() },
+            popEnterTransition = { fadeIn() },
+            popExitTransition = { fadeOut() },
+            route = BottomTab.Game.route
+        ) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = contentAlignment,
@@ -34,7 +42,13 @@ fun AppNavHost(
             }
         }
 
-        composable(BottomTab.Multiplayer.route) {
+        composable(
+            enterTransition = { fadeIn() },
+            exitTransition = { fadeOut() },
+            popEnterTransition = { fadeIn() },
+            popExitTransition = { fadeOut() },
+            route = BottomTab.Multiplayer.route
+        ) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = contentAlignment,
