@@ -15,6 +15,16 @@ internal fun Any?.asFirebaseMapList(): List<Map<*, *>> =
         else -> emptyList()
     }
 
+internal fun Any?.asFirebaseStringList(): List<String> =
+    when (this) {
+        is List<*> -> mapNotNull { item -> item as? String }
+        is Map<*, *> -> entries
+            .sortedWith(compareBy<Map.Entry<*, *>> { entry -> entry.key.toString().toIntOrNull() ?: Int.MAX_VALUE }
+                .thenBy { entry -> entry.key.toString() })
+            .mapNotNull { entry -> entry.value as? String }
+        else -> emptyList()
+    }
+
 internal fun Map<*, *>?.boolean(key: String, defaultValue: Boolean): Boolean =
     this?.get(key).asBoolean() ?: defaultValue
 

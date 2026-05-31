@@ -18,6 +18,7 @@ internal fun RemoteGame.toFirebaseMap(): Map<String, Any> =
         put("currentTurn", currentTurn.map { roll -> roll.toFirebaseMap() })
         put("rollAbility", rollAbility.name)
         put("buttons", buttons.map { button -> button.name })
+        put("messagesToShow", messagesToShow)
         put("currentPlayerIndex", currentPlayerIndex)
 
         currentRoll?.let { roll ->
@@ -48,5 +49,6 @@ internal fun Map<*, *>.toFirebaseGame(key: String?): RemoteGame {
                 .mapNotNull { entry -> entry.value.toFirebaseGameButton() }
             else -> emptyList()
         },
+        messagesToShow = get("messagesToShow").asFirebaseStringList(),
     )
 }

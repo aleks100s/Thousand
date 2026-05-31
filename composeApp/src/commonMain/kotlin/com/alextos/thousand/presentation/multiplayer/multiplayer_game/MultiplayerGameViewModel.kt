@@ -185,7 +185,8 @@ class MultiplayerGameViewModel(
                 isGameOver = false,
                 rollAbility = rawResult.rerollAbility,
                 isTutorial = false
-            )
+            ),
+            messagesToShow = emptyList()
         ) ?: return
 
         viewModelScope.launch {
@@ -234,7 +235,8 @@ class MultiplayerGameViewModel(
                 isGameOver = false,
                 rollAbility = RollAbility.REQUIRED,
                 isTutorial = false
-            )
+            ),
+            messagesToShow = messages
         )
         multiplayerManager.updateGame(newGame)
     }
@@ -253,7 +255,8 @@ class MultiplayerGameViewModel(
                     rollAbility = RollAbility.REQUIRED,
                     currentPlayer = null,
                     isTutorial = false
-                )
+                ),
+                messagesToShow = messages
             ) ?: return@launch
             multiplayerManager.updateGame(game)
         }
