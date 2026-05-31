@@ -40,7 +40,7 @@ fun GameStatusView(
     ) {
         if (isFinished) {
             Text(
-                text = finishedAt.orEmpty(),
+                text = finishedAt ?: "Завершена",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onTertiaryContainer,
             )

@@ -311,7 +311,7 @@ private fun ButtonsView(
                                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                             )
                         ) {
-                            Text("Ход бота")
+                            Text("Ход оппонента")
                         }
                     }
                 }

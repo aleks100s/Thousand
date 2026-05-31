@@ -126,6 +126,17 @@ fun MultiplayerGameScreen(
                     ) {
                         Text("Удалить игру")
                     }
+                } else {
+                    TextButton(
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error,
+                        ),
+                        onClick = {
+                            isDeleteGameSheetVisible = true
+                        },
+                    ) {
+                        Text("Покинуть игру")
+                    }
                 }
             }
         },
