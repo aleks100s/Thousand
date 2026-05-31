@@ -33,6 +33,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -337,6 +338,9 @@ private fun JoinLobbySheet(
     state: MultiplayerState,
     onAction: (MultiplayerAction) -> Unit,
 ) {
+    var lobbyId by rememberSaveable { mutableStateOf(state.lobbyId) }
+    val canJoinLobby = lobbyId.trim().isNotBlank()
+
     ModalBottomSheet(
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         onDismissRequest = {
@@ -355,9 +359,9 @@ private fun JoinLobbySheet(
             )
 
             OutlinedTextField(
-                value = state.lobbyId,
+                value = lobbyId,
                 onValueChange = { value ->
-                    onAction(MultiplayerAction.UpdateLobbyId(value))
+                    lobbyId = value
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = {
@@ -368,8 +372,9 @@ private fun JoinLobbySheet(
 
             Button(
                 modifier = Modifier.fillMaxWidth(),
-                enabled = state.canJoinLobby,
+                enabled = canJoinLobby,
                 onClick = {
+                    onAction(MultiplayerAction.UpdateLobbyId(lobbyId))
                     onAction(MultiplayerAction.JoinLobby)
                 },
             ) {
@@ -385,6 +390,11 @@ private fun LoginSheet(
     state: MultiplayerState,
     onAction: (MultiplayerAction) -> Unit,
 ) {
+    var email by rememberSaveable { mutableStateOf(state.email) }
+    var password by rememberSaveable { mutableStateOf(state.password) }
+    val canSubmit = email.trim().isNotBlank() && password.isNotBlank()
+    val buttonsEnabled = state.isLoginInProgress.not() && state.isSignUpInProgress.not() && canSubmit
+
     ModalBottomSheet(
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         onDismissRequest = {
@@ -403,9 +413,9 @@ private fun LoginSheet(
             )
 
             OutlinedTextField(
-                value = state.email,
+                value = email,
                 onValueChange = { value ->
-                    onAction(MultiplayerAction.UpdateEmail(value))
+                    email = value
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = {
@@ -416,9 +426,9 @@ private fun LoginSheet(
             )
 
             OutlinedTextField(
-                value = state.password,
+                value = password,
                 onValueChange = { value ->
-                    onAction(MultiplayerAction.UpdatePassword(value))
+                    password = value
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = {
@@ -439,8 +449,10 @@ private fun LoginSheet(
             ) {
                 OutlinedButton(
                     modifier = Modifier.weight(1f),
-                    enabled = state.loginSheetButtonsEnabled,
+                    enabled = buttonsEnabled,
                     onClick = {
+                        onAction(MultiplayerAction.UpdateEmail(email))
+                        onAction(MultiplayerAction.UpdatePassword(password))
                         onAction(MultiplayerAction.SignUp)
                     },
                 ) {
@@ -456,8 +468,10 @@ private fun LoginSheet(
 
                 Button(
                     modifier = Modifier.weight(1f),
-                    enabled = state.loginSheetButtonsEnabled,
+                    enabled = buttonsEnabled,
                     onClick = {
+                        onAction(MultiplayerAction.UpdateEmail(email))
+                        onAction(MultiplayerAction.UpdatePassword(password))
                         onAction(MultiplayerAction.LogIn)
                     },
                 ) {
