@@ -1,5 +1,6 @@
 package com.alextos.thousand.domain.repository
 
+import com.alextos.thousand.domain.models.Effect
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.models.User
@@ -22,6 +23,10 @@ interface GameRepository {
     suspend fun getGame(id: Long): Game?
 
     suspend fun getAllTurns(gameID: Long): List<Turn>
+
+    fun getAllTurns(): Flow<List<Turn>>
+
+    fun getTurnEffectCount(userId: String, effect: Effect): Flow<Int>
 
     suspend fun saveTurn(turn: Turn, game: Game): Turn
 

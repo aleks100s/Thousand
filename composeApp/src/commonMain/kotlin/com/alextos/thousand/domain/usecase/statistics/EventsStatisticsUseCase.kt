@@ -2,7 +2,7 @@ package com.alextos.thousand.domain.usecase.statistics
 
 import com.alextos.thousand.domain.models.Effect
 import com.alextos.thousand.domain.models.User
-import com.alextos.thousand.domain.repository.StatisticsRepository
+import com.alextos.thousand.domain.repository.GameRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -11,11 +11,11 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 class EventsStatisticsUseCase(
-    private val statisticsRepository: StatisticsRepository,
+    private val gameRepository: GameRepository,
 ) {
     @OptIn(ExperimentalCoroutinesApi::class)
     operator fun invoke(): Flow<EventsStatistics> {
-        return statisticsRepository.getAllUsers().flatMapLatest { users ->
+        return gameRepository.getAllUsers().flatMapLatest { users ->
             val sortedUsers = users
                 .distinctBy { user -> user.id }
                 .sortedBy { user -> user.name }
@@ -33,7 +33,7 @@ class EventsStatisticsUseCase(
     private fun List<User>.toEventCountFlows(): List<Flow<EventCount>> {
         return flatMap { user ->
             statisticsEvents.map { event ->
-                statisticsRepository.getTurnEffectCount(user.id, event).map { count ->
+                gameRepository.getTurnEffectCount(user.id, event).map { count ->
                     EventCount(
                         user = user,
                         effect = event,

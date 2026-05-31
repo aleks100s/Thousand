@@ -13,11 +13,9 @@ import com.alextos.thousand.data.dao.UserDao
 import com.alextos.thousand.data.local.DataStoreKeyValueStorage
 import com.alextos.thousand.data.local.KeyValueStorage
 import com.alextos.thousand.data.repository.GameRepositoryImpl
-import com.alextos.thousand.data.repository.StatisticsRepositoryImpl
 import com.alextos.thousand.data.service.StorageServiceImpl
 import com.alextos.thousand.domain.repository.GameRepository
 import com.alextos.thousand.domain.repository.MultiplayerRepository
-import com.alextos.thousand.domain.repository.StatisticsRepository
 import com.alextos.thousand.domain.service.NativeAccountService
 import com.alextos.thousand.domain.service.ShakeDeviceObserver
 import com.alextos.thousand.domain.service.StorageService
@@ -95,7 +93,6 @@ fun appModule(
     single<KeyValueStorage> { DataStoreKeyValueStorage(get()) }
     single<StorageService> { StorageServiceImpl(get()) }
     single<GameRepository> { GameRepositoryImpl(get(), get(), get(), get(), get(), get(), get(), get()) }
-    single<StatisticsRepository> { StatisticsRepositoryImpl(get(), get(), get(), get()) }
     single<NativeAccountService> { nativeAccountService }
     single<MultiplayerRepository> { multiplayerRepository }
     factory { GetAllGamesUseCase(get()) }

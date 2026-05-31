@@ -1,15 +1,15 @@
 package com.alextos.thousand.domain.usecase.statistics
 
 import com.alextos.thousand.domain.models.Game
-import com.alextos.thousand.domain.repository.StatisticsRepository
+import com.alextos.thousand.domain.repository.GameRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class GamesStatisticsUseCase(
-    private val statisticsRepository: StatisticsRepository,
+    private val gameRepository: GameRepository,
 ) {
     operator fun invoke(): Flow<GamesStatistics> {
-        return statisticsRepository.getAllGames().map { games ->
+        return gameRepository.getAllGames().map { games ->
             val finishedGames = games.filter { game -> game.isFinished() }
 
             GamesStatistics(

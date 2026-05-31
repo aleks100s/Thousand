@@ -10,6 +10,8 @@ import com.alextos.thousand.data.dao.TurnResultDao
 import com.alextos.thousand.data.dao.UserDao
 import com.alextos.thousand.data.mappers.room.toEntity
 import com.alextos.thousand.data.mappers.room.toDomain
+import com.alextos.thousand.data.mappers.room.toStorageValue
+import com.alextos.thousand.domain.models.Effect
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.models.User
@@ -72,6 +74,19 @@ class GameRepositoryImpl(
         return turnDao.getTurns(gameID).map {
             it.toDomain()
         }
+    }
+
+    override fun getAllTurns(): Flow<List<Turn>> {
+        return turnDao.getAllTurns().map { turns ->
+            turns.map { it.toDomain() }
+        }
+    }
+
+    override fun getTurnEffectCount(userId: String, effect: Effect): Flow<Int> {
+        return turnEffectDao.getEffectsCount(
+            userId = userId,
+            effectType = effect.toStorageValue(),
+        )
     }
 
     override suspend fun saveTurn(turn: Turn, game: Game): Turn {

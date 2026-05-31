@@ -2,15 +2,15 @@ package com.alextos.thousand.domain.usecase.statistics
 
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.Turn
-import com.alextos.thousand.domain.repository.StatisticsRepository
+import com.alextos.thousand.domain.repository.GameRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class RollsStatisticsUseCase(
-    private val statisticsRepository: StatisticsRepository,
+    private val gameRepository: GameRepository,
 ) {
     operator fun invoke(): Flow<RollsStatistics> {
-        return statisticsRepository.getAllTurns().map { turns ->
+        return gameRepository.getAllTurns().map { turns ->
             val rolls = turns.allRolls()
 
             RollsStatistics(
