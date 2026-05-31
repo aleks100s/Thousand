@@ -2,7 +2,7 @@ package com.alextos.thousand.di
 
 import com.alextos.thousand.domain.service.NativeAccountService
 import com.alextos.thousand.domain.service.ShakeDeviceObserver
-import com.alextos.thousand.domain.repository.MultiplayerManager
+import com.alextos.thousand.domain.repository.MultiplayerRepository
 import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
@@ -11,13 +11,13 @@ import org.koin.core.logger.PrintLogger
 fun initKoin(
     shakeDeviceObserver: ShakeDeviceObserver,
     nativeAccountService: NativeAccountService,
-    multiplayerManager: MultiplayerManager,
+    multiplayerRepository: MultiplayerRepository,
     appDeclaration: KoinApplication.() -> Unit = {},
 ): KoinApplication {
     val koinApplication = startKoin {
         logger(PrintLogger(Level.INFO))
         appDeclaration()
-        modules(appModule(shakeDeviceObserver, nativeAccountService, multiplayerManager))
+        modules(appModule(shakeDeviceObserver, nativeAccountService, multiplayerRepository))
     }
 
     return koinApplication
@@ -26,5 +26,5 @@ fun initKoin(
 fun doInitKoin(
     shakeDeviceObserver: ShakeDeviceObserver,
     nativeAccountService: NativeAccountService,
-    multiplayerManager: MultiplayerManager,
-): KoinApplication = initKoin(shakeDeviceObserver, nativeAccountService, multiplayerManager)
+    multiplayerRepository: MultiplayerRepository,
+): KoinApplication = initKoin(shakeDeviceObserver, nativeAccountService, multiplayerRepository)

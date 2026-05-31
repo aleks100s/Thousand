@@ -8,7 +8,7 @@ extension DataSnapshot {
     }
 }
 
-extension IOSMultiplayerManager {
+extension IOSMultiplayerRepository {
     func firebaseDictionary(from value: Any?) -> [String: Any]? {
         normalizedFirebaseDictionary(from: value)
     }

@@ -4,7 +4,7 @@ import com.alextos.thousand.data.repository.mappers.toDatabaseMap
 import com.alextos.thousand.data.repository.mappers.toGame
 import com.alextos.thousand.data.repository.mappers.toLobby
 import com.alextos.thousand.domain.models.GameButton
-import com.alextos.thousand.domain.repository.MultiplayerManager
+import com.alextos.thousand.domain.repository.MultiplayerRepository
 import com.alextos.thousand.domain.models.GameSettings
 import com.alextos.thousand.domain.models.Lobby
 import com.alextos.thousand.domain.models.Player
@@ -28,7 +28,7 @@ import kotlin.collections.plus
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-class MultiplayerManagerImpl : MultiplayerManager {
+class MultiplayerRepositoryImpl : MultiplayerRepository {
     companion object {
         private const val LOBBIES_NODE = "lobbies"
         private const val GAMES_NODE = "games"

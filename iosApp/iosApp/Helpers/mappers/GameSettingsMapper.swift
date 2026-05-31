@@ -1,6 +1,6 @@
 import ComposeApp
 
-extension IOSMultiplayerManager {
+extension IOSMultiplayerRepository {
     func dictionary(from gameSettings: GameSettings) -> [String: Any] {
         swiftDictionary(from: FirebaseGameSettingsMapper.shared.dictionary(from: gameSettings))
     }

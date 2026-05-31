@@ -2,7 +2,7 @@ import ComposeApp
 import FirebaseAuth
 import Foundation
 
-extension IOSMultiplayerManager {
+extension IOSMultiplayerRepository {
     func currentPlayer() -> ComposeApp.User {
         let currentUser = Auth.auth().currentUser
         return User(

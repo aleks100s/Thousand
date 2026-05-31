@@ -1,5 +1,5 @@
 //
-//  IOSMultiplayerManager.swift
+//  IOSMultiplayerRepository.swift
 //  iosApp
 //
 //  Created by Codex on 23.05.2026.
@@ -10,7 +10,7 @@ import FirebaseAuth
 import FirebaseDatabase
 import Foundation
 
-final class IOSMultiplayerManager: MultiplayerManager {
+final class IOSMultiplayerRepository: MultiplayerRepository {
     func createLobby(gameSettings: GameSettings) async throws -> String {
         let gameID = String(Int.random(in: 1000...10000))
         let currentUser = Auth.auth().currentUser
@@ -49,7 +49,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
                 guard let childSnapshot = snapshot.children.allObjects.first as? DataSnapshot,
                       let lobby = self?.lobby(from: childSnapshot.firebaseDictionary, key: childSnapshot.key) else {
                     let error = NSError(
-                        domain: "IOSMultiplayerManager",
+                        domain: "IOSMultiplayerRepository",
                         code: 1,
                         userInfo: [NSLocalizedDescriptionKey: "Failed to join lobby."]
                     )
@@ -165,7 +165,7 @@ final class IOSMultiplayerManager: MultiplayerManager {
         let data = snapshot.value as? [String: [String: Any]]
         guard let lobby = lobby(from: data?[key] ?? [:], key: key) else {
             throw NSError(
-                domain: "IOSMultiplayerManager",
+                domain: "IOSMultiplayerRepository",
                 code: 1,
                 userInfo: [NSLocalizedDescriptionKey: "Failed to start game."]
             )

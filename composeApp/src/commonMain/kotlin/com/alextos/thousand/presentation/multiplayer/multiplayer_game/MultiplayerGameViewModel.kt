@@ -9,7 +9,7 @@ import com.alextos.thousand.domain.models.Die
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.RemoteGame
 import com.alextos.thousand.domain.models.RollAbility
-import com.alextos.thousand.domain.repository.MultiplayerManager
+import com.alextos.thousand.domain.repository.MultiplayerRepository
 import com.alextos.thousand.domain.service.DiceHapticsService
 import com.alextos.thousand.domain.service.NativeAccountService
 import com.alextos.thousand.domain.service.ShakeDeviceObserver
@@ -39,7 +39,7 @@ class MultiplayerGameViewModel(
     savedStateHandle: SavedStateHandle,
     shakeDeviceObserver: ShakeDeviceObserver,
     private val accountService: NativeAccountService,
-    private val multiplayerManager: MultiplayerManager,
+    private val multiplayerRepository: MultiplayerRepository,
     private val rollTheDice: RollTheDiceUseCase,
     private val calculateDiceRollScore: CalculateDiceRollScoreUseCase,
     private val determineAvailableButtons: DetermineAvailableButtonsUseCase,
@@ -62,7 +62,7 @@ class MultiplayerGameViewModel(
     init {
         shakeDeviceObserver.delegate = this
         viewModelScope.launch {
-            multiplayerManager
+            multiplayerRepository
                 .observeGame(gameId)
                 .catch { error ->
                     _state.update {
@@ -132,7 +132,7 @@ class MultiplayerGameViewModel(
         viewModelScope.launch {
             try {
                 _events.emit(MultiplayerGameEvent.GameDeleted)
-                multiplayerManager.deleteGame(gameId)
+                multiplayerRepository.deleteGame(gameId)
             } catch (e: Exception) {
                 _state.update {
                     it.copy(error = e.message)
@@ -190,7 +190,7 @@ class MultiplayerGameViewModel(
         ) ?: return
 
         viewModelScope.launch {
-            multiplayerManager.updateGame(newGame)
+            multiplayerRepository.updateGame(newGame)
         }
     }
 
@@ -238,7 +238,7 @@ class MultiplayerGameViewModel(
             ),
             messagesToShow = messages
         )
-        multiplayerManager.updateGame(newGame)
+        multiplayerRepository.updateGame(newGame)
     }
 
     private fun finishGame(game: Game, messages: List<String>) {
@@ -258,7 +258,7 @@ class MultiplayerGameViewModel(
                 ),
                 messagesToShow = messages
             ) ?: return@launch
-            multiplayerManager.updateGame(game)
+            multiplayerRepository.updateGame(game)
         }
     }
 }

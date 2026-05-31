@@ -2,7 +2,7 @@ package com.alextos.thousand.presentation.multiplayer
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.alextos.thousand.domain.repository.MultiplayerManager
+import com.alextos.thousand.domain.repository.MultiplayerRepository
 import com.alextos.thousand.domain.service.NativeAccountService
 import com.alextos.thousand.domain.usecase.LogInUseCase
 import com.alextos.thousand.domain.usecase.SignUpUseCase
@@ -21,7 +21,7 @@ class MultiplayerViewModel(
     private val nativeAccountService: NativeAccountService,
     private val logInUseCase: LogInUseCase,
     private val signUpUseCase: SignUpUseCase,
-    private val multiplayerManager: MultiplayerManager
+    private val multiplayerRepository: MultiplayerRepository
 ) : ViewModel() {
     private val _state = MutableStateFlow(MultiplayerState())
     val state: StateFlow<MultiplayerState> = _state.asStateFlow()
@@ -75,8 +75,8 @@ class MultiplayerViewModel(
     private fun observeLobbies() {
         viewModelScope.launch {
            combine(
-               multiplayerManager.userLobbies(),
-               multiplayerManager.userGames()
+               multiplayerRepository.userLobbies(),
+               multiplayerRepository.userGames()
            ) { lobbies, games ->
                lobbies to games
            }
@@ -147,7 +147,7 @@ class MultiplayerViewModel(
 
         viewModelScope.launch {
             try {
-                val key = multiplayerManager.joinLobby(lobbyId)
+                val key = multiplayerRepository.joinLobby(lobbyId)
                 _state.update {
                     it.copy(isJoinLobbySheetVisible = false, lobbyId = "")
                 }
@@ -183,7 +183,7 @@ class MultiplayerViewModel(
     private fun deleteGame(key: String) {
         viewModelScope.launch {
             try {
-                multiplayerManager.deleteGame(key)
+                multiplayerRepository.deleteGame(key)
             } catch (_: Exception) {}
         }
     }
@@ -191,7 +191,7 @@ class MultiplayerViewModel(
     private fun disconnectFromLobby(key: String) {
         viewModelScope.launch {
             try {
-                multiplayerManager.disconnectFromLobby(key)
+                multiplayerRepository.disconnectFromLobby(key)
             } catch (_: Exception) {}
         }
     }

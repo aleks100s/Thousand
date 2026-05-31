@@ -1,6 +1,6 @@
 import ComposeApp
 
-extension IOSMultiplayerManager {
+extension IOSMultiplayerRepository {
     func dictionary(from lobby: Lobby) -> [String: Any] {
         swiftDictionary(from: FirebaseLobbyMapper.shared.dictionary(from: lobby))
     }
