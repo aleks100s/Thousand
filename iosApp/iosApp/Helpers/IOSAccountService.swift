@@ -39,7 +39,7 @@ final class IOSAccountService: MutableNativeAccountService {
                 return
             }
             
-            self?.updateUserProfile(id: user.uid, name: user.displayName ?? user.email ?? user.uid)
+            self?.updateUserProfile()
             completionHandler(nil)
         }
     }
@@ -80,7 +80,7 @@ final class IOSAccountService: MutableNativeAccountService {
     
     private func observeGameCenterAuthorization() {
         if let user = Auth.auth().currentUser {
-            updateUserProfile(id: user.uid, name: user.displayName ?? user.uid)
+            updateUserProfile()
         }
         
         GKLocalPlayer.local.authenticateHandler = { [weak self] viewController, error in
@@ -102,7 +102,7 @@ final class IOSAccountService: MutableNativeAccountService {
         if let error {
             handleAuthenticationError(error: error)
             if let user = Auth.auth().currentUser {
-                updateUserProfile(id: user.uid, name: user.displayName ?? user.uid)
+                updateUserProfile()
             }
             return
         }
@@ -111,7 +111,7 @@ final class IOSAccountService: MutableNativeAccountService {
             GKLocalPlayer.local.isMultiplayerGamingRestricted
         updateHideMultiplayer(hideMultiplayer: hideMultiplayer)
         if let user = Auth.auth().currentUser {
-            updateUserProfile(id: user.uid, name: user.displayName ?? user.uid)
+            updateUserProfile()
         } else {
             connectFirebaseWithGameCenter()
         }
@@ -142,14 +142,18 @@ final class IOSAccountService: MutableNativeAccountService {
                     return
                 }
                 
-                self?.updateUserProfile(id: user.uid, name: user.displayName ?? user.uid)
+                self?.updateUserProfile()
                 self?.updateFirebaseUser(name: user.displayName ?? GKLocalPlayer.local.displayName)
             }
         }
     }
     
     private func updateFirebaseUser(name: String) {
-        Auth.auth().currentUser?.displayName = name
+        let changeRequest = Auth.auth().currentUser?.createProfileChangeRequest()
+        changeRequest?.displayName = name
+        changeRequest?.commitChanges { error in
+            self.handleAuthenticationError(error: error)
+        }
     }
     
     private func handleAuthenticationError(error: Error?) {
@@ -165,6 +169,14 @@ final class IOSAccountService: MutableNativeAccountService {
         }
         
         presenter.present(viewController, animated: true)
+    }
+    
+    private func updateUserProfile() {
+        guard let user = Auth.auth().currentUser else {
+            return
+        }
+        
+        updateUserProfile(id: user.uid, name: user.displayName ?? user.email ?? user.uid)
     }
 }
 
