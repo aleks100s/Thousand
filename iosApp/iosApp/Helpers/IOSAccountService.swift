@@ -33,7 +33,7 @@ final class IOSAccountService: MutableNativeAccountService {
                 return
             }
             
-            guard let user = result?.user else {
+            guard (result?.user) != nil else {
                 self?.handleAuthenticationError(error: nil)
                 completionHandler(nil)
                 return
@@ -79,7 +79,7 @@ final class IOSAccountService: MutableNativeAccountService {
     }
     
     private func observeGameCenterAuthorization() {
-        if let user = Auth.auth().currentUser {
+        if Auth.auth().currentUser != nil {
             updateUserProfile()
         }
         
@@ -100,9 +100,10 @@ final class IOSAccountService: MutableNativeAccountService {
         }
         
         if let error {
-            handleAuthenticationError(error: error)
-            if let user = Auth.auth().currentUser {
+            if Auth.auth().currentUser != nil {
                 updateUserProfile()
+            } else {
+                handleAuthenticationError(error: error)
             }
             return
         }
@@ -110,7 +111,7 @@ final class IOSAccountService: MutableNativeAccountService {
         let hideMultiplayer = GKLocalPlayer.local.isUnderage ||
             GKLocalPlayer.local.isMultiplayerGamingRestricted
         updateHideMultiplayer(hideMultiplayer: hideMultiplayer)
-        if let user = Auth.auth().currentUser {
+        if Auth.auth().currentUser != nil {
             updateUserProfile()
         } else {
             connectFirebaseWithGameCenter()
@@ -152,7 +153,9 @@ final class IOSAccountService: MutableNativeAccountService {
         let changeRequest = Auth.auth().currentUser?.createProfileChangeRequest()
         changeRequest?.displayName = name
         changeRequest?.commitChanges { error in
-            self.handleAuthenticationError(error: error)
+            if let error {
+                Crashlytics.crashlytics().record(error: error)
+            }
         }
     }
     
