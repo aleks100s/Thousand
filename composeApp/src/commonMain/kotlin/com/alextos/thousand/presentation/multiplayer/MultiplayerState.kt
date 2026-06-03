@@ -11,6 +11,7 @@ data class MultiplayerState(
     val email: String = "",
     val password: String = "",
     val lobbyId: String = "",
+    val currentUserId: String? = null,
     val username: String? = null,
     val isLoginInProgress: Boolean = false,
     val isSignUpInProgress: Boolean = false,
@@ -23,4 +24,10 @@ data class MultiplayerState(
 ) {
     val loginSheetButtonsEnabled: Boolean
         get() = isLoginInProgress.not() && isSignUpInProgress.not() && canLogIn
+
+    val hasHostedActiveGameOrLobby: Boolean
+        get() = currentUserId?.let { userId ->
+            activeGames.any { game -> game.host == userId } ||
+                lobbies.any { lobby -> lobby.host == userId }
+        } ?: false
 }

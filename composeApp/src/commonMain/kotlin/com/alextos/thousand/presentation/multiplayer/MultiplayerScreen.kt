@@ -59,6 +59,7 @@ fun MultiplayerScreen(
 ) {
     val viewModel: MultiplayerViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
+    var isCreateGameUnavailableSheetVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -93,7 +94,13 @@ fun MultiplayerScreen(
                 MultiplayerHero(
                     state = state,
                     onAction = viewModel::onAction,
-                    openCreateLobby = openCreateLobby,
+                    openCreateLobby = {
+                        if (state.hasHostedActiveGameOrLobby) {
+                            isCreateGameUnavailableSheetVisible = true
+                        } else {
+                            openCreateLobby()
+                        }
+                    },
                 )
             }
 
@@ -200,6 +207,41 @@ fun MultiplayerScreen(
                 viewModel.onAction(MultiplayerAction.HideLogoutSheet)
             }
         )
+    }
+
+    if (isCreateGameUnavailableSheetVisible) {
+        ModalBottomSheet(
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            onDismissRequest = {
+                isCreateGameUnavailableSheetVisible = false
+            },
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Text(
+                    text = "Нельзя создать новую игру",
+                    style = MaterialTheme.typography.titleMedium,
+                )
+
+                Text(
+                    text = "У вас уже есть активная игра или лобби, где вы являетесь хостом. Завершите или удалите текущую игру либо лобби, чтобы создать новую.",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        isCreateGameUnavailableSheetVisible = false
+                    },
+                ) {
+                    Text("Понятно")
+                }
+            }
+        }
     }
 }
 

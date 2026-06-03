@@ -60,6 +60,7 @@ class MultiplayerViewModel(
                 _state.update {
                     it.copy(
                         isAuthorized = isAuthorized,
+                        currentUserId = userProfile?.id,
                         username = userProfile?.name,
                         isLoginSheetVisible = if (isAuthorized) false else it.isLoginSheetVisible,
                         isLoginInProgress = if (isAuthorized) false else it.isLoginInProgress,
@@ -185,6 +186,7 @@ class MultiplayerViewModel(
         _state.update {
             it.copy(
                 isAuthorized = false,
+                currentUserId = null,
                 username = null,
                 lobbies = emptyList(),
                 activeGames = emptyList(),
