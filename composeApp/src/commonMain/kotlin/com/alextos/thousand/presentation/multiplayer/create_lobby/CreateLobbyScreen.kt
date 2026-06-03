@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Text
@@ -42,10 +43,16 @@ fun CreateLobbyScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = {
-                    viewModel.onAction(CreateLobbyAction.OpenLobby)
+                    if (state.isLoading.not()) {
+                        viewModel.onAction(CreateLobbyAction.OpenLobby)
+                    }
                 },
             ) {
-                Text("Перейти в лобби")
+                if (state.isLoading) {
+                    CircularProgressIndicator()
+                } else {
+                    Text("Перейти в лобби")
+                }
             }
         },
     ) { modifier ->

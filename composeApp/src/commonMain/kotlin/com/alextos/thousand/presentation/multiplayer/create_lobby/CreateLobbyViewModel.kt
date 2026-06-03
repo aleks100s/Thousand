@@ -35,6 +35,9 @@ class CreateLobbyViewModel(
     }
 
     private fun openLobby() {
+        _state.update {
+            it.copy(isLoading = true)
+        }
         viewModelScope.launch {
             val lobbyId = repository.createLobby(state.value.gameSettings)
             _events.emit(CreateLobbyEvent.OpenLobby(lobbyId = lobbyId))
