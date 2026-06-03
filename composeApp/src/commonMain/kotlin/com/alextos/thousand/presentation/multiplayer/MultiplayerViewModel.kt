@@ -82,12 +82,24 @@ class MultiplayerViewModel(
            }
                 .catch {
                     _state.update {
-                        it.copy(lobbies = emptyList(), games = emptyList())
+                        it.copy(
+                            lobbies = emptyList(),
+                            activeGames = emptyList(),
+                            finishedGames = emptyList(),
+                        )
                     }
                 }
                 .collect { pair ->
+                    val games = pair.second
+                    val activeGames = games.filter { game -> game.isFinished().not() }
+                    val finishedGames = games.filter { game -> game.isFinished() }
+
                     _state.update {
-                        it.copy(lobbies = pair.first, games = pair.second)
+                        it.copy(
+                            lobbies = pair.first,
+                            activeGames = activeGames,
+                            finishedGames = finishedGames,
+                        )
                     }
                 }
         }
@@ -175,6 +187,8 @@ class MultiplayerViewModel(
                 isAuthorized = false,
                 username = null,
                 lobbies = emptyList(),
+                activeGames = emptyList(),
+                finishedGames = emptyList(),
                 isLogoutSheetVisible = false
             )
         }

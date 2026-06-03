@@ -18,7 +18,8 @@ data class MultiplayerState(
     val canJoinLobby: Boolean = false,
     val error: String? = null,
     val lobbies: List<Lobby> = emptyList(),
-    val games: List<RemoteGame> = emptyList()
+    val activeGames: List<RemoteGame> = emptyList(),
+    val finishedGames: List<RemoteGame> = emptyList(),
 ) {
     val loginSheetButtonsEnabled: Boolean
         get() = isLoginInProgress.not() && isSignUpInProgress.not() && canLogIn

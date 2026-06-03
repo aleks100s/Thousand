@@ -97,7 +97,7 @@ fun MultiplayerScreen(
                 )
             }
 
-            if (state.games.isNotEmpty()) {
+            if (state.activeGames.isNotEmpty()) {
                 item {
                     Text(
                         "Активные игры",
@@ -106,7 +106,7 @@ fun MultiplayerScreen(
                 }
             }
 
-            items(state.games) { game ->
+            items(state.activeGames) { game ->
                 LobbyOrGameCard(
                     players = game.players.map { it.user },
                     host = game.host,
@@ -142,6 +142,31 @@ fun MultiplayerScreen(
                     contextMenuText = "Покинуть лобби",
                     onContextMenuClick = {
                         viewModel.onAction(MultiplayerAction.DisconnectFromLobby(lobby.key))
+                    },
+                )
+            }
+
+            if (state.finishedGames.isNotEmpty()) {
+                item {
+                    Text(
+                        "Завершенные игры",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+            }
+
+            items(state.finishedGames) { game ->
+                LobbyOrGameCard(
+                    players = game.players.map { it.user },
+                    host = game.host,
+                    code = game.id.toString(),
+                    isFinished = game.isFinished(),
+                    onClick = {
+                        openGame(game.key)
+                    },
+                    contextMenuText = "Удалить игру",
+                    onContextMenuClick = {
+                        viewModel.onAction(MultiplayerAction.DeleteGame(game.key))
                     },
                 )
             }
