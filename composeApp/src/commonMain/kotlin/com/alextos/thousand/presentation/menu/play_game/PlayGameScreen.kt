@@ -2,11 +2,14 @@ package com.alextos.thousand.presentation.menu.play_game
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,7 +27,10 @@ import com.alextos.thousand.presentation.components.GameMessagesOverlay
 import com.alextos.thousand.presentation.components.GameView
 import com.alextos.thousand.presentation.menu.game_rules.GameRulesContent
 import com.alextos.thousand.presentation.menu.play_game.components.GameSettingsSheet
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
+import thousand.composeapp.generated.resources.Res
+import thousand.composeapp.generated.resources.more_horiz_24px
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -39,6 +45,7 @@ fun PlayGameScreen(
     var nextMessageId by remember { mutableStateOf(0L) }
     var isRulesSheetVisible by remember { mutableStateOf(false) }
     var isSettingsSheetVisible by remember { mutableStateOf(false) }
+    var isMenuExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -63,30 +70,57 @@ fun PlayGameScreen(
         modifier = Modifier,
         title = state.title,
         goBack = onGoBack,
-        actions = {
+        actions = { actionColor ->
             {
-                TextButton(
-                    onClick = {
-                        isRulesSheetVisible = true
-                    },
-                ) {
-                    Text("Правила")
-                }
-
-                TextButton(
-                    onClick = {
-                        isSettingsSheetVisible = true
+                Box {
+                    IconButton(
+                        onClick = {
+                            isMenuExpanded = true
+                        },
+                    ) {
+                        Icon(
+                            painter = painterResource(Res.drawable.more_horiz_24px),
+                            contentDescription = "Меню",
+                            tint = actionColor,
+                        )
                     }
-                ) {
-                    Text("Настройки")
-                }
 
-                state.gameState.game
-                    ?.let {
-                    TextButton(onClick = {
-                        onScoreClick(it)
-                    }, enabled = state.gameState.currentTurn.isEmpty()) {
-                        Text("Счет")
+                    DropdownMenu(
+                        expanded = isMenuExpanded,
+                        onDismissRequest = {
+                            isMenuExpanded = false
+                        },
+                    ) {
+                        DropdownMenuItem(
+                            text = {
+                                Text("Правила")
+                            },
+                            onClick = {
+                                isMenuExpanded = false
+                                isRulesSheetVisible = true
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = {
+                                Text("Настройки")
+                            },
+                            onClick = {
+                                isMenuExpanded = false
+                                isSettingsSheetVisible = true
+                            },
+                        )
+                        state.gameState.game?.let { game ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text("Счет")
+                                },
+                                enabled = state.gameState.currentTurn.isEmpty(),
+                                onClick = {
+                                    isMenuExpanded = false
+                                    onScoreClick(game)
+                                },
+                            )
+                        }
                     }
                 }
             }
