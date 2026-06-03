@@ -358,6 +358,8 @@ private fun JoinLobbySheet(
                 style = MaterialTheme.typography.titleMedium,
             )
 
+            Text(text = "Введите четырехзначный код для подключения")
+
             OutlinedTextField(
                 value = lobbyId,
                 onValueChange = { value ->
@@ -365,7 +367,10 @@ private fun JoinLobbySheet(
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = {
-                    Text("ID лобби")
+                    Text("Код лобби")
+                },
+                placeholder = {
+                    Text("1234")
                 },
                 singleLine = true,
             )

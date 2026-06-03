@@ -116,11 +116,11 @@ fun LobbyScreen(
                     clipboardManager.setText(AnnotatedString(state.lobbyId))
                 },
             ) {
-                Text("ID лобби")
+                Text("Код лобби")
 
                 Icon(
                     painter = painterResource(Res.drawable.content_copy_24px),
-                    contentDescription = "Скопировать ID лобби",
+                    contentDescription = "Скопировать код лобби",
                 )
             }
 
