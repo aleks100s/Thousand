@@ -87,10 +87,15 @@ class MultiplayerGameViewModel(
         when (action) {
             MultiplayerGameAction.DeleteGame -> deleteGame()
             is MultiplayerGameAction.SendGameAction -> reduceGameAction(action.action)
+            is MultiplayerGameAction.ToggleNotifications -> toggleNotifications(action.isEnabled)
         }
     }
 
     private fun showMessagesIfNeeded(messages: List<String>) {
+        if (state.value.isNotificationEnabled.not()) {
+            return
+        }
+
         viewModelScope.launch {
             messages.forEach { message ->
                 _events.emit(MultiplayerGameEvent.ShowMessage(message))
@@ -259,6 +264,12 @@ class MultiplayerGameViewModel(
                 messagesToShow = messages
             ) ?: return@launch
             multiplayerRepository.updateGame(game)
+        }
+    }
+
+    private fun toggleNotifications(isEnabled: Boolean) {
+        _state.update {
+            it.copy(isNotificationEnabled = isEnabled)
         }
     }
 }

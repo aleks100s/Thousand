@@ -222,8 +222,10 @@ fun MultiplayerGameScreen(
             state.gameState.game?.settings?.let { settings ->
                 GameSettingsSheet(
                     settings = settings,
-                    isNotificationEnabled = settings.isNotificationEnabled,
-                    onNotificationEnabledChange = {},
+                    isNotificationEnabled = state.isNotificationEnabled,
+                    onNotificationEnabledChange = {
+                        viewModel.onAction(MultiplayerGameAction.ToggleNotifications(it))
+                    },
                 )
             }
         }

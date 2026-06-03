@@ -7,5 +7,6 @@ data class MultiplayerGameState(
     val gameCode: String = "",
     val isHost: Boolean = false,
     val error: String? = null,
-    val gameState: GameState = GameState()
+    val gameState: GameState = GameState(),
+    val isNotificationEnabled: Boolean = true
 )
