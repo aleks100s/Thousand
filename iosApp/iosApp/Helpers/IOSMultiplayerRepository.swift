@@ -172,9 +172,9 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
         }
 
         let gameID = UUID().uuidString
-        let players = lobby.players.shuffled().map { user in
+        let players = lobby.players.shuffled().enumerated().map { index, user in
             Player(
-                id: 0,
+                id: Int64(index),
                 user: user,
                 currentScore: 0,
                 isWinner: false,

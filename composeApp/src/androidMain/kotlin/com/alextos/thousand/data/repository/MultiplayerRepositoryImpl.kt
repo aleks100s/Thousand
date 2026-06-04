@@ -223,8 +223,11 @@ class MultiplayerRepositoryImpl : MultiplayerRepository {
         }
 
         val gameID = Uuid.random().toString()
-        val players = lobby.players.shuffled().map { player ->
-            Player(user = player)
+        val players = lobby.players.shuffled().mapIndexed { index, player ->
+            Player(
+                id = index.toLong(),
+                user = player,
+            )
         }
         val game = RemoteGame(
             id = lobby.id.toLongOrNull() ?: 0L,

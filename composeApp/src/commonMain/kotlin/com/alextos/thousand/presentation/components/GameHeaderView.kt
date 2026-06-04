@@ -54,10 +54,6 @@ fun GameHeaderView(
 ) {
     val shouldScroll = game.players.size > 2
 
-    val content: @Composable (Player) -> Unit = { player ->
-        PlayerView(player, currentPlayer == player, showBolts && game.settings.isTripleBoltFineActive)
-    }
-
     if (shouldScroll) {
         val scrollState = rememberLazyListState()
 
@@ -77,7 +73,7 @@ fun GameHeaderView(
             }
 
             items(game.players) { player ->
-                content(player)
+                PlayerView(player, currentPlayer == player, showBolts && game.settings.isTripleBoltFineActive)
             }
 
             item {
@@ -93,7 +89,7 @@ fun GameHeaderView(
             verticalAlignment = Alignment.CenterVertically
         ) {
             game.players.forEach {
-                content(it)
+                PlayerView(it, currentPlayer == it, showBolts && game.settings.isTripleBoltFineActive)
             }
         }
     }
@@ -105,9 +101,9 @@ private fun PlayerView(player: Player, isActive: Boolean, showBolts: Boolean) {
         targetValue = if (isActive) 1.2f else 1f,
         animationSpec = tween(durationMillis = 1000)
     )
-    var previousScore by remember(player) { mutableStateOf<Int?>(null) }
-    var nextBubbleId by remember(player) { mutableStateOf(0L) }
-    var scoreBubble by remember(player) { mutableStateOf<ScoreChangeBubble?>(null) }
+    var previousScore by remember(player.id) { mutableStateOf<Int?>(null) }
+    var nextBubbleId by remember(player.id) { mutableStateOf(0L) }
+    var scoreBubble by remember(player.id) { mutableStateOf<ScoreChangeBubble?>(null) }
 
     LaunchedEffect(player.currentScore) {
         val previous = previousScore
