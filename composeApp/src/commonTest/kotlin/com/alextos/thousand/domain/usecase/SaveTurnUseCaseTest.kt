@@ -578,6 +578,8 @@ class SaveTurnUseCaseTest {
 
         override suspend fun saveUser(user: User) = Unit
 
+        override suspend fun replaceUser(previous: User, new: User) = Unit
+
         override suspend fun deleteUser(userId: String) = Unit
 
         override suspend fun createGame(game: Game): Game = game.copy(id = 1L)
@@ -587,6 +589,10 @@ class SaveTurnUseCaseTest {
         override suspend fun getGame(id: Long): Game? = null
 
         override suspend fun getAllTurns(gameID: Long): List<Turn> = emptyList()
+
+        override fun getAllTurns(): Flow<List<Turn>> = flowOf(emptyList())
+
+        override fun getTurnEffectCount(userId: String, effect: Effect): Flow<Int> = flowOf(0)
 
         override suspend fun saveTurn(turn: Turn, game: Game): Turn = turn.copy(id = 42L)
 

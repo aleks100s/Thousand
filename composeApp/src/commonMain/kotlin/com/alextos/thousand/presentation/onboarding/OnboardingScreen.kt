@@ -21,9 +21,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun FirstUserScreen() {
-    val firstUserViewModel: FirstUserViewModel = koinViewModel()
-    val firstUserState by firstUserViewModel.state.collectAsStateWithLifecycle()
+fun OnboardingScreen() {
+    val viewModel: OnboardingViewModel = koinViewModel()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     Box(
         modifier = Modifier
@@ -44,24 +44,24 @@ fun FirstUserScreen() {
 
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
-                value = firstUserState.name,
+                value = state.name,
                 onValueChange = { value ->
-                    firstUserViewModel.onAction(FirstUserAction.UpdateName(value))
+                    viewModel.onAction(OnboardingAction.UpdateName(value))
                 },
                 label = {
                     Text("Имя")
                 },
                 singleLine = true,
-                enabled = firstUserState.isSaving.not(),
+                enabled = state.isSaving.not(),
             )
             Button(
                 modifier = Modifier.fillMaxWidth(),
-                enabled = firstUserState.name.isNotBlank() && firstUserState.isSaving.not(),
+                enabled = state.name.isNotBlank() && state.isSaving.not(),
                 onClick = {
-                    firstUserViewModel.onAction(FirstUserAction.SaveUser)
+                    viewModel.onAction(OnboardingAction.SaveUser)
                 },
             ) {
-                if (firstUserState.isSaving) {
+                if (state.isSaving) {
                     CircularProgressIndicator()
                 } else {
                     Text("Продолжить")

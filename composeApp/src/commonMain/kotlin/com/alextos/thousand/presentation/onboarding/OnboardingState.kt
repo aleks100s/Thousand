@@ -1,6 +1,6 @@
 package com.alextos.thousand.presentation.onboarding
 
-data class FirstUserState(
+data class OnboardingState(
     val name: String = "",
     val isSaving: Boolean = false,
 )

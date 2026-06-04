@@ -122,10 +122,10 @@ class TutorialRollUseCaseTest {
                 currentPlayer = currentPlayer ?: error("Current player is missing"),
                 rolls = rolls,
                 game = game,
-                isTutorial = true,
+                skipSaving = true,
             )
             turns.add(turn)
-            updateGame(game, turn, isTutorial = true)
+            updateGame(game, turn, skipSaving = true)
             scores.add(userPlayer.currentScore to botPlayer.currentScore)
             currentPlayer = findCurrentPlayer(game, turn)
         }
@@ -182,6 +182,8 @@ class TutorialRollUseCaseTest {
 
         override suspend fun saveUser(user: User) = Unit
 
+        override suspend fun replaceUser(previous: User, new: User) = Unit
+
         override suspend fun deleteUser(userId: String) = Unit
 
         override suspend fun createGame(game: Game): Game = game
@@ -191,6 +193,10 @@ class TutorialRollUseCaseTest {
         override suspend fun getGame(id: Long): Game? = null
 
         override suspend fun getAllTurns(gameID: Long): List<Turn> = emptyList()
+
+        override fun getAllTurns(): Flow<List<Turn>> = flowOf(emptyList())
+
+        override fun getTurnEffectCount(userId: String, effect: Effect): Flow<Int> = flowOf(0)
 
         override suspend fun saveTurn(turn: Turn, game: Game): Turn = turn
 

@@ -12,12 +12,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.uuid.ExperimentalUuidApi
 
-class FirstUserViewModel(
+class OnboardingViewModel(
     private val saveUserUseCase: SaveUserUseCase,
     private val accountService: NativeAccountService,
 ) : ViewModel() {
-    private val _state = MutableStateFlow(FirstUserState())
-    val state: StateFlow<FirstUserState> = _state.asStateFlow()
+    private val _state = MutableStateFlow(OnboardingState())
+    val state: StateFlow<OnboardingState> = _state.asStateFlow()
 
     init {
         observeAuthorizedUserName()
@@ -40,10 +40,10 @@ class FirstUserViewModel(
         }
     }
 
-    fun onAction(action: FirstUserAction) {
+    fun onAction(action: OnboardingAction) {
         when (action) {
-            is FirstUserAction.UpdateName -> updateName(action.value)
-            FirstUserAction.SaveUser -> saveUser()
+            is OnboardingAction.UpdateName -> updateName(action.value)
+            OnboardingAction.SaveUser -> saveUser()
         }
     }
 

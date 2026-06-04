@@ -49,6 +49,14 @@ class GameRepositoryImpl(
         userDao.upsert(user.toEntity())
     }
 
+    override suspend fun replaceUser(previous: User, new: User) {
+        userDao.updateIdentity(
+            previousId = previous.id,
+            newId = new.id,
+            newName = new.name,
+        )
+    }
+
     override suspend fun deleteUser(userId: String) {
         userDao.delete(userId)
     }

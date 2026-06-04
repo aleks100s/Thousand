@@ -326,7 +326,7 @@ private fun AddUserCard(
             Spacer(Modifier.height(12.dp))
 
             Text(
-                text = "Добавить игрока",
+                text = "Добавить нового игрока",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center
@@ -450,12 +450,23 @@ private fun PlayerCard(
                     }
                 }
 
-                Text(
-                    text = user.name,
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = user.name,
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+
+                    if (user.kind == UserKind.MainUser) {
+                        Text(
+                            text = "Это вы",
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
             }
         }
     }

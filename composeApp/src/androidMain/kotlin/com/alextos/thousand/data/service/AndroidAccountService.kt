@@ -105,6 +105,12 @@ class AndroidAccountService(
         }
     }
 
+    override fun updateUserName(name: String) {
+        val currentUser = Firebase.auth.currentUser ?: return
+        updateFirebaseUserName(name)
+        updateUserProfile(id = currentUser.uid, name = name)
+    }
+
     override fun signOut() {
         Firebase.auth.signOut()
         clearUserProfile()

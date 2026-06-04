@@ -229,6 +229,6 @@ private val UserKind.title: String
     get() = when (this) {
         UserKind.LocalUser -> "Локальный игрок"
         UserKind.Bot -> "Бот"
-        UserKind.MainUser -> "Основной игрок"
+        UserKind.MainUser -> "Основной игрок (это вы)"
         UserKind.Remote -> "Удаленный игрок"
     }

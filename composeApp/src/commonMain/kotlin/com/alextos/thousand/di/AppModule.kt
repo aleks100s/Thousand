@@ -48,6 +48,7 @@ import com.alextos.thousand.domain.usecase.statistics.TurnsStatisticsUseCase
 import com.alextos.thousand.domain.usecase.user.DeleteUserUseCase
 import com.alextos.thousand.domain.usecase.user.GenerateBotNameUseCase
 import com.alextos.thousand.domain.usecase.user.GetAllUsersUseCase
+import com.alextos.thousand.domain.usecase.user.ReplaceMainUserUseCase
 import com.alextos.thousand.domain.usecase.user.SaveUserUseCase
 import com.alextos.thousand.domain.usecase.user.UpdateUserUseCase
 import com.alextos.thousand.presentation.menu.create_game.CreateGameViewModel
@@ -68,7 +69,7 @@ import com.alextos.thousand.presentation.multiplayer.MultiplayerViewModel
 import com.alextos.thousand.presentation.multiplayer.create_lobby.CreateLobbyViewModel
 import com.alextos.thousand.presentation.multiplayer.lobby.LobbyViewModel
 import com.alextos.thousand.presentation.multiplayer.multiplayer_game.MultiplayerGameViewModel
-import com.alextos.thousand.presentation.onboarding.FirstUserViewModel
+import com.alextos.thousand.presentation.onboarding.OnboardingViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
@@ -107,7 +108,7 @@ fun appModule(
     factory { SaveUserUseCase(get()) }
     viewModelOf(::CreateGameViewModel)
     viewModelOf(::AppViewModel)
-    viewModelOf(::FirstUserViewModel)
+    viewModelOf(::OnboardingViewModel)
     viewModelOf(::GamesListViewModel)
     viewModelOf(::GameRulesViewModel)
     viewModelOf(::TutorialGameViewModel)
@@ -138,7 +139,7 @@ fun appModule(
     factory { UpdateGameUseCase(get()) }
     factory { DeleteGameUseCase(get()) }
     factory { DeleteUserUseCase(get()) }
-    factory { UpdateUserUseCase(get()) }
+    factory { UpdateUserUseCase(get(), get()) }
     single { shakeDeviceObserver }
     factory { LocalGameServer(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     factory { TutorialGameServer(get(), get(), get(), get(), get(), get(), get(), get()) }
@@ -147,4 +148,5 @@ fun appModule(
     factory { DetermineAvailableButtonsUseCase() }
     factory { LogInUseCase(get()) }
     factory { SignUpUseCase(get(), get()) }
+    factory { ReplaceMainUserUseCase(get()) }
 }
