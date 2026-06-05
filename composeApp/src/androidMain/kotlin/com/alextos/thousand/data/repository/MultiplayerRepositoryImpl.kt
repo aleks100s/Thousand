@@ -1,6 +1,7 @@
 package com.alextos.thousand.data.repository
 
 import com.alextos.thousand.data.repository.mappers.toDatabaseMap
+import com.alextos.thousand.data.repository.mappers.toFinishedGameStatisticsUpdates
 import com.alextos.thousand.data.repository.mappers.toGame
 import com.alextos.thousand.data.repository.mappers.toLobby
 import com.alextos.thousand.domain.models.GameButton
@@ -303,12 +304,30 @@ class MultiplayerRepositoryImpl : MultiplayerRepository {
 
     override suspend fun updateGame(game: RemoteGame) {
         suspendCancellableCoroutine { continuation ->
-            FirebaseDatabase.getInstance().reference
+            val databaseReference = FirebaseDatabase.getInstance().reference
+            databaseReference
                 .child(GAMES_NODE)
                 .child(game.key)
                 .setValue(game.toDatabaseMap())
                 .addOnSuccessListener {
-                    continuation.resume(Unit)
+                    if (game.isFinished()) {
+                        val updates = game.toFinishedGameStatisticsUpdates()
+                        if (updates.isEmpty()) {
+                            continuation.resume(Unit)
+                            return@addOnSuccessListener
+                        }
+
+                        databaseReference
+                            .updateChildren(updates)
+                            .addOnSuccessListener {
+                                continuation.resume(Unit)
+                            }
+                            .addOnFailureListener {
+                                continuation.cancel(it)
+                            }
+                    } else {
+                        continuation.resume(Unit)
+                    }
                 }
                 .addOnFailureListener {
                     continuation.cancel(it)

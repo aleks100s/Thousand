@@ -262,10 +262,18 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
     }
     
     func updateGame(game: RemoteGame) async throws {
-        try await Database.database().reference()
+        let reference = Database.database().reference()
+        try await reference
             .child("games")
             .child(game.key)
             .setValue(dictionary(from: game))
+        
+        if game.isFinished() {
+            let updates = finishedGameStatisticsUpdates(for: game)
+            if updates.isEmpty == false {
+                try await reference.updateChildValues(updates)
+            }
+        }
     }
     
     func deleteGame(key: String) async throws {
