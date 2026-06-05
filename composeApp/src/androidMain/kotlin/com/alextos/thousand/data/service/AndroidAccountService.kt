@@ -228,8 +228,12 @@ class AndroidAccountService(
         FirebaseDatabase.getInstance().reference
             .child(USERS_NODE)
             .child(currentUser.uid)
-            .child(NAME_NODE)
-            .setValue(name)
+            .updateChildren(
+                mapOf(
+                    NAME_NODE to name,
+                    PLATFORM_NODE to ANDROID_PLATFORM,
+                )
+            )
             .addOnFailureListener { error ->
                 FirebaseCrashlytics.getInstance().recordException(error)
             }
@@ -258,6 +262,8 @@ class AndroidAccountService(
         private const val DEFAULT_WEB_CLIENT_ID = "default_web_client_id"
         private const val USERS_NODE = "users"
         private const val NAME_NODE = "name"
+        private const val PLATFORM_NODE = "platform"
+        private const val ANDROID_PLATFORM = "Android"
     }
 }
 

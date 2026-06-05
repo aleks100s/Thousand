@@ -177,8 +177,10 @@ final class IOSAccountService: MutableNativeAccountService {
         Database.database().reference()
             .child("users")
             .child(user.uid)
-            .child("name")
-            .setValue(name) { error, _ in
+            .updateChildValues([
+                "name": name,
+                "platform": "iOS"
+            ]) { error, _ in
                 if let error {
                     Crashlytics.crashlytics().record(error: error)
                 }

@@ -270,7 +270,7 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
         
         if game.isFinished() {
             let updates = finishedGameStatisticsUpdates(for: game)
-            if updates.isEmpty == false {
+            if !updates.isEmpty {
                 try await reference.updateChildValues(updates)
             }
         }
