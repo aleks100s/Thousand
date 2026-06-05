@@ -14,6 +14,7 @@ import com.google.firebase.auth.PlayGamesAuthProvider
 import com.google.firebase.auth.UserProfileChangeRequest as FirebaseUserProfileChangeRequest
 import com.google.firebase.auth.auth
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.database.FirebaseDatabase
 import kotlin.coroutines.resume
 import kotlinx.coroutines.suspendCancellableCoroutine
 
@@ -100,6 +101,7 @@ class AndroidAccountService(
                     }
 
                     updateUserProfile(id = user.uid, name = user.displayName ?: user.uid)
+                    updateFirebaseUserName(user.displayName ?: user.uid)
                     finish()
                 }
         }
@@ -219,6 +221,14 @@ class AndroidAccountService(
         val request = FirebaseUserProfileChangeRequest.Builder()
         request.displayName = name
         currentUser.updateProfile(request.build())
+        FirebaseDatabase.getInstance().reference
+            .child(USERS_NODE)
+            .child(currentUser.uid)
+            .child(NAME_NODE)
+            .setValue(name)
+            .addOnFailureListener { error ->
+                FirebaseCrashlytics.getInstance().recordException(error)
+            }
     }
 
     private fun handleAuthenticationError(error: Exception?) {
@@ -242,6 +252,8 @@ class AndroidAccountService(
 
     companion object {
         private const val DEFAULT_WEB_CLIENT_ID = "default_web_client_id"
+        private const val USERS_NODE = "users"
+        private const val NAME_NODE = "name"
     }
 }
 

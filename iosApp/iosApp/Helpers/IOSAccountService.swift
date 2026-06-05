@@ -159,13 +159,27 @@ final class IOSAccountService: MutableNativeAccountService {
     }
     
     private func updateFirebaseUser(name: String) {
-        let changeRequest = Auth.auth().currentUser?.createProfileChangeRequest()
-        changeRequest?.displayName = name
-        changeRequest?.commitChanges { error in
+        guard let user = Auth.auth().currentUser else {
+            return
+        }
+
+        let changeRequest = user.createProfileChangeRequest()
+        changeRequest.displayName = name
+        changeRequest.commitChanges { error in
             if let error {
                 Crashlytics.crashlytics().record(error: error)
             }
         }
+        
+        Database.database().reference()
+            .child("users")
+            .child(user.uid)
+            .child("name")
+            .setValue(name) { error, _ in
+                if let error {
+                    Crashlytics.crashlytics().record(error: error)
+                }
+            }
     }
     
     private func handleAuthenticationError(error: Error?) {
