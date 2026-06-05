@@ -195,7 +195,7 @@ class MultiplayerGameViewModel(
         ) ?: return
 
         viewModelScope.launch {
-            multiplayerRepository.updateGame(newGame)
+            updateRemote(newGame)
         }
     }
 
@@ -243,7 +243,7 @@ class MultiplayerGameViewModel(
             ),
             messagesToShow = messages
         )
-        multiplayerRepository.updateGame(newGame)
+        updateRemote(newGame)
     }
 
     private fun finishGame(game: Game, messages: List<String>) {
@@ -263,13 +263,21 @@ class MultiplayerGameViewModel(
                 ),
                 messagesToShow = messages
             ) ?: return@launch
-            multiplayerRepository.updateGame(game)
+            updateRemote(game)
         }
     }
 
     private fun toggleNotifications(isEnabled: Boolean) {
         _state.update {
             it.copy(isNotificationEnabled = isEnabled)
+        }
+    }
+
+    private suspend fun updateRemote(game: RemoteGame) {
+        try {
+            multiplayerRepository.updateGame(game)
+        } catch (e: Exception) {
+            _events.emit(MultiplayerGameEvent.Error(e.message ?: "Ошибка при обновлении игры"))
         }
     }
 }

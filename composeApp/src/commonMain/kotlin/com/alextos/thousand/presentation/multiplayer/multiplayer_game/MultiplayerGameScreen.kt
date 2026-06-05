@@ -54,6 +54,7 @@ fun MultiplayerGameScreen(
     var isRulesSheetVisible by remember { mutableStateOf(false) }
     var isSettingsSheetVisible by remember { mutableStateOf(false) }
     var isMenuExpanded by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -68,6 +69,9 @@ fun MultiplayerGameScreen(
                             isReply = false
                         )
                     )
+                }
+                is MultiplayerGameEvent.Error -> {
+                    errorMessage = event.message
                 }
             }
         }
@@ -88,6 +92,36 @@ fun MultiplayerGameScreen(
 
                 Button(onClick = goBack) {
                     Text("Выйти в меню")
+                }
+            }
+        }
+    }
+
+    errorMessage?.let { message ->
+        ModalBottomSheet(
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            onDismissRequest = {
+                errorMessage = null
+            },
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        errorMessage = null
+                    },
+                ) {
+                    Text("Ok")
                 }
             }
         }
