@@ -158,13 +158,16 @@ final class IOSAccountService: MutableNativeAccountService {
         }
     }
     
-    private func updateFirebaseUser(name: String) {
+    private func updateFirebaseUser(name: String, photoURL: URL? = nil) {
         guard let user = Auth.auth().currentUser else {
             return
         }
 
         let changeRequest = user.createProfileChangeRequest()
         changeRequest.displayName = name
+        if let photoURL {
+            changeRequest.photoURL = photoURL
+        }
         changeRequest.commitChanges { error in
             if let error {
                 Crashlytics.crashlytics().record(error: error)

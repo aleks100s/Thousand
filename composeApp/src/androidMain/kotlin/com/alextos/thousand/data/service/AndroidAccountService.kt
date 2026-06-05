@@ -2,6 +2,7 @@ package com.alextos.thousand.data.service
 
 import android.app.Activity
 import android.app.Application
+import android.net.Uri
 import android.os.Bundle
 import com.alextos.thousand.domain.service.MutableNativeAccountService
 import com.google.android.gms.games.PlayGames
@@ -68,7 +69,7 @@ class AndroidAccountService(
                     }
 
                     updateUserProfile(id = user.uid, name = name)
-                    updateFirebaseUserName(name)
+                    updateFirebaseUser(name = name)
                     finish()
                 }
         }
@@ -101,7 +102,7 @@ class AndroidAccountService(
                     }
 
                     updateUserProfile(id = user.uid, name = user.displayName ?: user.uid)
-                    updateFirebaseUserName(user.displayName ?: user.uid)
+                    updateFirebaseUser(name = user.displayName ?: user.uid)
                     finish()
                 }
         }
@@ -109,7 +110,7 @@ class AndroidAccountService(
 
     override fun updateUserName(name: String) {
         val currentUser = Firebase.auth.currentUser ?: return
-        updateFirebaseUserName(name)
+        updateFirebaseUser(name = name)
         updateUserProfile(id = currentUser.uid, name = name)
     }
 
@@ -205,21 +206,24 @@ class AndroidAccountService(
         playersClient.currentPlayer
             .addOnSuccessListener(activity) { player ->
                 val name = user.displayName ?: player.displayName.ifEmpty { user.uid }
-                updateFirebaseUserName(name = name)
+                updateFirebaseUser(name = name, photo = player.hiResImageUri)
                 updateUserProfile(id = user.uid, name = name)
             }
             .addOnFailureListener(activity) { error ->
                 FirebaseCrashlytics.getInstance().recordException(error)
                 val name = user.displayName ?: user.uid
-                updateFirebaseUserName(name = name)
+                updateFirebaseUser(name = name)
                 updateUserProfile(id = user.uid, name = name)
             }
     }
 
-    private fun updateFirebaseUserName(name: String) {
+    private fun updateFirebaseUser(name: String, photo: Uri? = null) {
         val currentUser = Firebase.auth.currentUser ?: return
         val request = FirebaseUserProfileChangeRequest.Builder()
         request.displayName = name
+        photo?.let {
+            request.photoUri = it
+        }
         currentUser.updateProfile(request.build())
         FirebaseDatabase.getInstance().reference
             .child(USERS_NODE)
