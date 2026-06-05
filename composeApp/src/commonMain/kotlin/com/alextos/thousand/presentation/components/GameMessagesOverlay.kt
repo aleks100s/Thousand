@@ -38,6 +38,7 @@ fun GameMessagesOverlay(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .padding(bottom = 160.dp)
             .padding(16.dp),
         horizontalAlignment = Alignment.End,
         verticalArrangement = Arrangement.Center,
