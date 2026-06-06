@@ -4,7 +4,7 @@ import com.alextos.thousand.domain.models.RemoteGame
 import com.google.firebase.database.ServerValue
 
 private const val USERS_NODE = "users"
-private const val TOTAL_GAMES_COUNT_NODE = "totalGamesCount"
+private const val TOTAL_GAMES_COUNT_NODE = "gameCount"
 private const val WIN_COUNT_NODE = "winCount"
 
 internal fun RemoteGame.toFinishedGameStatisticsUpdates(): Map<String, Any> {

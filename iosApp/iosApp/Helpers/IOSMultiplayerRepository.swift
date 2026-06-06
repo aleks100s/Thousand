@@ -27,7 +27,7 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
         )
 
         try await Database.database().reference()
-            .child("lobbies")
+            .child(FirebasePath.lobbies)
             .child(key)
             .setValue(dictionary(from: lobby))
         return key
@@ -39,9 +39,9 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
         }
 
         let lobbies = Database.database().reference()
-            .child("lobbies")
+            .child(FirebasePath.lobbies)
         let query = lobbies
-            .queryOrdered(byChild: "id")
+            .queryOrdered(byChild: FirebaseLobbyKey.id)
             .queryEqual(toValue: id)
         
         let lobby: (key: String, lobby: Lobby)? = try await withCheckedThrowingContinuation { continuation in
@@ -86,7 +86,7 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
 
     func connectToLobby(key: String) -> any Kotlinx_coroutines_coreFlow {
         let bridge = GameSettingsFlowBridge()
-        let reference = Database.database().reference().child("lobbies").child(key)
+        let reference = Database.database().reference().child(FirebasePath.lobbies).child(key)
 
         reference.observe(.value, with: { [weak self] snapshot in
             guard let self, let lobby = self.lobby(from: snapshot.firebaseDictionary, key: snapshot.key) else {
@@ -108,7 +108,7 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
         }
 
         let reference = Database.database().reference()
-            .child("lobbies")
+            .child(FirebasePath.lobbies)
             .child(key)
         let snapshot = try await reference.getData()
         let data = snapshot.value as? [String: [String: Any]]
@@ -127,7 +127,7 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
     func userLobbies() -> any Kotlinx_coroutines_coreFlow {
         let bridge = LobbyListFlowBridge()
         let currentUserId = Auth.auth().currentUser?.uid ?? ""
-        let reference = Database.database().reference().child("lobbies")
+        let reference = Database.database().reference().child(FirebasePath.lobbies)
 
         reference.observe(.value, with: { [weak self] snapshot in
             guard let self else {
@@ -158,7 +158,7 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
     
     func startGame(key: String) async throws {
         let lobbyReference = Database.database().reference()
-            .child("lobbies")
+            .child(FirebasePath.lobbies)
             .child(key)
 
         let snapshot = try await lobbyReference.getData()
@@ -197,18 +197,18 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
         )
 
         try await Database.database().reference()
-            .child("games")
+            .child(FirebasePath.games)
             .child(gameID)
             .setValue(dictionary(from: game))
 
-        try await lobbyReference.child("game").setValue(gameID)
+        try await lobbyReference.child(FirebasePath.game).setValue(gameID)
         try await lobbyReference.removeValue()
     }
     
     func userGames() -> any Kotlinx_coroutines_coreFlow {
         let bridge = GameListFlowBridge()
         let currentUserId = Auth.auth().currentUser?.uid ?? ""
-        let reference = Database.database().reference().child("games")
+        let reference = Database.database().reference().child(FirebasePath.games)
 
         reference.observe(.value, with: { [weak self] snapshot in
             guard let self else {
@@ -244,7 +244,7 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
         }
 
         let reference = Database.database().reference()
-            .child("games")
+            .child(FirebasePath.games)
             .child(key)
 
         reference.observe(.value, with: { [weak self] snapshot in
@@ -264,7 +264,7 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
     func updateGame(game: RemoteGame) async throws {
         let reference = Database.database().reference()
         try await reference
-            .child("games")
+            .child(FirebasePath.games)
             .child(game.key)
             .setValue(dictionary(from: game))
         
@@ -278,7 +278,7 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
     
     func deleteGame(key: String) async throws {
         try await Database.database().reference()
-            .child("games")
+            .child(FirebasePath.games)
             .child(key)
             .removeValue()
     }

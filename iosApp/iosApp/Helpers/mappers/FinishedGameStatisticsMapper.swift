@@ -11,9 +11,9 @@ extension IOSMultiplayerRepository {
                 return
             }
 
-            updates["users/\(userId)/totalGamesCount"] = ServerValue.increment(1)
+            updates[FirebasePath.userField(userId: userId, field: FirebasePath.gameCount)] = ServerValue.increment(1)
             if player.isWinner {
-                updates["users/\(userId)/winCount"] = ServerValue.increment(1)
+                updates[FirebasePath.userField(userId: userId, field: FirebasePath.winCount)] = ServerValue.increment(1)
             }
         }
 

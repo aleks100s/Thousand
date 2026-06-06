@@ -96,7 +96,7 @@ final class IOSAccountService: MutableNativeAccountService {
         }
 
         Database.database().reference()
-            .child("users")
+            .child(FirebasePath.users)
             .child(userId)
             .removeValue { error, _ in
                 if let error {
@@ -194,11 +194,13 @@ final class IOSAccountService: MutableNativeAccountService {
         }
         
         Database.database().reference()
-            .child("users")
+            .child(FirebasePath.users)
             .child(user.uid)
             .updateChildValues([
-                "name": name,
-                "platform": "iOS"
+                FirebaseUserKey.name: name,
+                FirebaseUserKey.platform: FirebasePlatform.ios,
+                FirebaseUserKey.gameCount: 0,
+                FirebaseUserKey.winCount: 0
             ]) { error, _ in
                 if let error {
                     Crashlytics.crashlytics().record(error: error)
