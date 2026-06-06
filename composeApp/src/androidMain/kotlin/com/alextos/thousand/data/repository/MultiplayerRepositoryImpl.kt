@@ -4,12 +4,14 @@ import com.alextos.thousand.data.repository.mappers.toDatabaseMap
 import com.alextos.thousand.data.repository.mappers.toFinishedGameStatisticsUpdates
 import com.alextos.thousand.data.repository.mappers.toGame
 import com.alextos.thousand.data.repository.mappers.toLobby
+import com.alextos.thousand.data.repository.mappers.toRemoteUserInfo
 import com.alextos.thousand.domain.models.GameButton
 import com.alextos.thousand.domain.repository.MultiplayerRepository
 import com.alextos.thousand.domain.models.GameSettings
 import com.alextos.thousand.domain.models.Lobby
 import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.RemoteGame
+import com.alextos.thousand.domain.models.RemoteUserInfo
 import com.alextos.thousand.domain.models.RollAbility
 import com.alextos.thousand.domain.models.User
 import com.google.firebase.Firebase
@@ -31,6 +33,7 @@ import kotlin.uuid.Uuid
 
 class MultiplayerRepositoryImpl : MultiplayerRepository {
     companion object {
+        private const val USERS_NODE = "users"
         private const val LOBBIES_NODE = "lobbies"
         private const val GAMES_NODE = "games"
     }
@@ -349,6 +352,25 @@ class MultiplayerRepositoryImpl : MultiplayerRepository {
                 }
         }
 
+    }
+
+    override suspend fun userInfo(userId: String): RemoteUserInfo? {
+        if (userId.isBlank()) return null
+
+        return suspendCancellableCoroutine { continuation ->
+            FirebaseDatabase.getInstance().reference
+                .child(USERS_NODE)
+                .child(userId)
+                .get()
+                .addOnSuccessListener { snapshot ->
+                    if (continuation.isActive) {
+                        continuation.resume(snapshot.toRemoteUserInfo(userId))
+                    }
+                }
+                .addOnFailureListener { error ->
+                    continuation.cancel(error)
+                }
+        }
     }
 
     override fun userLobbies(): Flow<List<Lobby>> {

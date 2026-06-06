@@ -282,4 +282,17 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
             .child(key)
             .removeValue()
     }
+
+    func userInfo(userId: String) async throws -> RemoteUserInfo? {
+        guard !userId.isEmpty else {
+            return nil
+        }
+
+        let snapshot = try await Database.database().reference()
+            .child(FirebasePath.users)
+            .child(userId)
+            .getData()
+
+        return remoteUserInfo(from: snapshot.firebaseDictionary, userId: userId)
+    }
 }
