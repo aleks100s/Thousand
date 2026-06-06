@@ -14,9 +14,11 @@ private fun Map<*, *>.toRemoteUserInfo(key: String): RemoteUserInfo =
         platform = string(PLATFORM_FIELD) ?: "",
         gameCount = int(GAME_COUNT_FIELD) ?: 0,
         winCount = int(WIN_COUNT_FIELD) ?: 0,
+        rating = int(RATING_FIELD) ?: 0,
     )
 
 private const val NAME_FIELD = "name"
 private const val PLATFORM_FIELD = "platform"
 private const val GAME_COUNT_FIELD = "gameCount"
 private const val WIN_COUNT_FIELD = "winCount"
+private const val RATING_FIELD = "rating"

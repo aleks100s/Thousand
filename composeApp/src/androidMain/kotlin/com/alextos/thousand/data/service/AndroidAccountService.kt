@@ -247,15 +247,29 @@ class AndroidAccountService(
             request.photoUri = it
         }
         currentUser.updateProfile(request.build())
-        FirebaseDatabase.getInstance().reference
+        val userReference = FirebaseDatabase.getInstance().reference
             .child(USERS_NODE)
             .child(currentUser.uid)
-            .updateChildren(
-                mapOf(
+        userReference
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val values = mutableMapOf<String, Any>(
                     NAME_NODE to name,
                     PLATFORM_NODE to ANDROID_PLATFORM,
                 )
-            )
+
+                if (snapshot.exists().not()) {
+                    values[GAME_COUNT_NODE] = 0
+                    values[WIN_COUNT_NODE] = 0
+                    values[RATING_NODE] = 0
+                }
+
+                userReference
+                    .updateChildren(values)
+                    .addOnFailureListener { error ->
+                        FirebaseCrashlytics.getInstance().recordException(error)
+                    }
+            }
             .addOnFailureListener { error ->
                 FirebaseCrashlytics.getInstance().recordException(error)
             }
@@ -285,6 +299,9 @@ class AndroidAccountService(
         private const val USERS_NODE = "users"
         private const val NAME_NODE = "name"
         private const val PLATFORM_NODE = "platform"
+        private const val GAME_COUNT_NODE = "gameCount"
+        private const val WIN_COUNT_NODE = "winCount"
+        private const val RATING_NODE = "rating"
         private const val ANDROID_PLATFORM = "Android"
     }
 }

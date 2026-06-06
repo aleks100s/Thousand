@@ -31,7 +31,7 @@ import kotlin.collections.plus
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-class MultiplayerRepositoryImpl : MultiplayerRepository {
+class AndroidMultiplayerRepository : MultiplayerRepository {
     companion object {
         private const val USERS_NODE = "users"
         private const val LOBBIES_NODE = "lobbies"

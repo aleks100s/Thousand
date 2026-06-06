@@ -23,6 +23,7 @@ enum FirebaseUserKey {
     static let platform = "platform"
     static let gameCount = "gameCount"
     static let winCount = "winCount"
+    static let rating = "rating"
 }
 
 enum FirebaseLobbyKey {

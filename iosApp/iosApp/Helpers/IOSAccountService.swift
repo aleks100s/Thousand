@@ -193,19 +193,33 @@ final class IOSAccountService: MutableNativeAccountService {
             }
         }
         
-        Database.database().reference()
+        let userReference = Database.database().reference()
             .child(FirebasePath.users)
             .child(user.uid)
-            .updateChildValues([
+
+        userReference.getData { error, snapshot in
+            if let error {
+                Crashlytics.crashlytics().record(error: error)
+                return
+            }
+
+            var values: [AnyHashable: Any] = [
                 FirebaseUserKey.name: name,
-                FirebaseUserKey.platform: FirebasePlatform.ios,
-                FirebaseUserKey.gameCount: 0,
-                FirebaseUserKey.winCount: 0
-            ]) { error, _ in
+                FirebaseUserKey.platform: FirebasePlatform.ios
+            ]
+
+            if snapshot?.exists() != true {
+                values[FirebaseUserKey.gameCount] = 0
+                values[FirebaseUserKey.winCount] = 0
+                values[FirebaseUserKey.rating] = 0
+            }
+
+            userReference.updateChildValues(values) { error, _ in
                 if let error {
                     Crashlytics.crashlytics().record(error: error)
                 }
             }
+        }
     }
     
     private func handleAuthenticationError(error: Error?) {
