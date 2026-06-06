@@ -24,6 +24,7 @@ class PlayerProfileViewModel(
             PlayerProfileAction.ShowLogoutDialog -> showLogoutDialog()
             PlayerProfileAction.HideLogoutDialog -> hideLogoutDialog()
             PlayerProfileAction.SignOut -> signOut()
+            PlayerProfileAction.DeleteAccount -> deleteAccount()
         }
     }
 
@@ -58,4 +59,6 @@ class PlayerProfileViewModel(
             )
         }
     }
+
+    private fun deleteAccount() = Unit
 }

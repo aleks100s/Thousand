@@ -4,4 +4,5 @@ sealed interface PlayerProfileAction {
     data object ShowLogoutDialog : PlayerProfileAction
     data object HideLogoutDialog : PlayerProfileAction
     data object SignOut : PlayerProfileAction
+    data object DeleteAccount : PlayerProfileAction
 }
