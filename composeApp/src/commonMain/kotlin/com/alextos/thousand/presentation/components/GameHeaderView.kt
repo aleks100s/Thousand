@@ -5,6 +5,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,7 +51,8 @@ import thousand.composeapp.generated.resources.trophy_24px
 fun GameHeaderView(
     game: Game,
     currentPlayer: Player? = null,
-    showBolts: Boolean = false
+    showBolts: Boolean = false,
+    onPlayerClick: ((Player) -> Unit)? = null,
 ) {
     val shouldScroll = game.players.size > 2
 
@@ -73,7 +75,12 @@ fun GameHeaderView(
             }
 
             items(game.players) { player ->
-                PlayerView(player, currentPlayer == player, showBolts && game.settings.isTripleBoltFineActive)
+                PlayerView(
+                    player = player,
+                    isActive = currentPlayer == player,
+                    showBolts = showBolts && game.settings.isTripleBoltFineActive,
+                    onClick = onPlayerClick,
+                )
             }
 
             item {
@@ -89,14 +96,24 @@ fun GameHeaderView(
             verticalAlignment = Alignment.CenterVertically
         ) {
             game.players.forEach {
-                PlayerView(it, currentPlayer == it, showBolts && game.settings.isTripleBoltFineActive)
+                PlayerView(
+                    player = it,
+                    isActive = currentPlayer == it,
+                    showBolts = showBolts && game.settings.isTripleBoltFineActive,
+                    onClick = onPlayerClick,
+                )
             }
         }
     }
 }
 
 @Composable
-private fun PlayerView(player: Player, isActive: Boolean, showBolts: Boolean) {
+private fun PlayerView(
+    player: Player,
+    isActive: Boolean,
+    showBolts: Boolean,
+    onClick: ((Player) -> Unit)?,
+) {
     val scale by animateFloatAsState(
         targetValue = if (isActive) 1.2f else 1f,
         animationSpec = tween(durationMillis = 1000)
@@ -120,10 +137,20 @@ private fun PlayerView(player: Player, isActive: Boolean, showBolts: Boolean) {
     }
 
     Box(
-        modifier = Modifier.graphicsLayer {
-            scaleX = scale
-            scaleY = scale
-        }
+        modifier = Modifier
+            .then(
+                if (onClick != null) {
+                    Modifier.clickable {
+                        onClick(player)
+                    }
+                } else {
+                    Modifier
+                }
+            )
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,

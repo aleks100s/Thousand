@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.usecase.game.TutorialNextAction
 import com.alextos.thousand.domain.usecase.game.server.GameAction
 import com.alextos.thousand.domain.usecase.game.server.GameState
@@ -47,7 +48,8 @@ fun GameView(
     isManualInputEnabled: Boolean,
     state: GameState,
     onAction: (GameAction) -> Unit,
-    onFinishGame: () -> Unit
+    onFinishGame: () -> Unit,
+    onPlayerClick: ((Player) -> Unit)? = null,
 ) {
     val isAnimated = isManualInputEnabled.not() || state.currentPlayer?.isBot() == true
     val game = state.game
@@ -57,7 +59,12 @@ fun GameView(
         }
     } else {
         Column(modifier = modifier.fillMaxSize()) {
-            GameHeaderView(game, state.currentPlayer, showBolts = true)
+            GameHeaderView(
+                game = game,
+                currentPlayer = state.currentPlayer,
+                showBolts = true,
+                onPlayerClick = onPlayerClick,
+            )
 
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 state.currentRoll?.let { roll ->

@@ -136,7 +136,8 @@ fun PlayGameScreen(
                 },
                 onFinishGame = {
                     viewModel.onAction(PlayGameAction.FinishGame)
-                }
+                },
+                onPlayerClick = null,
             )
 
             GameMessagesOverlay(

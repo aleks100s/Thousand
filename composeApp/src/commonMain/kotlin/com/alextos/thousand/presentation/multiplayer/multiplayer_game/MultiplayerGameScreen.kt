@@ -31,11 +31,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
+import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.presentation.components.GameMessageBubble
 import com.alextos.thousand.presentation.components.GameMessagesOverlay
 import com.alextos.thousand.presentation.components.GameView
 import com.alextos.thousand.presentation.menu.play_game.components.GameSettingsSheet
 import com.alextos.thousand.presentation.menu.game_rules.GameRulesContent
+import com.alextos.thousand.presentation.multiplayer.player_profile.PlayerProfileView
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
@@ -54,6 +56,7 @@ fun MultiplayerGameScreen(
     var isRulesSheetVisible by remember { mutableStateOf(false) }
     var isSettingsSheetVisible by remember { mutableStateOf(false) }
     var isMenuExpanded by remember { mutableStateOf(false) }
+    var selectedPlayer by remember { mutableStateOf<Player?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(viewModel) {
@@ -197,6 +200,9 @@ fun MultiplayerGameScreen(
             onFinishGame = {
                 goBack()
             },
+            onPlayerClick = { player ->
+                selectedPlayer = player
+            },
         )
 
         GameMessagesOverlay(
@@ -283,6 +289,17 @@ fun MultiplayerGameScreen(
                     },
                 )
             }
+        }
+    }
+
+    selectedPlayer?.let { player ->
+        ModalBottomSheet(
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            onDismissRequest = {
+                selectedPlayer = null
+            },
+        ) {
+            PlayerProfileView(username = player.user.name)
         }
     }
 }
