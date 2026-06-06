@@ -56,6 +56,7 @@ fun MultiplayerScreen(
     openCreateLobby: () -> Unit,
     openLobby: (String) -> Unit,
     openGame: (String) -> Unit,
+    openPlayerProfile: () -> Unit,
 ) {
     val viewModel: MultiplayerViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -76,7 +77,7 @@ fun MultiplayerScreen(
             {
                 state.username?.let {
                     TextButton(onClick = {
-                        viewModel.onAction(MultiplayerAction.ShowLogoutSheet)
+                        openPlayerProfile()
                     }) {
                         Text(it)
                     }
@@ -195,17 +196,6 @@ fun MultiplayerScreen(
         JoinLobbySheet(
             state = state,
             onAction = viewModel::onAction,
-        )
-    }
-
-    if (state.isLogoutSheetVisible) {
-        LogoutSheet(
-            onSignOut = {
-                viewModel.onAction(MultiplayerAction.SignOut)
-            },
-            onDismiss = {
-                viewModel.onAction(MultiplayerAction.HideLogoutSheet)
-            }
         )
     }
 
@@ -555,50 +545,6 @@ private fun LoginSheet(
                     } else {
                         Text("Вход")
                     }
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun LogoutSheet(
-    onSignOut: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    ModalBottomSheet(
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        onDismissRequest = {
-            onDismiss()
-        },
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text(text = "Вы действительно хотите выйти из аккаунта?")
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                OutlinedButton(
-                    modifier = Modifier.weight(1f),
-                    onClick = {
-                        onSignOut()
-                    },
-                ) {
-                    Text("Выйти")
-                }
-
-                Button(
-                    modifier = Modifier.weight(1f),
-                    onClick = {
-                        onDismiss()
-                    },
-                ) {
-                    Text("Отмена")
                 }
             }
         }

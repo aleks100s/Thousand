@@ -45,9 +45,6 @@ class MultiplayerViewModel(
             MultiplayerAction.LogIn -> logIn(createAccount = false)
             MultiplayerAction.SignUp -> logIn(createAccount = true)
             MultiplayerAction.JoinLobby -> joinLobby()
-            MultiplayerAction.SignOut -> signOut()
-            MultiplayerAction.ShowLogoutSheet -> showLogout()
-            MultiplayerAction.HideLogoutSheet -> hideLogout()
             is MultiplayerAction.DeleteGame -> deleteGame(action.key)
             is MultiplayerAction.DisconnectFromLobby -> disconnectFromLobby(action.key)
         }
@@ -166,33 +163,6 @@ class MultiplayerViewModel(
                 }
                 _events.emit(MultiplayerEvent.OpenLobby(key))
             } catch (_: Exception) {}
-        }
-    }
-
-    private fun showLogout() {
-        _state.update {
-            it.copy(isLogoutSheetVisible = true)
-        }
-    }
-
-    private fun hideLogout() {
-        _state.update {
-            it.copy(isLogoutSheetVisible = false)
-        }
-    }
-
-    private fun signOut() {
-        nativeAccountService.signOut()
-        _state.update {
-            it.copy(
-                isAuthorized = false,
-                currentUserId = null,
-                username = null,
-                lobbies = emptyList(),
-                activeGames = emptyList(),
-                finishedGames = emptyList(),
-                isLogoutSheetVisible = false
-            )
         }
     }
 
