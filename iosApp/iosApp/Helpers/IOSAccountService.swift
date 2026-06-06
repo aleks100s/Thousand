@@ -108,6 +108,7 @@ final class IOSAccountService: MutableNativeAccountService {
 
     private func observeGameCenterAuthorization() {
         if Auth.auth().currentUser != nil {
+            actualizeRemoteUserInfo()
             updateUserProfile()
         }
         
@@ -192,7 +193,15 @@ final class IOSAccountService: MutableNativeAccountService {
                 Crashlytics.crashlytics().record(error: error)
             }
         }
-        
+
+        actualizeRemoteUserInfo(name: name)
+    }
+
+    private func actualizeRemoteUserInfo(name: String? = nil) {
+        guard let user = Auth.auth().currentUser else {
+            return
+        }
+
         let userReference = Database.database().reference()
             .child(FirebasePath.users)
             .child(user.uid)
@@ -202,16 +211,28 @@ final class IOSAccountService: MutableNativeAccountService {
                 Crashlytics.crashlytics().record(error: error)
                 return
             }
+            
+            guard let snapshot else { return }
 
             var values: [AnyHashable: Any] = [
-                FirebaseUserKey.name: name,
+                FirebaseUserKey.name: name ?? user.displayName ?? user.email ?? user.uid,
                 FirebaseUserKey.platform: FirebasePlatform.ios
             ]
 
-            if snapshot?.exists() != true {
+            if !snapshot.exists() {
                 values[FirebaseUserKey.gameCount] = 0
                 values[FirebaseUserKey.winCount] = 0
-                values[FirebaseUserKey.rating] = 0
+                values[FirebaseUserKey.rating] = 1000
+            } else {
+                if !snapshot.hasChild(FirebaseUserKey.gameCount) {
+                    values[FirebaseUserKey.gameCount] = 0
+                }
+                if !snapshot.hasChild(FirebaseUserKey.winCount) {
+                    values[FirebaseUserKey.winCount] = 0
+                }
+                if !snapshot.hasChild(FirebaseUserKey.rating) {
+                    values[FirebaseUserKey.rating] = 1000
+                }
             }
 
             userReference.updateChildValues(values) { error, _ in

@@ -35,7 +35,8 @@ class AndroidAccountService(
         if (user == null) {
             startSilentAuthenticationFlow(activity)
         } else {
-            updateUserProfile(id = user.uid, name = user.displayName ?: user.email ?: user.uid)
+            actualizeRemoteUserInfo(user.name)
+            updateUserProfile(id = user.uid, name = user.name)
             if (user.providerData.none { it.providerId == "password" }) {
                 signInPlayGames(activity)
             }
@@ -101,8 +102,8 @@ class AndroidAccountService(
                         return@addOnCompleteListener
                     }
 
-                    updateUserProfile(id = user.uid, name = user.displayName ?: user.uid)
-                    updateFirebaseUser(name = user.displayName ?: user.uid)
+                    updateUserProfile(id = user.uid, name = user.name)
+                    updateFirebaseUser(name = user.name)
                     finish()
                 }
         }
@@ -170,7 +171,7 @@ class AndroidAccountService(
                     if (user == null) {
                         requestServerAuthCode(activity)
                     } else {
-                        updateUserProfile(id = user.uid, name = user.displayName ?: user.uid)
+                        updateUserProfile(id = user.uid, name = user.name)
                     }
                 } else {
                     handleAuthenticationError(task.exception)
@@ -227,13 +228,13 @@ class AndroidAccountService(
         val playersClient: PlayersClient = PlayGames.getPlayersClient(activity)
         playersClient.currentPlayer
             .addOnSuccessListener(activity) { player ->
-                val name = user.displayName ?: player.displayName.ifEmpty { user.uid }
+                val name = user.displayName ?: player.displayName.ifEmpty { user.email ?: user.uid }
                 updateFirebaseUser(name = name, photo = player.hiResImageUri)
                 updateUserProfile(id = user.uid, name = name)
             }
             .addOnFailureListener(activity) { error ->
                 FirebaseCrashlytics.getInstance().recordException(error)
-                val name = user.displayName ?: user.uid
+                val name = user.name
                 updateFirebaseUser(name = name)
                 updateUserProfile(id = user.uid, name = name)
             }
@@ -247,6 +248,11 @@ class AndroidAccountService(
             request.photoUri = it
         }
         currentUser.updateProfile(request.build())
+        actualizeRemoteUserInfo(name)
+    }
+
+    private fun actualizeRemoteUserInfo(name: String? = null) {
+        val currentUser = Firebase.auth.currentUser ?: return
         val userReference = FirebaseDatabase.getInstance().reference
             .child(USERS_NODE)
             .child(currentUser.uid)
@@ -254,14 +260,24 @@ class AndroidAccountService(
             .get()
             .addOnSuccessListener { snapshot ->
                 val values = mutableMapOf<String, Any>(
-                    NAME_NODE to name,
+                    NAME_NODE to (name ?: currentUser.name),
                     PLATFORM_NODE to ANDROID_PLATFORM,
                 )
 
                 if (snapshot.exists().not()) {
                     values[GAME_COUNT_NODE] = 0
                     values[WIN_COUNT_NODE] = 0
-                    values[RATING_NODE] = 0
+                    values[RATING_NODE] = 1000
+                } else {
+                    if (snapshot.hasChild(GAME_COUNT_NODE).not()) {
+                        values[GAME_COUNT_NODE] = 0
+                    }
+                    if (snapshot.hasChild(WIN_COUNT_NODE).not()) {
+                        values[WIN_COUNT_NODE] = 0
+                    }
+                    if (snapshot.hasChild(RATING_NODE).not()) {
+                        values[RATING_NODE] = 1000
+                    }
                 }
 
                 userReference
@@ -311,3 +327,6 @@ private fun Application.stringResource(name: String): String? {
     if (resourceId == 0) return null
     return getString(resourceId)
 }
+
+private val FirebaseUser.name: String
+    get() = displayName ?: email ?: uid
