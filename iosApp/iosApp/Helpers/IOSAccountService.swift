@@ -64,7 +64,7 @@ final class IOSAccountService: MutableNativeAccountService {
             }
             
             self?.updateFirebaseUser(name: name)
-            self?.updateUserProfile(id: user.uid, name: name)
+            self?.updateUserProfile()
             completionHandler(nil)
         }
     }
@@ -172,8 +172,9 @@ final class IOSAccountService: MutableNativeAccountService {
                     return
                 }
                 
-                self?.updateUserProfile()
-                self?.updateFirebaseUser(name: user.displayName ?? GKLocalPlayer.local.displayName)
+                let name = user.displayName ?? GKLocalPlayer.local.displayName
+                self?.updateFirebaseUser(name: name)
+                self?.updateUserProfile(id: user.uid, name: name)
             }
         }
     }

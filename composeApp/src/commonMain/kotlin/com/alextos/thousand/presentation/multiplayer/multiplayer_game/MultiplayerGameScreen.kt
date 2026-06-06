@@ -31,7 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
-import com.alextos.thousand.domain.models.Player
+import com.alextos.thousand.domain.models.RemoteUserInfo
 import com.alextos.thousand.presentation.components.GameMessageBubble
 import com.alextos.thousand.presentation.components.GameMessagesOverlay
 import com.alextos.thousand.presentation.components.GameView
@@ -56,7 +56,7 @@ fun MultiplayerGameScreen(
     var isRulesSheetVisible by remember { mutableStateOf(false) }
     var isSettingsSheetVisible by remember { mutableStateOf(false) }
     var isMenuExpanded by remember { mutableStateOf(false) }
-    var selectedPlayer by remember { mutableStateOf<Player?>(null) }
+    var selectedUserInfo by remember { mutableStateOf<RemoteUserInfo?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(viewModel) {
@@ -201,7 +201,7 @@ fun MultiplayerGameScreen(
                 goBack()
             },
             onPlayerClick = { player ->
-                selectedPlayer = player
+                selectedUserInfo = state.usersInfo[player.user.id]
             },
         )
 
@@ -292,14 +292,19 @@ fun MultiplayerGameScreen(
         }
     }
 
-    selectedPlayer?.let { player ->
+    selectedUserInfo?.let { userInfo ->
         ModalBottomSheet(
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
             onDismissRequest = {
-                selectedPlayer = null
+                selectedUserInfo = null
             },
         ) {
-            PlayerProfileView(username = player.user.name)
+            PlayerProfileView(
+                username = userInfo.name,
+                gameCount = userInfo.gameCount,
+                winCount = userInfo.winCount,
+                rating = userInfo.rating,
+            )
         }
     }
 }

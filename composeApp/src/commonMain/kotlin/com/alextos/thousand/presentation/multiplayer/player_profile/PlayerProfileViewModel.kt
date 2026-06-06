@@ -2,8 +2,10 @@ package com.alextos.thousand.presentation.multiplayer.player_profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alextos.thousand.domain.repository.MultiplayerRepository
 import com.alextos.thousand.domain.service.NativeAccountService
 import com.alextos.thousand.domain.usecase.DeletePlayerProfileUseCase
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -16,6 +18,7 @@ import kotlinx.coroutines.launch
 class PlayerProfileViewModel(
     private val accountService: NativeAccountService,
     private val deletePlayerProfileUseCase: DeletePlayerProfileUseCase,
+    private val multiplayerRepository: MultiplayerRepository,
 ) : ViewModel() {
     private val _state = MutableStateFlow(PlayerProfileState())
     val state: StateFlow<PlayerProfileState> = _state.asStateFlow()
@@ -38,12 +41,27 @@ class PlayerProfileViewModel(
 
     private fun observeUserProfile() {
         viewModelScope.launch {
-            accountService.userProfile.collect { user ->
+            accountService.userProfile.collectLatest { user ->
                 _state.update {
                     it.copy(
                         userId = user?.id.orEmpty(),
                         username = user?.name.orEmpty(),
+                        userInfo = null,
                     )
+                }
+
+                val userId = user?.id.orEmpty()
+                if (userId.isBlank()) return@collectLatest
+
+                try {
+                    val userInfo = multiplayerRepository.userInfo(userId)
+                    _state.update {
+                        it.copy(userInfo = userInfo)
+                    }
+                } catch (_: Exception) {
+                    _state.update {
+                        it.copy(userInfo = null)
+                    }
                 }
             }
         }

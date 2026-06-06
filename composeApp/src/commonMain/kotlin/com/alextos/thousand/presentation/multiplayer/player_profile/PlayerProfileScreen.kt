@@ -102,7 +102,12 @@ fun PlayerProfileScreen(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),
         ) {
-            PlayerProfileView(username = state.username)
+            PlayerProfileView(
+                username = state.username,
+                gameCount = state.userInfo?.gameCount ?: 0,
+                winCount = state.userInfo?.winCount ?: 0,
+                rating = state.userInfo?.rating ?: 0,
+            )
 
             if (state.isDeleteInProgress) {
                 Box(
