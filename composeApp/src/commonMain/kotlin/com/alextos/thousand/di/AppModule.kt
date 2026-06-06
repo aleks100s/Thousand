@@ -19,6 +19,7 @@ import com.alextos.thousand.domain.repository.MultiplayerRepository
 import com.alextos.thousand.domain.service.NativeAccountService
 import com.alextos.thousand.domain.service.ShakeDeviceObserver
 import com.alextos.thousand.domain.service.StorageService
+import com.alextos.thousand.domain.usecase.DeletePlayerProfileUseCase
 import com.alextos.thousand.domain.usecase.LogInUseCase
 import com.alextos.thousand.domain.usecase.SignUpUseCase
 import com.alextos.thousand.domain.usecase.game.ApplyDiceRollRestrictionsUseCase
@@ -150,5 +151,6 @@ fun appModule(
     factory { DetermineAvailableButtonsUseCase() }
     factory { LogInUseCase(get()) }
     factory { SignUpUseCase(get(), get()) }
+    factory { DeletePlayerProfileUseCase(get(), get()) }
     factory { ReplaceMainUserUseCase(get()) }
 }

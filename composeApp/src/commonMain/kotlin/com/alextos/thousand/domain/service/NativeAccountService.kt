@@ -13,6 +13,7 @@ interface NativeAccountService {
     suspend fun signUp(email: String, password: String, name: String)
     fun updateUserName(name: String)
     fun signOut()
+    suspend fun deleteAccount()
 }
 
 open class MutableNativeAccountService : NativeAccountService {
@@ -26,6 +27,7 @@ open class MutableNativeAccountService : NativeAccountService {
     override suspend fun signUp(email: String, password: String, name: String) = Unit
     override fun updateUserName(name: String) = Unit
     override fun signOut() = Unit
+    override suspend fun deleteAccount() = Unit
 
     fun updateUserProfile(id: String, name: String) {
         _userProfile.value = User(id = id, name = name)

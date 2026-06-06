@@ -119,6 +119,28 @@ class AndroidAccountService(
         clearUserProfile()
     }
 
+    override suspend fun deleteAccount() {
+        val userId = Firebase.auth.currentUser?.uid ?: userProfile.value?.id.orEmpty()
+        signOut()
+        if (userId.isBlank()) return
+
+        suspendCancellableCoroutine { continuation ->
+            FirebaseDatabase.getInstance().reference
+                .child(USERS_NODE)
+                .child(userId)
+                .removeValue()
+                .addOnSuccessListener {
+                    if (continuation.isActive) {
+                        continuation.resume(Unit)
+                    }
+                }
+                .addOnFailureListener { error ->
+                    FirebaseCrashlytics.getInstance().recordException(error)
+                    continuation.cancel(error)
+                }
+        }
+    }
+
     private fun startSilentAuthenticationFlow(activity: Activity) {
         if (hasAttemptedAuthentication || userProfile.value != null) return
         hasAttemptedAuthentication = true

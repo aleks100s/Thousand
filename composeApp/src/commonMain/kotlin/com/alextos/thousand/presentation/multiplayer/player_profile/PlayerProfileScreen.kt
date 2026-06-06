@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -45,9 +46,11 @@ fun PlayerProfileScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     var isMenuExpanded by remember { mutableStateOf(false) }
 
-    LaunchedEffect(state.isSignedOut) {
-        if (state.isSignedOut) {
-            goBack()
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                PlayerProfileEvent.GoBack -> goBack()
+            }
         }
     }
 
@@ -88,6 +91,7 @@ fun PlayerProfileScreen(
                         text = {
                             Text("Удалить аккаунт")
                         },
+                        enabled = state.isDeleteInProgress.not(),
                         colors = MenuDefaults.itemColors(
                             textColor = MaterialTheme.colorScheme.error,
                         ),
@@ -100,31 +104,45 @@ fun PlayerProfileScreen(
             }
         },
     ) { modifier ->
-        Column(
+        Box(
             modifier = modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Box(
+            Column(
                 modifier = Modifier
-                    .size(96.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center,
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
+                Box(
+                    modifier = Modifier
+                        .size(96.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = state.username.firstOrNull()?.uppercase().orEmpty(),
+                        style = MaterialTheme.typography.displaySmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                }
+
                 Text(
-                    text = state.username.firstOrNull()?.uppercase().orEmpty(),
-                    style = MaterialTheme.typography.displaySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    text = state.username,
+                    style = MaterialTheme.typography.titleMedium,
                 )
             }
 
-            Text(
-                text = state.username,
-                style = MaterialTheme.typography.titleMedium,
-            )
+            if (state.isDeleteInProgress) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
         }
     }
 

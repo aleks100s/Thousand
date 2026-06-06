@@ -87,6 +87,25 @@ final class IOSAccountService: MutableNativeAccountService {
         }
     }
     
+    override func deleteAccount(completionHandler: @escaping ((any Error)?) -> Void) {
+        let userId = Auth.auth().currentUser?.uid ?? ""
+        signOut()
+        guard !userId.isEmpty else {
+            completionHandler(nil)
+            return
+        }
+
+        Database.database().reference()
+            .child("users")
+            .child(userId)
+            .removeValue { error, _ in
+                if let error {
+                    Crashlytics.crashlytics().record(error: error)
+                }
+                completionHandler(error)
+            }
+    }
+
     private func observeGameCenterAuthorization() {
         if Auth.auth().currentUser != nil {
             updateUserProfile()
