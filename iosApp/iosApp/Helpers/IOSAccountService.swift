@@ -18,7 +18,8 @@ final class IOSAccountService: MutableNativeAccountService {
     override init() {
         super.init()
         FirebaseApp.configure()
-        observeGameCenterAuthorization()
+        observeFirebaseAuthorizationState()
+        launchGameCenter()
     }
     
     override func logIn(
@@ -39,7 +40,6 @@ final class IOSAccountService: MutableNativeAccountService {
                 return
             }
             
-            self?.updateUserProfile()
             completionHandler(nil)
         }
     }
@@ -64,32 +64,16 @@ final class IOSAccountService: MutableNativeAccountService {
             }
             
             self?.updateFirebaseUser(name: name)
-            self?.updateUserProfile()
             completionHandler(nil)
         }
     }
     
     override func updateUserName(name: String) {
-        guard let user = Auth.auth().currentUser else {
-            return
-        }
-        
         updateFirebaseUser(name: name)
-        updateUserProfile(id: user.uid, name: name)
-    }
-
-    override func signOut() {
-        do {
-            try Auth.auth().signOut()
-            clearUserProfile()
-        } catch {
-            Crashlytics.crashlytics().record(error: error)
-        }
     }
     
     override func deleteAccount(completionHandler: @escaping ((any Error)?) -> Void) {
         let userId = Auth.auth().currentUser?.uid ?? ""
-        signOut()
         guard !userId.isEmpty else {
             completionHandler(nil)
             return
@@ -101,17 +85,106 @@ final class IOSAccountService: MutableNativeAccountService {
             .removeValue { error, _ in
                 if let error {
                     Crashlytics.crashlytics().record(error: error)
+                } else {
+                    self.signOut()
                 }
                 completionHandler(error)
             }
     }
-
-    private func observeGameCenterAuthorization() {
-        if Auth.auth().currentUser != nil {
-            actualizeRemoteUserInfo()
-            updateUserProfile()
+    
+    override func signOut() {
+        do {
+            try Auth.auth().signOut()
+            clearUserProfile()
+        } catch {
+            Crashlytics.crashlytics().record(error: error)
         }
-        
+    }
+}
+
+// MARK: - Firebase user observation
+
+extension IOSAccountService {
+    private func observeFirebaseAuthorizationState() {
+        Task {
+            for try await user in Auth.auth().authStateChanges {
+                if let user {
+                    updateRemoteUserInfo(user: user)
+                } else {
+                    clearUserProfile()
+                }
+            }
+        }
+    }
+    
+    private func updateFirebaseUser(name: String, photoURL: URL? = nil) {
+        guard let user = Auth.auth().currentUser else {
+            return
+        }
+
+        let changeRequest = user.createProfileChangeRequest()
+        changeRequest.displayName = name
+        if let photoURL {
+            changeRequest.photoURL = photoURL
+        }
+        changeRequest.commitChanges { error in
+            if let error {
+                Crashlytics.crashlytics().record(error: error)
+            } else {
+                self.updateRemoteUserInfo(user: user)
+            }
+        }
+    }
+    
+    private func updateRemoteUserInfo(user: FirebaseAuth.User) {
+        let userReference = Database.database().reference()
+            .child(FirebasePath.users)
+            .child(user.uid)
+
+        userReference.getData { error, snapshot in
+            guard let snapshot else {
+                if let error {
+                    Crashlytics.crashlytics().record(error: error)
+                }
+                return
+            }
+
+            var values: [AnyHashable: Any] = [
+                FirebaseUserKey.name: user.displayName ?? user.email ?? user.uid,
+                FirebaseUserKey.platform: FirebasePlatform.ios
+            ]
+
+            if !snapshot.exists() {
+                values[FirebaseUserKey.gameCount] = 0
+                values[FirebaseUserKey.winCount] = 0
+                values[FirebaseUserKey.rating] = 1000
+            } else {
+                if !snapshot.hasChild(FirebaseUserKey.gameCount) {
+                    values[FirebaseUserKey.gameCount] = 0
+                }
+                if !snapshot.hasChild(FirebaseUserKey.winCount) {
+                    values[FirebaseUserKey.winCount] = 0
+                }
+                if !snapshot.hasChild(FirebaseUserKey.rating) {
+                    values[FirebaseUserKey.rating] = 1000
+                }
+            }
+
+            userReference.updateChildValues(values) { error, _ in
+                if let error {
+                    Crashlytics.crashlytics().record(error: error)
+                } else {
+                    self.updateUserProfile(id: user.uid, name: user.displayName ?? user.email ?? user.uid)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Game Center Authentication
+
+extension IOSAccountService {
+    private func launchGameCenter() {
         GKLocalPlayer.local.authenticateHandler = { [weak self] viewController, error in
             DispatchQueue.main.async {
                 self?.handleGameCenterAuthentication(viewController: viewController, error: error)
@@ -129,20 +202,14 @@ final class IOSAccountService: MutableNativeAccountService {
         }
         
         if let error {
-            if Auth.auth().currentUser != nil {
-                updateUserProfile()
-            } else {
-                handleAuthenticationError(error: error)
-            }
+            Crashlytics.crashlytics().record(error: error)
             return
         }
         
         let hideMultiplayer = GKLocalPlayer.local.isUnderage ||
             GKLocalPlayer.local.isMultiplayerGamingRestricted
         updateHideMultiplayer(hideMultiplayer: hideMultiplayer)
-        if Auth.auth().currentUser != nil {
-            updateUserProfile()
-        } else {
+        if Auth.auth().currentUser == nil {
             connectFirebaseWithGameCenter()
         }
     }
@@ -174,76 +241,14 @@ final class IOSAccountService: MutableNativeAccountService {
                 
                 let name = user.displayName ?? GKLocalPlayer.local.displayName
                 self?.updateFirebaseUser(name: name)
-                self?.updateUserProfile(id: user.uid, name: name)
             }
         }
     }
-    
-    private func updateFirebaseUser(name: String, photoURL: URL? = nil) {
-        guard let user = Auth.auth().currentUser else {
-            return
-        }
+}
 
-        let changeRequest = user.createProfileChangeRequest()
-        changeRequest.displayName = name
-        if let photoURL {
-            changeRequest.photoURL = photoURL
-        }
-        changeRequest.commitChanges { error in
-            if let error {
-                Crashlytics.crashlytics().record(error: error)
-            }
-        }
+// MARK: - Helpers
 
-        actualizeRemoteUserInfo(name: name)
-    }
-
-    private func actualizeRemoteUserInfo(name: String? = nil) {
-        guard let user = Auth.auth().currentUser else {
-            return
-        }
-
-        let userReference = Database.database().reference()
-            .child(FirebasePath.users)
-            .child(user.uid)
-
-        userReference.getData { error, snapshot in
-            if let error {
-                Crashlytics.crashlytics().record(error: error)
-                return
-            }
-            
-            guard let snapshot else { return }
-
-            var values: [AnyHashable: Any] = [
-                FirebaseUserKey.name: name ?? user.displayName ?? user.email ?? user.uid,
-                FirebaseUserKey.platform: FirebasePlatform.ios
-            ]
-
-            if !snapshot.exists() {
-                values[FirebaseUserKey.gameCount] = 0
-                values[FirebaseUserKey.winCount] = 0
-                values[FirebaseUserKey.rating] = 1000
-            } else {
-                if !snapshot.hasChild(FirebaseUserKey.gameCount) {
-                    values[FirebaseUserKey.gameCount] = 0
-                }
-                if !snapshot.hasChild(FirebaseUserKey.winCount) {
-                    values[FirebaseUserKey.winCount] = 0
-                }
-                if !snapshot.hasChild(FirebaseUserKey.rating) {
-                    values[FirebaseUserKey.rating] = 1000
-                }
-            }
-
-            userReference.updateChildValues(values) { error, _ in
-                if let error {
-                    Crashlytics.crashlytics().record(error: error)
-                }
-            }
-        }
-    }
-    
+extension IOSAccountService {
     private func handleAuthenticationError(error: Error?) {
         clearUserProfile()
         if let error {
@@ -257,14 +262,6 @@ final class IOSAccountService: MutableNativeAccountService {
         }
         
         presenter.present(viewController, animated: true)
-    }
-    
-    private func updateUserProfile() {
-        guard let user = Auth.auth().currentUser else {
-            return
-        }
-        
-        updateUserProfile(id: user.uid, name: user.displayName ?? user.email ?? user.uid)
     }
 }
 

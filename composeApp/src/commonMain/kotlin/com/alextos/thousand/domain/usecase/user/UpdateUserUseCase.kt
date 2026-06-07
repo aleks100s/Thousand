@@ -15,7 +15,6 @@ class UpdateUserUseCase(
             // Update current (remote) user if name has been changed
             if (currentUser.name != user.name) {
                 accountService.updateUserName(user.name)
-                return
             }
         }
         repository.saveUser(user)
