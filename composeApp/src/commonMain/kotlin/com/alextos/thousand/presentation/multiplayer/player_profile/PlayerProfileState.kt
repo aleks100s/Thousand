@@ -7,5 +7,6 @@ data class PlayerProfileState(
     val username: String = "",
     val userInfo: RemoteUserInfo? = null,
     val isLogoutDialogVisible: Boolean = false,
+    val isDeleteAccountDialogVisible: Boolean = false,
     val isDeleteInProgress: Boolean = false,
 )

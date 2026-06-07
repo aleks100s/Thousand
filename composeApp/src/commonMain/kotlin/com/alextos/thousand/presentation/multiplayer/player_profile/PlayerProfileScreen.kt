@@ -90,7 +90,7 @@ fun PlayerProfileScreen(
                         ),
                         onClick = {
                             isMenuExpanded = false
-                            viewModel.onAction(PlayerProfileAction.DeleteAccount)
+                            viewModel.onAction(PlayerProfileAction.ShowDeleteAccountDialog)
                         },
                     )
                 }
@@ -130,6 +130,17 @@ fun PlayerProfileScreen(
             },
         )
     }
+
+    if (state.isDeleteAccountDialogVisible) {
+        DeleteAccountDialog(
+            onDeleteAccount = {
+                viewModel.onAction(PlayerProfileAction.DeleteAccount)
+            },
+            onDismiss = {
+                viewModel.onAction(PlayerProfileAction.HideDeleteAccountDialog)
+            },
+        )
+    }
 }
 
 @Composable
@@ -151,6 +162,38 @@ private fun LogoutDialog(
                 onClick = onSignOut,
             ) {
                 Text("Выйти")
+            }
+        },
+        dismissButton = {
+            OutlinedButton(onClick = onDismiss) {
+                Text("Отмена")
+            }
+        },
+    )
+}
+
+@Composable
+private fun DeleteAccountDialog(
+    onDeleteAccount: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text("Удалить аккаунт?")
+        },
+        text = {
+            Text("Будут удалены профиль игрока, а также все игры и лобби, где вы являетесь хостом. Это действие нельзя отменить.")
+        },
+        confirmButton = {
+            Button(
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError,
+                ),
+                onClick = onDeleteAccount,
+            ) {
+                Text("Удалить")
             }
         },
         dismissButton = {

@@ -57,7 +57,7 @@ final class IOSAccountService: MutableNativeAccountService {
                 return
             }
             
-            guard let user = result?.user else {
+            guard (result?.user) != nil else {
                 self?.handleAuthenticationError(error: nil)
                 completionHandler(nil)
                 return

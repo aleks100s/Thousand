@@ -34,6 +34,8 @@ class PlayerProfileViewModel(
         when (action) {
             PlayerProfileAction.ShowLogoutDialog -> showLogoutDialog()
             PlayerProfileAction.HideLogoutDialog -> hideLogoutDialog()
+            PlayerProfileAction.ShowDeleteAccountDialog -> showDeleteAccountDialog()
+            PlayerProfileAction.HideDeleteAccountDialog -> hideDeleteAccountDialog()
             PlayerProfileAction.SignOut -> signOut()
             PlayerProfileAction.DeleteAccount -> deleteAccount()
         }
@@ -79,6 +81,18 @@ class PlayerProfileViewModel(
         }
     }
 
+    private fun showDeleteAccountDialog() {
+        _state.update {
+            it.copy(isDeleteAccountDialogVisible = true)
+        }
+    }
+
+    private fun hideDeleteAccountDialog() {
+        _state.update {
+            it.copy(isDeleteAccountDialogVisible = false)
+        }
+    }
+
     private fun signOut() {
         accountService.signOut()
         _state.update {
@@ -95,7 +109,10 @@ class PlayerProfileViewModel(
 
         viewModelScope.launch {
             _state.update {
-                it.copy(isDeleteInProgress = true)
+                it.copy(
+                    isDeleteAccountDialogVisible = false,
+                    isDeleteInProgress = true,
+                )
             }
 
             try {
