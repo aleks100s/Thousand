@@ -21,13 +21,14 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 
 class AndroidAccountService(
     private val application: Application,
-) : MutableNativeAccountService(), Application.ActivityLifecycleCallbacks {
+) : MutableNativeAccountService(), Application.ActivityLifecycleCallbacks, FirebaseAuth.AuthStateListener {
     private var hasAttemptedAuthentication = false
 
     init {
         updateHideMultiplayer(false)
         PlayGamesSdk.initialize(application)
         application.registerActivityLifecycleCallbacks(this)
+        Firebase.auth.addAuthStateListener(this)
     }
 
     override fun onActivityResumed(activity: Activity) {
@@ -35,12 +36,63 @@ class AndroidAccountService(
         if (user == null) {
             startSilentAuthenticationFlow(activity)
         } else {
-            actualizeRemoteUserInfo(user.name)
-            updateUserProfile(id = user.uid, name = user.name)
             if (user.providerData.none { it.providerId == "password" }) {
                 signInPlayGames(activity)
             }
         }
+    }
+
+    // Firebase user observation
+
+    override fun onAuthStateChanged(auth: FirebaseAuth) {
+        val user = auth.currentUser
+        if (user != null) {
+            updateRemoteUserInfo(user)
+        } else {
+            clearUserProfile()
+        }
+    }
+
+    private fun updateRemoteUserInfo(user: FirebaseUser) {
+        val userReference = FirebaseDatabase.getInstance().reference
+            .child(USERS_NODE)
+            .child(user.uid)
+        userReference
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val values = mutableMapOf<String, Any>(
+                    NAME_NODE to user.name,
+                    PLATFORM_NODE to ANDROID_PLATFORM,
+                )
+
+                if (snapshot.exists().not()) {
+                    values[GAME_COUNT_NODE] = 0
+                    values[WIN_COUNT_NODE] = 0
+                    values[RATING_NODE] = 0
+                } else {
+                    if (snapshot.hasChild(GAME_COUNT_NODE).not()) {
+                        values[GAME_COUNT_NODE] = 0
+                    }
+                    if (snapshot.hasChild(WIN_COUNT_NODE).not()) {
+                        values[WIN_COUNT_NODE] = 0
+                    }
+                    if (snapshot.hasChild(RATING_NODE).not()) {
+                        values[RATING_NODE] = 0
+                    }
+                }
+
+                userReference
+                    .updateChildren(values)
+                    .addOnFailureListener { error ->
+                        FirebaseCrashlytics.getInstance().recordException(error)
+                    }
+                    .addOnSuccessListener {
+                        updateUserProfile(id = user.uid, name = user.name)
+                    }
+            }
+            .addOnFailureListener { error ->
+                FirebaseCrashlytics.getInstance().recordException(error)
+            }
     }
 
     override suspend fun signUp(email: String, password: String, name: String) {
@@ -69,7 +121,6 @@ class AndroidAccountService(
                         return@addOnCompleteListener
                     }
 
-                    updateUserProfile(id = user.uid, name = name)
                     updateFirebaseUser(name = name)
                     finish()
                 }
@@ -102,17 +153,13 @@ class AndroidAccountService(
                         return@addOnCompleteListener
                     }
 
-                    updateUserProfile(id = user.uid, name = user.name)
-                    updateFirebaseUser(name = user.name)
                     finish()
                 }
         }
     }
 
     override fun updateUserName(name: String) {
-        val currentUser = Firebase.auth.currentUser ?: return
         updateFirebaseUser(name = name)
-        updateUserProfile(id = currentUser.uid, name = name)
     }
 
     override fun signOut() {
@@ -122,7 +169,6 @@ class AndroidAccountService(
 
     override suspend fun deleteAccount() {
         val userId = Firebase.auth.currentUser?.uid ?: userProfile.value?.id.orEmpty()
-        signOut()
         if (userId.isBlank()) return
 
         suspendCancellableCoroutine { continuation ->
@@ -132,6 +178,7 @@ class AndroidAccountService(
                 .removeValue()
                 .addOnSuccessListener {
                     if (continuation.isActive) {
+                        signOut()
                         continuation.resume(Unit)
                     }
                 }
@@ -142,6 +189,8 @@ class AndroidAccountService(
         }
     }
 
+    // Play Games authentication
+
     private fun startSilentAuthenticationFlow(activity: Activity) {
         if (hasAttemptedAuthentication || userProfile.value != null) return
         hasAttemptedAuthentication = true
@@ -150,7 +199,7 @@ class AndroidAccountService(
         gamesSignInClient.isAuthenticated
             .addOnCompleteListener(activity) { task ->
                 if (task.isSuccessful.not()) {
-                    handleAuthenticationError(task.exception)
+                    log(task.exception)
                     return@addOnCompleteListener
                 }
 
@@ -174,7 +223,7 @@ class AndroidAccountService(
                         updateUserProfile(id = user.uid, name = user.name)
                     }
                 } else {
-                    handleAuthenticationError(task.exception)
+                    log(task.exception)
                 }
             }
     }
@@ -182,9 +231,7 @@ class AndroidAccountService(
     private fun requestServerAuthCode(activity: Activity) {
         val webClientId = application.stringResource(DEFAULT_WEB_CLIENT_ID)
         if (webClientId.isNullOrBlank()) {
-            handleAuthenticationError(
-                IllegalStateException("Missing $DEFAULT_WEB_CLIENT_ID. Configure Firebase web OAuth client for Play Games sign-in.")
-            )
+            log(IllegalStateException("Missing $DEFAULT_WEB_CLIENT_ID. Configure Firebase web OAuth client for Play Games sign-in."))
             return
         }
 
@@ -194,7 +241,7 @@ class AndroidAccountService(
                 authenticateFirebaseWithPlayGames(activity, serverAuthCode)
             }
             .addOnFailureListener(activity) { error ->
-                handleAuthenticationError(error)
+                log(error)
             }
     }
 
@@ -230,13 +277,9 @@ class AndroidAccountService(
             .addOnSuccessListener(activity) { player ->
                 val name = user.displayName ?: player.displayName.ifEmpty { user.email ?: user.uid }
                 updateFirebaseUser(name = name, photo = player.hiResImageUri)
-                updateUserProfile(id = user.uid, name = name)
             }
             .addOnFailureListener(activity) { error ->
                 FirebaseCrashlytics.getInstance().recordException(error)
-                val name = user.name
-                updateFirebaseUser(name = name)
-                updateUserProfile(id = user.uid, name = name)
             }
     }
 
@@ -248,51 +291,19 @@ class AndroidAccountService(
             request.photoUri = it
         }
         currentUser.updateProfile(request.build())
-        actualizeRemoteUserInfo(name)
-    }
-
-    private fun actualizeRemoteUserInfo(name: String? = null) {
-        val currentUser = Firebase.auth.currentUser ?: return
-        val userReference = FirebaseDatabase.getInstance().reference
-            .child(USERS_NODE)
-            .child(currentUser.uid)
-        userReference
-            .get()
-            .addOnSuccessListener { snapshot ->
-                val values = mutableMapOf<String, Any>(
-                    NAME_NODE to (name ?: currentUser.name),
-                    PLATFORM_NODE to ANDROID_PLATFORM,
-                )
-
-                if (snapshot.exists().not()) {
-                    values[GAME_COUNT_NODE] = 0
-                    values[WIN_COUNT_NODE] = 0
-                    values[RATING_NODE] = 1000
-                } else {
-                    if (snapshot.hasChild(GAME_COUNT_NODE).not()) {
-                        values[GAME_COUNT_NODE] = 0
-                    }
-                    if (snapshot.hasChild(WIN_COUNT_NODE).not()) {
-                        values[WIN_COUNT_NODE] = 0
-                    }
-                    if (snapshot.hasChild(RATING_NODE).not()) {
-                        values[RATING_NODE] = 1000
-                    }
-                }
-
-                userReference
-                    .updateChildren(values)
-                    .addOnFailureListener { error ->
-                        FirebaseCrashlytics.getInstance().recordException(error)
-                    }
-            }
-            .addOnFailureListener { error ->
-                FirebaseCrashlytics.getInstance().recordException(error)
+            .addOnSuccessListener {
+                updateRemoteUserInfo(currentUser)
             }
     }
+
+    // Helpers
 
     private fun handleAuthenticationError(error: Exception?) {
         clearUserProfile()
+        log(error)
+    }
+
+    private fun log(error: Exception?) {
         error?.let {
             FirebaseCrashlytics.getInstance().recordException(it)
         }

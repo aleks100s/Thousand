@@ -157,7 +157,7 @@ extension IOSAccountService {
             if !snapshot.exists() {
                 values[FirebaseUserKey.gameCount] = 0
                 values[FirebaseUserKey.winCount] = 0
-                values[FirebaseUserKey.rating] = 1000
+                values[FirebaseUserKey.rating] = 0
             } else {
                 if !snapshot.hasChild(FirebaseUserKey.gameCount) {
                     values[FirebaseUserKey.gameCount] = 0
@@ -166,7 +166,7 @@ extension IOSAccountService {
                     values[FirebaseUserKey.winCount] = 0
                 }
                 if !snapshot.hasChild(FirebaseUserKey.rating) {
-                    values[FirebaseUserKey.rating] = 1000
+                    values[FirebaseUserKey.rating] = 0
                 }
             }
 
