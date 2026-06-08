@@ -165,7 +165,7 @@ private fun PlayerView(
                             Res.drawable.person_24px
                     ),
                     contentDescription = null,
-                    tint = if (player.isWinner) Color.Yellow else if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
+                    tint = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
                 )
 
                 Text(

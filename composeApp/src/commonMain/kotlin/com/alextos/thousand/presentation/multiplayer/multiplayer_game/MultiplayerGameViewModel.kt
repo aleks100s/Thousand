@@ -171,7 +171,38 @@ class MultiplayerGameViewModel(
         }
     }
 
-    private fun rematch() = Unit
+    private fun rematch() {
+        viewModelScope.launch {
+            val remoteGame = remoteGame ?: return@launch
+            val players = remoteGame.players.map { player ->
+                player.copy(
+                    currentScore = 0,
+                    isWinner = false,
+                    boltCount = 0,
+                    hasPassedStartLimit = false,
+                )
+            }
+
+            rollBlocked = false
+            val resetGame = remoteGame.copy(
+                players = players,
+                currentPlayerIndex = 0,
+                currentTurn = emptyList(),
+                currentRoll = null,
+                rollAbility = RollAbility.REQUIRED,
+                buttons = determineAvailableButtons(
+                    currentPlayer = players.firstOrNull(),
+                    isFirstRoll = true,
+                    isGameOver = false,
+                    rollAbility = RollAbility.REQUIRED,
+                    isTutorial = false,
+                ),
+                messagesToShow = emptyList(),
+            )
+
+            updateRemote(resetGame)
+        }
+    }
 
     private fun reduceGameAction(action: GameAction) {
         when (action) {

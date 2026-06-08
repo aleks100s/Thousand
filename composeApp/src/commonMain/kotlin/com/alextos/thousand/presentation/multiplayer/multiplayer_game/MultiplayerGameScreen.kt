@@ -58,13 +58,12 @@ fun MultiplayerGameScreen(
     var isMenuExpanded by remember { mutableStateOf(false) }
     var selectedUserInfo by remember { mutableStateOf<RemoteUserInfo?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    var showFinishedGameSheet by remember { mutableStateOf(false) }
+    var showWinSheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
                 MultiplayerGameEvent.GameDeleted -> goBack()
-                is MultiplayerGameEvent.FinishGame -> goBack()
                 is MultiplayerGameEvent.ShowMessage -> {
                     messages.add(
                         GameMessageBubble(
@@ -199,7 +198,7 @@ fun MultiplayerGameScreen(
                 viewModel.onAction(MultiplayerGameAction.SendGameAction(action))
             },
             onFinishGame = {
-                showFinishedGameSheet = true
+                showWinSheet = true
             },
             onPlayerClick = { player ->
                 selectedUserInfo = state.usersInfo[player.user.id]
@@ -293,51 +292,42 @@ fun MultiplayerGameScreen(
         }
     }
 
-    if (showFinishedGameSheet) {
-        state.gameState.game?.let { game ->
-            val winnerNames = game.players
-                .filter { it.isWinner }
-                .map { it.user.name }
-
-            ModalBottomSheet(
-                sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-                onDismissRequest = {},
+    if (showWinSheet) {
+        ModalBottomSheet(
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            onDismissRequest = {
+                showWinSheet = false
+            },
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                Text(
+                    text = "Победа!",
+                    style = MaterialTheme.typography.titleLarge,
+                )
+
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        showWinSheet = false
+                        viewModel.onAction(MultiplayerGameAction.Rematch)
+                    },
                 ) {
-                    Text(
-                        text = "Игра завершена",
-                        style = MaterialTheme.typography.titleMedium,
-                    )
+                    Text("Сыграть заново")
+                }
 
-                    Text(
-                        text = if (winnerNames.isEmpty()) {
-                            "Победитель не определен"
-                        } else {
-                            "Победитель: ${winnerNames.joinToString()}"
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-
-                    Button(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = {
-                            viewModel.onAction(MultiplayerGameAction.Rematch)
-                        },
-                    ) {
-                        Text("Реванш")
-                    }
-
-                    OutlinedButton(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = goBack,
-                    ) {
-                        Text("Выйти")
-                    }
+                OutlinedButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        showWinSheet = false
+                        goBack()
+                    },
+                ) {
+                    Text("Выйти")
                 }
             }
         }
