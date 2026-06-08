@@ -57,7 +57,6 @@ class MultiplayerGameViewModel(
     private var rollBlocked = false
     private var remoteGame: RemoteGame? = null
     private var needToRequestUserInfo = true
-    private var gameLostEventShown = false
 
     init {
         shakeDeviceObserver.delegate = this
@@ -87,6 +86,8 @@ class MultiplayerGameViewModel(
         when (action) {
             MultiplayerGameAction.DeleteGame -> deleteGame()
             MultiplayerGameAction.Rematch -> rematch()
+            MultiplayerGameAction.ShowWinSheet -> showWinSheet()
+            MultiplayerGameAction.HideWinSheet -> hideWinSheet()
             is MultiplayerGameAction.SendGameAction -> reduceGameAction(action.action)
             is MultiplayerGameAction.ToggleNotifications -> toggleNotifications(action.isEnabled)
         }
@@ -107,13 +108,23 @@ class MultiplayerGameViewModel(
     private fun handleGameUpdate(game: RemoteGame) {
         remoteGame = game
         loadMissingUsersInfo(game)
-        showGameLostIfNeeded(game)
         val gameState = mapToGameState(game)
+        val lostGameWinnerName = if (game.isFinished()) {
+            game.lostGameWinnerName()
+        } else {
+            null
+        }
         _state.update {
             it.copy(
                 isHost = game.host == accountService.userProfile.value?.id,
                 gameCode = game.id.toString(),
                 gameState = gameState,
+                showWinSheet = when {
+                    game.isFinished().not() -> false
+                    lostGameWinnerName != null -> false
+                    else -> it.showWinSheet
+                },
+                lostGameWinnerName = lostGameWinnerName,
             )
         }
     }
@@ -136,27 +147,17 @@ class MultiplayerGameViewModel(
         )
     }
 
-    private fun showGameLostIfNeeded(game: RemoteGame) {
-        if (game.isFinished().not() || gameLostEventShown) {
-            return
-        }
-
-        val currentUserId = accountService.userProfile.value?.id ?: return
-        val currentPlayer = game.players.firstOrNull { it.user.id == currentUserId } ?: return
+    private fun RemoteGame.lostGameWinnerName(): String? {
+        val currentUserId = accountService.userProfile.value?.id ?: return null
+        val currentPlayer = players.firstOrNull { it.user.id == currentUserId } ?: return null
         if (currentPlayer.isWinner) {
-            return
+            return null
         }
 
-        val winnerName = game.players
+        return players
             .firstOrNull { it.isWinner }
             ?.user
             ?.name
-            ?: return
-
-        gameLostEventShown = true
-        viewModelScope.launch {
-            _events.emit(MultiplayerGameEvent.ShowGameLost(winnerName))
-        }
     }
 
     private fun loadMissingUsersInfo(game: RemoteGame) {
@@ -211,8 +212,13 @@ class MultiplayerGameViewModel(
             }
 
             rollBlocked = false
-            gameLostEventShown = false
             needToRequestUserInfo = true
+            _state.update {
+                it.copy(
+                    showWinSheet = false,
+                    lostGameWinnerName = null,
+                )
+            }
             val resetGame = remoteGame.copy(
                 players = players,
                 currentPlayerIndex = 0,
@@ -230,6 +236,18 @@ class MultiplayerGameViewModel(
             )
 
             updateRemote(resetGame)
+        }
+    }
+
+    private fun showWinSheet() {
+        _state.update {
+            it.copy(showWinSheet = true)
+        }
+    }
+
+    private fun hideWinSheet() {
+        _state.update {
+            it.copy(showWinSheet = false)
         }
     }
 

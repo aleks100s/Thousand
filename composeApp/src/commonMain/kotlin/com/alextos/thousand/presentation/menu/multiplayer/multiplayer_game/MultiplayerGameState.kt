@@ -10,4 +10,6 @@ data class MultiplayerGameState(
     val gameState: GameState = GameState(),
     val isNotificationEnabled: Boolean = true,
     val usersInfo: Map<String, RemoteUserInfo> = emptyMap(),
+    val showWinSheet: Boolean = false,
+    val lostGameWinnerName: String? = null,
 )

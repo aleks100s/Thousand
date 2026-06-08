@@ -58,16 +58,11 @@ fun MultiplayerGameScreen(
     var isMenuExpanded by remember { mutableStateOf(false) }
     var selectedUserInfo by remember { mutableStateOf<RemoteUserInfo?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    var showWinSheet by remember { mutableStateOf(false) }
-    var lostGameWinnerName by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
                 MultiplayerGameEvent.GameDeleted -> goBack()
-                is MultiplayerGameEvent.ShowGameLost -> {
-                    lostGameWinnerName = event.winnerName
-                }
                 is MultiplayerGameEvent.ShowMessage -> {
                     messages.add(
                         GameMessageBubble(
@@ -202,7 +197,7 @@ fun MultiplayerGameScreen(
                 viewModel.onAction(MultiplayerGameAction.SendGameAction(action))
             },
             onFinishGame = {
-                showWinSheet = true
+                viewModel.onAction(MultiplayerGameAction.ShowWinSheet)
             },
             onPlayerClick = { player ->
                 selectedUserInfo = state.usersInfo[player.user.id]
@@ -296,11 +291,11 @@ fun MultiplayerGameScreen(
         }
     }
 
-    if (showWinSheet) {
+    if (state.showWinSheet) {
         ModalBottomSheet(
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             onDismissRequest = {
-                showWinSheet = false
+                viewModel.onAction(MultiplayerGameAction.HideWinSheet)
             },
         ) {
             Column(
@@ -317,7 +312,6 @@ fun MultiplayerGameScreen(
                 Button(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
-                        showWinSheet = false
                         viewModel.onAction(MultiplayerGameAction.Rematch)
                     },
                 ) {
@@ -327,7 +321,7 @@ fun MultiplayerGameScreen(
                 OutlinedButton(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
-                        showWinSheet = false
+                        viewModel.onAction(MultiplayerGameAction.HideWinSheet)
                         goBack()
                     },
                 ) {
@@ -337,7 +331,7 @@ fun MultiplayerGameScreen(
         }
     }
 
-    lostGameWinnerName?.let { winnerName ->
+    state.lostGameWinnerName?.let { winnerName ->
         ModalBottomSheet(
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             onDismissRequest = {},
@@ -359,6 +353,15 @@ fun MultiplayerGameScreen(
                 )
 
                 Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        viewModel.onAction(MultiplayerGameAction.Rematch)
+                    },
+                ) {
+                    Text("Реванш")
+                }
+
+                OutlinedButton(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = goBack,
                 ) {

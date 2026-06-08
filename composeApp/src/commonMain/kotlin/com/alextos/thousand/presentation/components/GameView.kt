@@ -58,7 +58,7 @@ fun GameView(
             LoadingIndicator()
         }
     } else {
-        Column(modifier = modifier.fillMaxSize()) {
+        Column(modifier = modifier.padding(bottom = 16.dp).fillMaxSize()) {
             GameHeaderView(
                 game = game,
                 currentPlayer = state.currentPlayer,
