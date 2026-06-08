@@ -86,8 +86,6 @@ class MultiplayerGameViewModel(
         when (action) {
             MultiplayerGameAction.DeleteGame -> deleteGame()
             MultiplayerGameAction.Rematch -> rematch()
-            MultiplayerGameAction.ShowWinSheet -> showWinSheet()
-            MultiplayerGameAction.HideWinSheet -> hideWinSheet()
             is MultiplayerGameAction.SendGameAction -> reduceGameAction(action.action)
             is MultiplayerGameAction.ToggleNotifications -> toggleNotifications(action.isEnabled)
         }
@@ -109,22 +107,12 @@ class MultiplayerGameViewModel(
         remoteGame = game
         loadMissingUsersInfo(game)
         val gameState = mapToGameState(game)
-        val lostGameWinnerName = if (game.isFinished()) {
-            game.lostGameWinnerName()
-        } else {
-            null
-        }
         _state.update {
             it.copy(
                 isHost = game.host == accountService.userProfile.value?.id,
                 gameCode = game.id.toString(),
                 gameState = gameState,
-                showWinSheet = when {
-                    game.isFinished().not() -> false
-                    lostGameWinnerName != null -> false
-                    else -> it.showWinSheet
-                },
-                lostGameWinnerName = lostGameWinnerName,
+                gameResultSheet = game.finishedGameResultSheet(),
             )
         }
     }
@@ -147,17 +135,17 @@ class MultiplayerGameViewModel(
         )
     }
 
-    private fun RemoteGame.lostGameWinnerName(): String? {
-        val currentUserId = accountService.userProfile.value?.id ?: return null
-        val currentPlayer = players.firstOrNull { it.user.id == currentUserId } ?: return null
-        if (currentPlayer.isWinner) {
+    private fun RemoteGame.finishedGameResultSheet(): MultiplayerGameResultSheetUi? {
+        if (isFinished().not()) {
             return null
         }
 
-        return players
-            .firstOrNull { it.isWinner }
-            ?.user
-            ?.name
+        val winner = players.firstOrNull { it.isWinner } ?: return null
+        val currentUserId = accountService.userProfile.value?.id
+        return MultiplayerGameResultSheetUi(
+            winnerName = winner.user.name,
+            isCurrentUser = winner.user.id == currentUserId,
+        )
     }
 
     private fun loadMissingUsersInfo(game: RemoteGame) {
@@ -215,8 +203,8 @@ class MultiplayerGameViewModel(
             needToRequestUserInfo = true
             _state.update {
                 it.copy(
-                    showWinSheet = false,
-                    lostGameWinnerName = null,
+                    gameResultSheet = null,
+                    usersInfo = emptyMap()
                 )
             }
             val resetGame = remoteGame.copy(
@@ -236,18 +224,6 @@ class MultiplayerGameViewModel(
             )
 
             updateRemote(resetGame)
-        }
-    }
-
-    private fun showWinSheet() {
-        _state.update {
-            it.copy(showWinSheet = true)
-        }
-    }
-
-    private fun hideWinSheet() {
-        _state.update {
-            it.copy(showWinSheet = false)
         }
     }
 
@@ -359,13 +335,7 @@ class MultiplayerGameViewModel(
                 currentRoll = null,
                 currentTurn = emptyList(),
                 currentPlayerIndex = -1,
-                buttons = determineAvailableButtons(
-                    isFirstRoll = false,
-                    isGameOver = true,
-                    rollAbility = RollAbility.REQUIRED,
-                    currentPlayer = null,
-                    isTutorial = false
-                ),
+                buttons = emptyList(),
                 messagesToShow = messages
             ) ?: return@launch
             updateRemote(game)

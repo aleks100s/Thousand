@@ -196,9 +196,7 @@ fun MultiplayerGameScreen(
             onAction = { action ->
                 viewModel.onAction(MultiplayerGameAction.SendGameAction(action))
             },
-            onFinishGame = {
-                viewModel.onAction(MultiplayerGameAction.ShowWinSheet)
-            },
+            onFinishGame = {},
             onPlayerClick = { player ->
                 selectedUserInfo = state.usersInfo[player.user.id]
             },
@@ -291,47 +289,7 @@ fun MultiplayerGameScreen(
         }
     }
 
-    if (state.showWinSheet) {
-        ModalBottomSheet(
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-            onDismissRequest = {
-                viewModel.onAction(MultiplayerGameAction.HideWinSheet)
-            },
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                Text(
-                    text = "Победа!",
-                    style = MaterialTheme.typography.titleLarge,
-                )
-
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = {
-                        viewModel.onAction(MultiplayerGameAction.Rematch)
-                    },
-                ) {
-                    Text("Сыграть заново")
-                }
-
-                OutlinedButton(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = {
-                        viewModel.onAction(MultiplayerGameAction.HideWinSheet)
-                        goBack()
-                    },
-                ) {
-                    Text("Выйти")
-                }
-            }
-        }
-    }
-
-    state.lostGameWinnerName?.let { winnerName ->
+    state.gameResultSheet?.let { gameResultSheet ->
         ModalBottomSheet(
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             onDismissRequest = {},
@@ -343,12 +301,12 @@ fun MultiplayerGameScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Text(
-                    text = "Игра завершена",
+                    text = if (gameResultSheet.isCurrentUser) "Победа" else "Поражение",
                     style = MaterialTheme.typography.titleLarge,
                 )
 
                 Text(
-                    text = "Победил $winnerName",
+                    text = "Победил ${gameResultSheet.winnerName}",
                     style = MaterialTheme.typography.bodyMedium,
                 )
 
@@ -358,7 +316,7 @@ fun MultiplayerGameScreen(
                         viewModel.onAction(MultiplayerGameAction.Rematch)
                     },
                 ) {
-                    Text("Реванш")
+                    Text(if (gameResultSheet.isCurrentUser) "Сыграть еще раз" else "Реванш")
                 }
 
                 OutlinedButton(
