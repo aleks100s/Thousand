@@ -6,8 +6,14 @@ data class MenuState(
         MenuTile(
             title = "Новая игра",
             description = "Создать новую партию",
-            size = MenuTileSize.Large,
+            size = MenuTileSize.Default,
             action = MenuTileAction.NewGame,
+        ),
+        MenuTile(
+            title = "Мультиплеер",
+            description = "Игры с другими игроками",
+            size = MenuTileSize.Default,
+            action = MenuTileAction.Multiplayer,
         ),
         MenuTile(
             title = "Статистика",
@@ -59,6 +65,7 @@ enum class MenuTileAction {
     Rules,
     GamesHistory,
     Statistics,
+    Multiplayer,
     Users,
     NewGame,
 }

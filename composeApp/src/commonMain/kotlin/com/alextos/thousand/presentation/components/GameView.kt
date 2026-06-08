@@ -62,7 +62,7 @@ fun GameView(
             GameHeaderView(
                 game = game,
                 currentPlayer = state.currentPlayer,
-                showBolts = true,
+                showBolts = game.isFinished().not(),
                 onPlayerClick = onPlayerClick,
             )
 

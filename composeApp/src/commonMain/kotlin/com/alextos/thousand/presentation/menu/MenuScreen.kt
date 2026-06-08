@@ -23,7 +23,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,7 +37,9 @@ import org.koin.compose.viewmodel.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MenuScreen(
+    hideMultiplayer: Boolean,
     onCreateGame: () -> Unit,
+    openMultiplayer: () -> Unit,
     openGamesHistory: () -> Unit,
     openRules: () -> Unit,
     openTutorial: () -> Unit,
@@ -49,10 +50,19 @@ fun MenuScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val gridState = rememberLazyGridState()
     var isTutorialSheetVisible by remember { mutableStateOf(false) }
+    val tiles = remember(state.tiles, hideMultiplayer) {
+        state.tiles.mapNotNull { tile ->
+            when (tile.action) {
+                MenuTileAction.Multiplayer if hideMultiplayer -> null
+                MenuTileAction.NewGame if hideMultiplayer -> tile.copy(size = MenuTileSize.Large)
+                else -> tile
+            }
+        }
+    }
 
     Screen(
         modifier = Modifier,
-        title = "Меню",
+        title = "1000",
     ) { modifier ->
         BoxWithConstraints(modifier = modifier.fillMaxSize(),) {
             val columns = if (maxWidth > maxHeight) 3 else 2
@@ -66,7 +76,7 @@ fun MenuScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 items(
-                    items = state.tiles,
+                    items = tiles,
                     span = { tile ->
                         GridItemSpan(
                             if (tile.size == MenuTileSize.Large) maxLineSpan else 1
@@ -82,6 +92,7 @@ fun MenuScreen(
                                 MenuTileAction.GamesHistory -> openGamesHistory()
                                 MenuTileAction.Statistics -> openStatistics()
                                 MenuTileAction.Users -> openUsers()
+                                MenuTileAction.Multiplayer -> openMultiplayer()
                                 MenuTileAction.NewGame -> {
                                     if (state.isFirstLaunch) {
                                         isTutorialSheetVisible = true
@@ -149,7 +160,7 @@ private fun MenuTileView(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(if (tile.size == MenuTileSize.Large) 168.dp else 112.dp)
+            .height(if (tile.size == MenuTileSize.Large) 144.dp else 100.dp)
             .clickable(onClick = onClick),
     ) {
         Column(

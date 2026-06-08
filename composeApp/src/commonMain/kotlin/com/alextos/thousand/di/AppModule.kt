@@ -66,11 +66,11 @@ import com.alextos.thousand.presentation.menu.statistics.turn_statistics.TurnsSt
 import com.alextos.thousand.presentation.menu.tutorial_game.TutorialGameViewModel
 import com.alextos.thousand.presentation.menu.users.UsersViewModel
 import com.alextos.thousand.presentation.menu.MenuViewModel
-import com.alextos.thousand.presentation.multiplayer.MultiplayerViewModel
-import com.alextos.thousand.presentation.multiplayer.create_lobby.CreateLobbyViewModel
-import com.alextos.thousand.presentation.multiplayer.lobby.LobbyViewModel
-import com.alextos.thousand.presentation.multiplayer.multiplayer_game.MultiplayerGameViewModel
-import com.alextos.thousand.presentation.multiplayer.player_profile.PlayerProfileViewModel
+import com.alextos.thousand.presentation.menu.multiplayer.MultiplayerViewModel
+import com.alextos.thousand.presentation.menu.multiplayer.create_lobby.CreateLobbyViewModel
+import com.alextos.thousand.presentation.menu.multiplayer.lobby.LobbyViewModel
+import com.alextos.thousand.presentation.menu.multiplayer.multiplayer_game.MultiplayerGameViewModel
+import com.alextos.thousand.presentation.menu.multiplayer.player_profile.PlayerProfileViewModel
 import com.alextos.thousand.presentation.onboarding.OnboardingViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModelOf
