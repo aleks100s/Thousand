@@ -57,6 +57,7 @@ class MultiplayerGameViewModel(
     private var rollBlocked = false
     private var remoteGame: RemoteGame? = null
     private val requestedUserInfoIds = mutableSetOf<String>()
+    private var gameLostEventShown = false
 
     init {
         shakeDeviceObserver.delegate = this
@@ -106,6 +107,7 @@ class MultiplayerGameViewModel(
     private fun handleGameUpdate(game: RemoteGame) {
         remoteGame = game
         loadMissingUsersInfo(game)
+        showGameLostIfNeeded(game)
         val gameState = mapToGameState(game)
         _state.update {
             it.copy(
@@ -132,6 +134,29 @@ class MultiplayerGameViewModel(
             rollAbility = if (isCurrentUser) game.rollAbility else RollAbility.UNAVAILABLE,
             buttons = if (isCurrentUser) game.buttons else emptyList()
         )
+    }
+
+    private fun showGameLostIfNeeded(game: RemoteGame) {
+        if (game.isFinished().not() || gameLostEventShown) {
+            return
+        }
+
+        val currentUserId = accountService.userProfile.value?.id ?: return
+        val currentPlayer = game.players.firstOrNull { it.user.id == currentUserId } ?: return
+        if (currentPlayer.isWinner) {
+            return
+        }
+
+        val winnerName = game.players
+            .firstOrNull { it.isWinner }
+            ?.user
+            ?.name
+            ?: return
+
+        gameLostEventShown = true
+        viewModelScope.launch {
+            _events.emit(MultiplayerGameEvent.ShowGameLost(winnerName))
+        }
     }
 
     private fun loadMissingUsersInfo(game: RemoteGame) {
@@ -184,6 +209,7 @@ class MultiplayerGameViewModel(
             }
 
             rollBlocked = false
+            gameLostEventShown = false
             val resetGame = remoteGame.copy(
                 players = players,
                 currentPlayerIndex = 0,

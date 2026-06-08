@@ -59,11 +59,15 @@ fun MultiplayerGameScreen(
     var selectedUserInfo by remember { mutableStateOf<RemoteUserInfo?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var showWinSheet by remember { mutableStateOf(false) }
+    var lostGameWinnerName by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
                 MultiplayerGameEvent.GameDeleted -> goBack()
+                is MultiplayerGameEvent.ShowGameLost -> {
+                    lostGameWinnerName = event.winnerName
+                }
                 is MultiplayerGameEvent.ShowMessage -> {
                     messages.add(
                         GameMessageBubble(
@@ -328,6 +332,37 @@ fun MultiplayerGameScreen(
                     },
                 ) {
                     Text("Выйти")
+                }
+            }
+        }
+    }
+
+    lostGameWinnerName?.let { winnerName ->
+        ModalBottomSheet(
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            onDismissRequest = {},
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Text(
+                    text = "Игра завершена",
+                    style = MaterialTheme.typography.titleLarge,
+                )
+
+                Text(
+                    text = "Победил $winnerName",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = goBack,
+                ) {
+                    Text("Выйти из игры")
                 }
             }
         }
