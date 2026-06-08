@@ -17,7 +17,6 @@ import com.alextos.thousand.domain.service.ShakeDeviceObserverDelegate
 import com.alextos.thousand.domain.usecase.game.CalculateDiceRollScoreUseCase
 import com.alextos.thousand.domain.usecase.game.DetermineAvailableButtonsUseCase
 import com.alextos.thousand.domain.usecase.game.FormatTurnEffectUseCase
-import com.alextos.thousand.domain.usecase.game.MakeBotReplyUseCase
 import com.alextos.thousand.domain.usecase.game.RollTheDiceUseCase
 import com.alextos.thousand.domain.usecase.game.SaveTurnUseCase
 import com.alextos.thousand.domain.usecase.game.crud.UpdateGameUseCase
@@ -33,7 +32,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.collections.emptyList
 
 class MultiplayerGameViewModel(
     savedStateHandle: SavedStateHandle,
@@ -87,6 +85,7 @@ class MultiplayerGameViewModel(
     fun onAction(action: MultiplayerGameAction) {
         when (action) {
             MultiplayerGameAction.DeleteGame -> deleteGame()
+            MultiplayerGameAction.Rematch -> rematch()
             is MultiplayerGameAction.SendGameAction -> reduceGameAction(action.action)
             is MultiplayerGameAction.ToggleNotifications -> toggleNotifications(action.isEnabled)
         }
@@ -171,6 +170,8 @@ class MultiplayerGameViewModel(
             }
         }
     }
+
+    private fun rematch() = Unit
 
     private fun reduceGameAction(action: GameAction) {
         when (action) {

@@ -10,5 +10,5 @@ data class Game(
     val settings: GameSettings = GameSettings(),
     val players: List<Player>,
 ) {
-    fun isFinished(): Boolean = finishedAt != null
+    fun isFinished(): Boolean = players.any { it.isWinner }
 }

@@ -58,6 +58,7 @@ fun MultiplayerGameScreen(
     var isMenuExpanded by remember { mutableStateOf(false) }
     var selectedUserInfo by remember { mutableStateOf<RemoteUserInfo?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var showFinishedGameSheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -198,7 +199,7 @@ fun MultiplayerGameScreen(
                 viewModel.onAction(MultiplayerGameAction.SendGameAction(action))
             },
             onFinishGame = {
-                goBack()
+                showFinishedGameSheet = true
             },
             onPlayerClick = { player ->
                 selectedUserInfo = state.usersInfo[player.user.id]
@@ -288,6 +289,56 @@ fun MultiplayerGameScreen(
                         viewModel.onAction(MultiplayerGameAction.ToggleNotifications(it))
                     },
                 )
+            }
+        }
+    }
+
+    if (showFinishedGameSheet) {
+        state.gameState.game?.let { game ->
+            val winnerNames = game.players
+                .filter { it.isWinner }
+                .map { it.user.name }
+
+            ModalBottomSheet(
+                sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                onDismissRequest = {},
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Text(
+                        text = "Игра завершена",
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+
+                    Text(
+                        text = if (winnerNames.isEmpty()) {
+                            "Победитель не определен"
+                        } else {
+                            "Победитель: ${winnerNames.joinToString()}"
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+
+                    Button(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = {
+                            viewModel.onAction(MultiplayerGameAction.Rematch)
+                        },
+                    ) {
+                        Text("Реванш")
+                    }
+
+                    OutlinedButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = goBack,
+                    ) {
+                        Text("Выйти")
+                    }
+                }
             }
         }
     }
