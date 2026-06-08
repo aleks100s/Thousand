@@ -446,6 +446,10 @@ private fun JoinLobbySheet(
                 singleLine = true,
             )
 
+            if (state.lobbyError != null) {
+                Text(text = state.lobbyError, color = MaterialTheme.colorScheme.error)
+            }
+
             Button(
                 modifier = Modifier.fillMaxWidth(),
                 enabled = canJoinLobby,
@@ -515,8 +519,8 @@ private fun LoginSheet(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             )
 
-            if (state.error != null) {
-                Text(text = state.error, color = MaterialTheme.colorScheme.error)
+            if (state.loginError != null) {
+                Text(text = state.loginError, color = MaterialTheme.colorScheme.error)
             }
 
             Row(

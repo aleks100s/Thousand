@@ -120,13 +120,13 @@ class MultiplayerViewModel(
 
     private fun showJoinLobbySheet() {
         _state.update {
-            it.copy(isJoinLobbySheetVisible = true)
+            it.copy(isJoinLobbySheetVisible = true, lobbyError = null)
         }
     }
 
     private fun hideJoinLobbySheet() {
         _state.update {
-            it.copy(isJoinLobbySheetVisible = false)
+            it.copy(isJoinLobbySheetVisible = false, lobbyError = null)
         }
     }
 
@@ -147,6 +147,7 @@ class MultiplayerViewModel(
             it.copy(
                 lobbyId = value,
                 canJoinLobby = value.trim().isNotBlank(),
+                lobbyError = null
             )
         }
     }
@@ -162,7 +163,11 @@ class MultiplayerViewModel(
                     it.copy(isJoinLobbySheetVisible = false, lobbyId = "")
                 }
                 _events.emit(MultiplayerEvent.OpenLobby(key))
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(lobbyError = e.message)
+                }
+            }
         }
     }
 
@@ -205,7 +210,7 @@ class MultiplayerViewModel(
                 }
             } catch (e: Exception) {
                 _state.update {
-                    it.copy(error = e.message)
+                    it.copy(loginError = e.message)
                 }
             } finally {
                 _state.update {
@@ -218,6 +223,6 @@ class MultiplayerViewModel(
     private fun MultiplayerState.withValidation(): MultiplayerState =
         copy(
             canLogIn = email.trim().isNotBlank() && password.isNotBlank(),
-            error = null
+            loginError = null
         )
 }
