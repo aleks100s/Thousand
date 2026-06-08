@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -34,7 +35,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.shape.RoundedCornerShape
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Player
 import kotlinx.coroutines.coroutineScope
@@ -45,7 +45,6 @@ import thousand.composeapp.generated.resources.block_24px
 import thousand.composeapp.generated.resources.person_24px
 import thousand.composeapp.generated.resources.person_heart_24px
 import thousand.composeapp.generated.resources.robot_24px
-import thousand.composeapp.generated.resources.trophy_24px
 
 @Composable
 fun GameHeaderView(
@@ -158,9 +157,7 @@ private fun PlayerView(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     painter = painterResource(
-                        if (player.isWinner)
-                            Res.drawable.trophy_24px
-                        else if (player.isBot())
+                        if (player.isBot())
                             Res.drawable.robot_24px
                         else if (player.isMain())
                             Res.drawable.person_heart_24px
@@ -175,6 +172,10 @@ private fun PlayerView(
                     text = player.header(),
                     color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
                 )
+
+                if (player.isWinner) {
+                    Text("\uD83C\uDFC6")
+                }
 
                 if (showBolts) {
                     (1..player.boltCount).forEach { _ ->

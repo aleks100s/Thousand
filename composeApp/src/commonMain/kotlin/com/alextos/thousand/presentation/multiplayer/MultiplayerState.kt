@@ -21,12 +21,5 @@ data class MultiplayerState(
     val activeGames: List<RemoteGame> = emptyList(),
     val finishedGames: List<RemoteGame> = emptyList(),
 ) {
-    val loginSheetButtonsEnabled: Boolean
-        get() = isLoginInProgress.not() && isSignUpInProgress.not() && canLogIn
-
-    val hasHostedActiveGameOrLobby: Boolean
-        get() = currentUserId?.let { userId ->
-            activeGames.any { game -> game.host == userId } ||
-                lobbies.any { lobby -> lobby.host == userId }
-        } ?: false
+    val hasActiveGameOrLobby: Boolean = activeGames.isNotEmpty() || lobbies.isNotEmpty()
 }

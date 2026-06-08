@@ -96,7 +96,7 @@ fun MultiplayerScreen(
                     state = state,
                     onAction = viewModel::onAction,
                     openCreateLobby = {
-                        if (state.hasHostedActiveGameOrLobby) {
+                        if (state.hasActiveGameOrLobby) {
                             isCreateGameUnavailableSheetVisible = true
                         } else {
                             openCreateLobby()
@@ -218,7 +218,7 @@ fun MultiplayerScreen(
                 )
 
                 Text(
-                    text = "У вас уже есть активная игра или лобби, где вы являетесь хостом. Завершите или удалите текущую игру либо лобби, чтобы создать новую.",
+                    text = "У вас уже есть активная игра или лобби. Завершите игру или покиньте лобби, чтобы создать новую игру.",
                     style = MaterialTheme.typography.bodyMedium,
                 )
 
