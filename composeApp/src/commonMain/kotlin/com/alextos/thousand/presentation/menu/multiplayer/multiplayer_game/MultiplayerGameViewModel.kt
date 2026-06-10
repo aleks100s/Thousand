@@ -338,7 +338,7 @@ class MultiplayerGameViewModel(
                 buttons = emptyList(),
                 messagesToShow = messages
             ) ?: return@launch
-            updateRemote(game)
+            finishRemote(game)
         }
     }
 
@@ -353,6 +353,14 @@ class MultiplayerGameViewModel(
             multiplayerRepository.updateGame(game)
         } catch (e: Exception) {
             _events.emit(MultiplayerGameEvent.Error(e.message ?: "Ошибка при обновлении игры"))
+        }
+    }
+
+    private suspend fun finishRemote(game: RemoteGame) {
+        try {
+            multiplayerRepository.finishGame(game)
+        } catch (e: Exception) {
+            _events.emit(MultiplayerGameEvent.Error(e.message ?: "Ошибка при завершении игры"))
         }
     }
 }

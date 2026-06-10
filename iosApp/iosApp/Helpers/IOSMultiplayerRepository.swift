@@ -262,6 +262,13 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
     }
     
     func updateGame(game: RemoteGame) async throws {
+        try await Database.database().reference()
+            .child(FirebasePath.games)
+            .child(game.key)
+            .setValue(dictionary(from: game))
+    }
+    
+    func finishGame(game: RemoteGame) async throws {
         let reference = Database.database().reference()
         try await reference
             .child(FirebasePath.games)

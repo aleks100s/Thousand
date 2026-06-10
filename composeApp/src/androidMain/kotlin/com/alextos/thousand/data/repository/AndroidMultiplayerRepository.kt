@@ -307,30 +307,46 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
 
     override suspend fun updateGame(game: RemoteGame) {
         suspendCancellableCoroutine { continuation ->
+            FirebaseDatabase.getInstance().reference
+                .child(GAMES_NODE)
+                .child(game.key)
+                .setValue(game.toDatabaseMap())
+                .addOnSuccessListener {
+                    continuation.resume(Unit)
+                }
+                .addOnFailureListener {
+                    continuation.cancel(it)
+                }
+        }
+    }
+
+    override suspend fun finishGame(game: RemoteGame) {
+        suspendCancellableCoroutine { continuation ->
             val databaseReference = FirebaseDatabase.getInstance().reference
             databaseReference
                 .child(GAMES_NODE)
                 .child(game.key)
                 .setValue(game.toDatabaseMap())
                 .addOnSuccessListener {
-                    if (game.isFinished()) {
-                        val updates = game.toFinishedGameStatisticsUpdates()
-                        if (updates.isEmpty()) {
-                            continuation.resume(Unit)
-                            return@addOnSuccessListener
-                        }
-
-                        databaseReference
-                            .updateChildren(updates)
-                            .addOnSuccessListener {
-                                continuation.resume(Unit)
-                            }
-                            .addOnFailureListener {
-                                continuation.cancel(it)
-                            }
-                    } else {
+                    if (game.isFinished().not()) {
                         continuation.resume(Unit)
+                        return@addOnSuccessListener
                     }
+
+                    val updates = game.toFinishedGameStatisticsUpdates()
+                    if (updates.isEmpty()) {
+                        continuation.resume(Unit)
+                        return@addOnSuccessListener
+                    }
+
+                    databaseReference
+                        .updateChildren(updates)
+                        .addOnSuccessListener {
+                            continuation.resume(Unit)
+                        }
+                        .addOnFailureListener {
+                            continuation.cancel(it)
+                        }
                 }
                 .addOnFailureListener {
                     continuation.cancel(it)
