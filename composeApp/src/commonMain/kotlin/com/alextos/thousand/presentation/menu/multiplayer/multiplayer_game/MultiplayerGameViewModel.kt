@@ -16,6 +16,7 @@ import com.alextos.thousand.domain.service.ShakeDeviceObserver
 import com.alextos.thousand.domain.service.ShakeDeviceObserverDelegate
 import com.alextos.thousand.domain.usecase.game.CalculateDiceRollScoreUseCase
 import com.alextos.thousand.domain.usecase.game.DetermineAvailableButtonsUseCase
+import com.alextos.thousand.domain.usecase.game.FinishRemoteGameUseCase
 import com.alextos.thousand.domain.usecase.game.FormatTurnEffectUseCase
 import com.alextos.thousand.domain.usecase.game.RollTheDiceUseCase
 import com.alextos.thousand.domain.usecase.game.SaveTurnUseCase
@@ -44,6 +45,7 @@ class MultiplayerGameViewModel(
     private val saveTurn: SaveTurnUseCase,
     private val formatTurnEffect: FormatTurnEffectUseCase,
     private val updateGame: UpdateGameUseCase,
+    private val finishRemoteGame: FinishRemoteGameUseCase,
     private val hapticsService: DiceHapticsService
 ) : ViewModel(), ShakeDeviceObserverDelegate {
     private val gameId = savedStateHandle.toRoute<MultiplayerRoute.MultiplayerGame>().gameId
@@ -358,7 +360,7 @@ class MultiplayerGameViewModel(
 
     private suspend fun finishRemote(game: RemoteGame) {
         try {
-            multiplayerRepository.finishGame(game)
+            finishRemoteGame(game)
         } catch (e: Exception) {
             _events.emit(MultiplayerGameEvent.Error(e.message ?: "Ошибка при завершении игры"))
         }

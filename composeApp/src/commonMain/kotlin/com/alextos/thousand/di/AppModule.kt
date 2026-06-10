@@ -26,6 +26,7 @@ import com.alextos.thousand.domain.usecase.game.ApplyDiceRollRestrictionsUseCase
 import com.alextos.thousand.domain.usecase.game.CalculateDiceRollScoreUseCase
 import com.alextos.thousand.domain.usecase.game.DetermineAvailableButtonsUseCase
 import com.alextos.thousand.domain.usecase.game.FindCurrentPlayerUseCase
+import com.alextos.thousand.domain.usecase.game.FinishRemoteGameUseCase
 import com.alextos.thousand.domain.usecase.game.FormatTurnEffectUseCase
 import com.alextos.thousand.domain.usecase.game.LoadGameTurnsUseCase
 import com.alextos.thousand.domain.usecase.game.LoadGameUseCase
@@ -140,6 +141,7 @@ fun appModule(
     factory { TutorialRollUseCase() }
     factory { SaveTurnUseCase(get()) }
     factory { UpdateGameUseCase(get()) }
+    factory { FinishRemoteGameUseCase(get()) }
     factory { DeleteGameUseCase(get()) }
     factory { DeleteUserUseCase(get()) }
     factory { UpdateUserUseCase(get(), get()) }
