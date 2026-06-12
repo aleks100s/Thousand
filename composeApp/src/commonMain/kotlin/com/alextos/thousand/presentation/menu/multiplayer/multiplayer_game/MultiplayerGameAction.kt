@@ -7,6 +7,8 @@ sealed interface MultiplayerGameAction {
         MultiplayerGameAction
     data object Rematch :
         MultiplayerGameAction
+    data object DismissGameResultSheet :
+        MultiplayerGameAction
     data class SendGameAction(val action: GameAction) :
         MultiplayerGameAction
     data class ToggleNotifications(val isEnabled: Boolean) :

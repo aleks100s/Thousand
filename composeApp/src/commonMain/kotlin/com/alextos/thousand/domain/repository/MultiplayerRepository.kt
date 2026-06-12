@@ -2,6 +2,7 @@ package com.alextos.thousand.domain.repository
 
 import com.alextos.thousand.domain.models.GameSettings
 import com.alextos.thousand.domain.models.Lobby
+import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.RemoteGame
 import com.alextos.thousand.domain.models.RemoteUserInfo
 import kotlinx.coroutines.flow.Flow
@@ -14,7 +15,7 @@ interface MultiplayerRepository {
     suspend fun startGame(key: String)
     fun observeGame(key: String): Flow<RemoteGame>
     suspend fun updateGame(game: RemoteGame)
-    suspend fun finishGame(game: RemoteGame)
+    suspend fun finishGame(game: RemoteGame, userInfo: Map<String, RemoteUserInfo>)
     suspend fun deleteGame(key: String)
     suspend fun userInfo(userId: String): RemoteUserInfo?
     fun userLobbies(): Flow<List<Lobby>>

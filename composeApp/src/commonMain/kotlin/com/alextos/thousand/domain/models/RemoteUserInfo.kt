@@ -6,5 +6,5 @@ data class RemoteUserInfo(
     val platform: String,
     val gameCount: Int = 0,
     val winCount: Int = 0,
-    val rating: Int = 0,
+    var rating: Int = 0,
 )

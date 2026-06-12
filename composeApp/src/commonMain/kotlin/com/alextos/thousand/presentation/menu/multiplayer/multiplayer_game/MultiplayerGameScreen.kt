@@ -292,7 +292,9 @@ fun MultiplayerGameScreen(
     state.gameResultSheet?.let { gameResultSheet ->
         ModalBottomSheet(
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-            onDismissRequest = {},
+            onDismissRequest = {
+                viewModel.onAction(MultiplayerGameAction.DismissGameResultSheet)
+            },
         ) {
             Column(
                 modifier = Modifier

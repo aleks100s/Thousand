@@ -1,5 +1,6 @@
 package com.alextos.thousand.presentation.menu.multiplayer.multiplayer_game
 
+import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.RemoteUserInfo
 import com.alextos.thousand.domain.usecase.game.server.GameState
 

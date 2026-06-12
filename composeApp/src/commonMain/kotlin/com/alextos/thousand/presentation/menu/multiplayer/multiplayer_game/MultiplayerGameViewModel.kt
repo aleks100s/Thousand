@@ -88,6 +88,7 @@ class MultiplayerGameViewModel(
         when (action) {
             MultiplayerGameAction.DeleteGame -> deleteGame()
             MultiplayerGameAction.Rematch -> rematch()
+            MultiplayerGameAction.DismissGameResultSheet -> dismissGameResultSheet()
             is MultiplayerGameAction.SendGameAction -> reduceGameAction(action.action)
             is MultiplayerGameAction.ToggleNotifications -> toggleNotifications(action.isEnabled)
         }
@@ -157,20 +158,16 @@ class MultiplayerGameViewModel(
 
         needToRequestUserInfo = false
         game.players
-            .map { it.user.id }
-            .filter { it.isNotBlank() }
             .distinct()
-            .filter { userId ->
-                userId !in state.value.usersInfo
-            }
-            .forEach { userId ->
+            .forEach { player ->
                 viewModelScope.launch {
                     val userInfo = runCatching {
-                        multiplayerRepository.userInfo(userId)
+                        multiplayerRepository.userInfo(player.user.id)
                     }.getOrNull() ?: return@launch
-
+                    val map = state.value.usersInfo.toMutableMap()
+                    map[player.user.id] = userInfo
                     _state.update {
-                        it.copy(usersInfo = it.usersInfo + (userId to userInfo))
+                        it.copy(usersInfo = map)
                     }
                 }
             }
@@ -226,6 +223,12 @@ class MultiplayerGameViewModel(
             )
 
             updateRemote(resetGame)
+        }
+    }
+
+    private fun dismissGameResultSheet() {
+        _state.update {
+            it.copy(gameResultSheet = null)
         }
     }
 
@@ -338,7 +341,7 @@ class MultiplayerGameViewModel(
                 currentTurn = emptyList(),
                 currentPlayerIndex = -1,
                 buttons = emptyList(),
-                messagesToShow = messages
+                messagesToShow = messages,
             ) ?: return@launch
             finishRemote(game)
         }
@@ -360,7 +363,7 @@ class MultiplayerGameViewModel(
 
     private suspend fun finishRemote(game: RemoteGame) {
         try {
-            finishRemoteGame(game)
+            finishRemoteGame(game, state.value.usersInfo)
         } catch (e: Exception) {
             _events.emit(MultiplayerGameEvent.Error(e.message ?: "Ошибка при завершении игры"))
         }

@@ -320,7 +320,10 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
         }
     }
 
-    override suspend fun finishGame(game: RemoteGame) {
+    override suspend fun finishGame(
+        game: RemoteGame,
+        userInfo: Map<String, RemoteUserInfo>
+    ) {
         suspendCancellableCoroutine { continuation ->
             val databaseReference = FirebaseDatabase.getInstance().reference
             databaseReference
@@ -333,7 +336,7 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
                         return@addOnSuccessListener
                     }
 
-                    val updates = game.toFinishedGameStatisticsUpdates()
+                    val updates = game.toFinishedGameStatisticsUpdates(userInfo)
                     if (updates.isEmpty()) {
                         continuation.resume(Unit)
                         return@addOnSuccessListener

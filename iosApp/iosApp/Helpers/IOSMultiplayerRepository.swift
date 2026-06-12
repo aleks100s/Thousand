@@ -268,7 +268,7 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
             .setValue(dictionary(from: game))
     }
     
-    func finishGame(game: RemoteGame) async throws {
+    func finishGame(game: RemoteGame, userInfo: [String: RemoteUserInfo]) async throws {
         let reference = Database.database().reference()
         try await reference
             .child(FirebasePath.games)
@@ -276,7 +276,7 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
             .setValue(dictionary(from: game))
         
         if game.isFinished() {
-            let updates = finishedGameStatisticsUpdates(for: game)
+            let updates = finishedGameStatisticsUpdates(for: game, userInfo: userInfo)
             if !updates.isEmpty {
                 try await reference.updateChildValues(updates)
             }

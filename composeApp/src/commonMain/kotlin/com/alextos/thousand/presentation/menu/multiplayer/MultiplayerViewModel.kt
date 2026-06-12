@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -52,7 +53,7 @@ class MultiplayerViewModel(
 
     private fun observeUserProfile() {
         viewModelScope.launch {
-            nativeAccountService.userProfile.collect { userProfile ->
+            nativeAccountService.userProfile.collectLatest { userProfile ->
                 val isAuthorized = userProfile != null
                 _state.update {
                     it.copy(
@@ -63,22 +64,8 @@ class MultiplayerViewModel(
                         isLoginInProgress = if (isAuthorized) false else it.isLoginInProgress,
                     )
                 }
-                if (isAuthorized) {
-                    observeLobbies()
-                }
-            }
-        }
-    }
 
-    private fun observeLobbies() {
-        viewModelScope.launch {
-           combine(
-               multiplayerRepository.userLobbies(),
-               multiplayerRepository.userGames()
-           ) { lobbies, games ->
-               lobbies to games
-           }
-                .catch {
+                if (isAuthorized.not()) {
                     _state.update {
                         it.copy(
                             lobbies = emptyList(),
@@ -86,21 +73,43 @@ class MultiplayerViewModel(
                             finishedGames = emptyList(),
                         )
                     }
+                    return@collectLatest
                 }
-                .collect { pair ->
-                    val games = pair.second
-                    val activeGames = games.filter { game -> game.isFinished().not() }
-                    val finishedGames = games.filter { game -> game.isFinished() }
 
-                    _state.update {
-                        it.copy(
-                            lobbies = pair.first,
-                            activeGames = activeGames,
-                            finishedGames = finishedGames,
-                        )
-                    }
-                }
+                observeLobbies()
+            }
         }
+    }
+
+    private suspend fun observeLobbies() {
+        combine(
+            multiplayerRepository.userLobbies(),
+            multiplayerRepository.userGames()
+        ) { lobbies, games ->
+            lobbies to games
+        }
+            .catch {
+                _state.update {
+                    it.copy(
+                        lobbies = emptyList(),
+                        activeGames = emptyList(),
+                        finishedGames = emptyList(),
+                    )
+                }
+            }
+            .collect { pair ->
+                val games = pair.second
+                val activeGames = games.filter { game -> game.isFinished().not() }
+                val finishedGames = games.filter { game -> game.isFinished() }
+
+                _state.update {
+                    it.copy(
+                        lobbies = pair.first,
+                        activeGames = activeGames,
+                        finishedGames = finishedGames,
+                    )
+                }
+            }
     }
 
     private fun showLoginSheet() {
