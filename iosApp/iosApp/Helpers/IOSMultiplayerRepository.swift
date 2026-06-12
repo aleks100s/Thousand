@@ -302,4 +302,27 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
 
         return remoteUserInfo(from: snapshot.firebaseDictionary, userId: userId)
     }
+
+    func observeUserInfo(userId: String) -> any Kotlinx_coroutines_coreFlow {
+        let bridge = RemoteUserInfoFlowBridge()
+        guard !userId.isEmpty else {
+            return bridge.flow
+        }
+
+        let reference = Database.database().reference()
+            .child(FirebasePath.users)
+            .child(userId)
+
+        reference.observe(.value, with: { [weak self] snapshot in
+            guard let self else {
+                return
+            }
+
+            bridge.emit(userInfo: self.remoteUserInfo(from: snapshot.firebaseDictionary, userId: userId))
+        }, withCancel: { error in
+            bridge.closeWithError(message: error.localizedDescription)
+        })
+
+        return bridge.flow
+    }
 }

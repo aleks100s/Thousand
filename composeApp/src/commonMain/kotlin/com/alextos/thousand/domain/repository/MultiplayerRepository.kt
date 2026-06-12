@@ -18,6 +18,7 @@ interface MultiplayerRepository {
     suspend fun finishGame(game: RemoteGame, userInfo: Map<String, RemoteUserInfo>)
     suspend fun deleteGame(key: String)
     suspend fun userInfo(userId: String): RemoteUserInfo?
+    fun observeUserInfo(userId: String): Flow<RemoteUserInfo?>
     fun userLobbies(): Flow<List<Lobby>>
     fun userGames(): Flow<List<RemoteGame>>
 }

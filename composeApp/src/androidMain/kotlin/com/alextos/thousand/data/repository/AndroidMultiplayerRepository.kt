@@ -392,6 +392,32 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
         }
     }
 
+    override fun observeUserInfo(userId: String): Flow<RemoteUserInfo?> {
+        if (userId.isBlank()) return emptyFlow()
+
+        return callbackFlow {
+            val reference = FirebaseDatabase.getInstance().reference
+                .child(USERS_NODE)
+                .child(userId)
+
+            val listener = object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    trySend(snapshot.toRemoteUserInfo(userId))
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    close(error.toException())
+                }
+            }
+
+            reference.addValueEventListener(listener)
+
+            awaitClose {
+                reference.removeEventListener(listener)
+            }
+        }
+    }
+
     override fun userLobbies(): Flow<List<Lobby>> {
         val currentUser = Firebase.auth.currentUser ?: return emptyFlow()
 
