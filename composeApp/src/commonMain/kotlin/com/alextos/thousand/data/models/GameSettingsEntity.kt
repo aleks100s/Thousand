@@ -32,7 +32,7 @@ data class GameSettingsEntity(
     @ColumnInfo(defaultValue = "1")
     val isBarrel2Active: Boolean = true,
     @ColumnInfo(defaultValue = "0")
-    val isBarrel3Active: Boolean = false,
+    val isBarrel3Active: Boolean = true,
     @ColumnInfo(defaultValue = "1")
     val isTripleBoltFineActive: Boolean = true,
     @ColumnInfo(defaultValue = "1")

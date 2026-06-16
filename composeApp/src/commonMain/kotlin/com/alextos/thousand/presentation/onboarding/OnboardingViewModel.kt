@@ -8,6 +8,7 @@ import com.alextos.thousand.domain.usecase.user.SaveUserUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.uuid.ExperimentalUuidApi
@@ -25,25 +26,31 @@ class OnboardingViewModel(
 
     private fun observeAuthorizedUserName() {
         viewModelScope.launch {
-            accountService.userProfile.collect { userProfile ->
-                val authorizedName = userProfile?.name?.trim().orEmpty()
-                if (authorizedName.isBlank()) return@collect
-
-                _state.update {
-                    if (it.name.isBlank()) {
-                        it.copy(name = authorizedName)
-                    } else {
-                        it
+            accountService.userProfile
+                .mapNotNull { it?.name }
+                .collect { authorizedName ->
+                    _state.update {
+                        it.copy(
+                            name = authorizedName,
+                            isLoginSheetVisible = false,
+                            isLoginInProgress = false,
+                        )
                     }
+                    saveUser(authorizedName)
                 }
-            }
         }
     }
 
     fun onAction(action: OnboardingAction) {
         when (action) {
             is OnboardingAction.UpdateName -> updateName(action.value)
-            OnboardingAction.SaveUser -> saveUser()
+            OnboardingAction.ShowLoginSheet -> showLoginSheet()
+            OnboardingAction.HideLoginSheet -> hideLoginSheet()
+            is OnboardingAction.LogIn -> logIn(
+                email = action.email,
+                password = action.password,
+            )
+            OnboardingAction.SaveUser -> saveUser(state.value.name.trim())
         }
     }
 
@@ -53,9 +60,59 @@ class OnboardingViewModel(
         }
     }
 
+    private fun showLoginSheet() {
+        _state.update {
+            it.copy(isLoginSheetVisible = true, loginError = null)
+        }
+    }
+
+    private fun hideLoginSheet() {
+        _state.update {
+            it.copy(
+                isLoginSheetVisible = false,
+                isLoginInProgress = false,
+                loginError = null,
+            )
+        }
+    }
+
+    private fun logIn(
+        email: String,
+        password: String,
+    ) {
+        val trimmedEmail = email.trim()
+        if (trimmedEmail.isBlank() || password.isBlank() || state.value.isLoginInProgress) return
+
+        viewModelScope.launch {
+            _state.update {
+                it.copy(isLoginInProgress = true, loginError = null)
+            }
+
+            try {
+                accountService.logIn(
+                    email = trimmedEmail,
+                    password = password,
+                )
+                _state.update {
+                    it.copy(
+                        isLoginSheetVisible = false,
+                        isFinalizingInProgress = true
+                    )
+                }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(loginError = e.message)
+                }
+            } finally {
+                _state.update {
+                    it.copy(isLoginInProgress = false)
+                }
+            }
+        }
+    }
+
     @OptIn(ExperimentalUuidApi::class)
-    private fun saveUser() {
-        val name = state.value.name.trim()
+    private fun saveUser(name: String) {
         if (name.isBlank() || state.value.isSaving) return
 
         viewModelScope.launch {

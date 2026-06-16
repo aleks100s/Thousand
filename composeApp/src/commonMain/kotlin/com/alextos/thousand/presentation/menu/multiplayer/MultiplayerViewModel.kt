@@ -40,11 +40,17 @@ class MultiplayerViewModel(
             MultiplayerAction.HideLoginSheet -> hideLoginSheet()
             MultiplayerAction.ShowJoinLobbySheet -> showJoinLobbySheet()
             MultiplayerAction.HideJoinLobbySheet -> hideJoinLobbySheet()
-            is MultiplayerAction.UpdateEmail -> updateEmail(action.value)
-            is MultiplayerAction.UpdatePassword -> updatePassword(action.value)
             is MultiplayerAction.UpdateLobbyId -> updateLobbyId(action.value)
-            MultiplayerAction.LogIn -> logIn(createAccount = false)
-            MultiplayerAction.SignUp -> logIn(createAccount = true)
+            is MultiplayerAction.LogIn -> logIn(
+                email = action.email,
+                password = action.password,
+                createAccount = false,
+            )
+            is MultiplayerAction.SignUp -> logIn(
+                email = action.email,
+                password = action.password,
+                createAccount = true,
+            )
             MultiplayerAction.JoinLobby -> joinLobby()
             is MultiplayerAction.DeleteGame -> deleteGame(action.key)
             is MultiplayerAction.DisconnectFromLobby -> disconnectFromLobby(action.key)
@@ -114,7 +120,7 @@ class MultiplayerViewModel(
 
     private fun showLoginSheet() {
         _state.update {
-            it.copy(isLoginSheetVisible = true)
+            it.copy(isLoginSheetVisible = true, loginError = null)
         }
     }
 
@@ -136,18 +142,6 @@ class MultiplayerViewModel(
     private fun hideJoinLobbySheet() {
         _state.update {
             it.copy(isJoinLobbySheetVisible = false, lobbyError = null)
-        }
-    }
-
-    private fun updateEmail(value: String) {
-        _state.update {
-            it.copy(email = value).withValidation()
-        }
-    }
-
-    private fun updatePassword(value: String) {
-        _state.update {
-            it.copy(password = value).withValidation()
         }
     }
 
@@ -196,25 +190,33 @@ class MultiplayerViewModel(
         }
     }
 
-    private fun logIn(createAccount: Boolean) {
-        val state = state.value
-        if (state.canLogIn.not() || state.isLoginInProgress) return
+    private fun logIn(
+        email: String,
+        password: String,
+        createAccount: Boolean,
+    ) {
+        val trimmedEmail = email.trim()
+        if (trimmedEmail.isBlank() || password.isBlank() || state.value.isLoginInProgress) return
 
         viewModelScope.launch {
             _state.update {
-                it.copy(isLoginInProgress = createAccount.not(), isSignUpInProgress = createAccount)
+                it.copy(
+                    isLoginInProgress = createAccount.not(),
+                    isSignUpInProgress = createAccount,
+                    loginError = null,
+                )
             }
 
             try {
                 if (createAccount) {
                     signUpUseCase(
-                        email = state.email.trim(),
-                        password = state.password,
+                        email = trimmedEmail,
+                        password = password,
                     )
                 } else {
                     logInUseCase(
-                        email = state.email.trim(),
-                        password = state.password,
+                        email = trimmedEmail,
+                        password = password,
                     )
                 }
             } catch (e: Exception) {
@@ -228,10 +230,4 @@ class MultiplayerViewModel(
             }
         }
     }
-
-    private fun MultiplayerState.withValidation(): MultiplayerState =
-        copy(
-            canLogIn = email.trim().isNotBlank() && password.isNotBlank(),
-            loginError = null
-        )
 }

@@ -470,8 +470,8 @@ private fun LoginSheet(
     state: MultiplayerState,
     onAction: (MultiplayerAction) -> Unit,
 ) {
-    var email by rememberSaveable { mutableStateOf(state.email) }
-    var password by rememberSaveable { mutableStateOf(state.password) }
+    var email by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
     val canSubmit = email.trim().isNotBlank() && password.isNotBlank()
     val buttonsEnabled = state.isLoginInProgress.not() && state.isSignUpInProgress.not() && canSubmit
 
@@ -531,9 +531,12 @@ private fun LoginSheet(
                     modifier = Modifier.weight(1f),
                     enabled = buttonsEnabled,
                     onClick = {
-                        onAction(MultiplayerAction.UpdateEmail(email))
-                        onAction(MultiplayerAction.UpdatePassword(password))
-                        onAction(MultiplayerAction.SignUp)
+                        onAction(
+                            MultiplayerAction.SignUp(
+                                email = email,
+                                password = password,
+                            )
+                        )
                     },
                 ) {
                     if (state.isSignUpInProgress) {
@@ -550,9 +553,12 @@ private fun LoginSheet(
                     modifier = Modifier.weight(1f),
                     enabled = buttonsEnabled,
                     onClick = {
-                        onAction(MultiplayerAction.UpdateEmail(email))
-                        onAction(MultiplayerAction.UpdatePassword(password))
-                        onAction(MultiplayerAction.LogIn)
+                        onAction(
+                            MultiplayerAction.LogIn(
+                                email = email,
+                                password = password,
+                            )
+                        )
                     },
                 ) {
                     if (state.isLoginInProgress) {

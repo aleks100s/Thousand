@@ -9,14 +9,16 @@ sealed interface MultiplayerAction {
         MultiplayerAction
     data object HideJoinLobbySheet :
         MultiplayerAction
-    data class UpdateEmail(val value: String) :
-        MultiplayerAction
-    data class UpdatePassword(val value: String) :
-        MultiplayerAction
     data class UpdateLobbyId(val value: String) :
         MultiplayerAction
-    data object LogIn : MultiplayerAction
-    data object SignUp : MultiplayerAction
+    data class LogIn(
+        val email: String,
+        val password: String,
+    ) : MultiplayerAction
+    data class SignUp(
+        val email: String,
+        val password: String,
+    ) : MultiplayerAction
     data object JoinLobby : MultiplayerAction
     data class DeleteGame(val key: String) :
         MultiplayerAction
