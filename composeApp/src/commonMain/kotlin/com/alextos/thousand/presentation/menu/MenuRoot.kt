@@ -28,26 +28,21 @@ fun MenuRoot(
         horizontalTransition<MenuRoute.Menu> {
             MenuScreen(
                 hideMultiplayer = hideMultiplayer,
-                onCreateGame = {
-                    navController.navigate(MenuRoute.CreateGame)
+                openLocalGame = { hasLocalGames ->
+                    if (hasLocalGames) {
+                        navController.navigate(MenuRoute.GamesList)
+                    } else {
+                        navController.navigate(MenuRoute.CreateGame)
+                    }
                 },
                 openMultiplayer = {
                     navController.navigate(MenuRoute.Multiplayer)
-                },
-                openGamesHistory = {
-                    navController.navigate(MenuRoute.GamesList)
                 },
                 openRules = {
                     navController.navigate(MenuRoute.Rules)
                 },
                 openTutorial = {
                     navController.navigate(MenuRoute.TutorialGame)
-                },
-                openStatistics = {
-                    navController.navigate(MenuRoute.Statistics)
-                },
-                openUsers = {
-                    navController.navigate(MenuRoute.Users)
                 },
             )
         }
@@ -65,6 +60,9 @@ fun MenuRoot(
         horizontalTransition<MenuRoute.GamesList> {
             GamesListScreen(
                 goBack = navController::popBackStack,
+                onCreateGame = {
+                    navController.navigate(MenuRoute.CreateGame)
+                },
                 onGameClick = { game ->
                     if (game.isFinished) {
                         navController.navigate(MenuRoute.GameScore(game.id))

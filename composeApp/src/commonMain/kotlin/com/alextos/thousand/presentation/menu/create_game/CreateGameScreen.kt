@@ -106,7 +106,7 @@ fun CreateGameScreen(
         floatingActionButton = {
             when (state.step) {
                 CreateGameStep.Players -> {
-                    AnimatedVisibility(state.selectedUsers.count() > 1) {
+                    AnimatedVisibility(state.selectedUsers.size >= MIN_PLAYERS_COUNT) {
                         ExtendedFloatingActionButton(
                             onClick = {
                                 viewModel.onAction(CreateGameAction.OpenSettingsStep)
@@ -141,8 +141,19 @@ fun CreateGameScreen(
         ) {
             when (state.step) {
                 CreateGameStep.Players -> {
+                    AnimatedVisibility(state.selectedUsers.size < MIN_PLAYERS_COUNT) {
+                        Text(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            text = "Выберите хотя бы двух игроков для начала игры.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+
                     PlayersGrid(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.weight(1f),
                         users = state.users,
                         selectedUsers = state.selectedUsers,
                         onAddUser = {
@@ -500,5 +511,6 @@ private fun String.initial(): String {
 }
 
 private val PLAYER_CARD_HEIGHT = 160.dp
+private const val MIN_PLAYERS_COUNT = 2
 private const val PORTRAIT_PLAYER_COLUMNS = 2
 private const val LANDSCAPE_PLAYER_COLUMNS = 4

@@ -19,6 +19,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
@@ -41,6 +42,7 @@ import com.alextos.thousand.presentation.models.GameUi
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
+import thousand.composeapp.generated.resources.add_24px
 import thousand.composeapp.generated.resources.casino_24px
 import thousand.composeapp.generated.resources.notifications_24px
 import thousand.composeapp.generated.resources.notifications_off_24px
@@ -50,6 +52,7 @@ import thousand.composeapp.generated.resources.sports_esports_24px
 @Composable
 fun GamesListScreen(
     goBack: () -> Unit,
+    onCreateGame: () -> Unit,
     onGameClick: (GameUi) -> Unit,
     openGame: (Long) -> Unit,
 ) {
@@ -71,7 +74,21 @@ fun GamesListScreen(
     Screen(
         modifier = Modifier,
         title = "Список игр",
-        goBack = goBack
+        goBack = goBack,
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = onCreateGame,
+                text = {
+                    Text("Новая игра")
+                },
+                icon = {
+                    Icon(
+                        painter = painterResource(Res.drawable.add_24px),
+                        contentDescription = "Создать игру",
+                    )
+                },
+            )
+        },
     ) { modifier ->
         if (state.isLoading) {
             Box(modifier.fillMaxSize(), Alignment.Center) {

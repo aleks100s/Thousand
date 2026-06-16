@@ -38,25 +38,32 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun MenuScreen(
     hideMultiplayer: Boolean,
-    onCreateGame: () -> Unit,
+    openLocalGame: (hasLocalGames: Boolean) -> Unit,
     openMultiplayer: () -> Unit,
-    openGamesHistory: () -> Unit,
     openRules: () -> Unit,
     openTutorial: () -> Unit,
-    openStatistics: () -> Unit,
-    openUsers: () -> Unit,
 ) {
     val viewModel: MenuViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val gridState = rememberLazyGridState()
-    var isTutorialSheetVisible by remember { mutableStateOf(false) }
+    var pendingFirstLaunchDestination by remember {
+        mutableStateOf<MenuTileAction?>(null)
+    }
     val tiles = remember(state.tiles, hideMultiplayer) {
         state.tiles.mapNotNull { tile ->
             when (tile.action) {
                 MenuTileAction.Multiplayer if hideMultiplayer -> null
-                MenuTileAction.NewGame if hideMultiplayer -> tile.copy(size = MenuTileSize.Large)
                 else -> tile
             }
+        }
+    }
+
+    fun openTile(tileAction: MenuTileAction) {
+        when (tileAction) {
+            MenuTileAction.Tutorial -> openTutorial()
+            MenuTileAction.Rules -> openRules()
+            MenuTileAction.Multiplayer -> openMultiplayer()
+            MenuTileAction.LocalGame -> openLocalGame(state.hasLocalGames)
         }
     }
 
@@ -64,7 +71,7 @@ fun MenuScreen(
         modifier = Modifier,
         title = "1000",
     ) { modifier ->
-        BoxWithConstraints(modifier = modifier.fillMaxSize(),) {
+        BoxWithConstraints(modifier = modifier.fillMaxSize()) {
             val columns = if (maxWidth > maxHeight) 3 else 2
 
             LazyVerticalGrid(
@@ -89,15 +96,12 @@ fun MenuScreen(
                             when (tile.action) {
                                 MenuTileAction.Tutorial -> openTutorial()
                                 MenuTileAction.Rules -> openRules()
-                                MenuTileAction.GamesHistory -> openGamesHistory()
-                                MenuTileAction.Statistics -> openStatistics()
-                                MenuTileAction.Users -> openUsers()
-                                MenuTileAction.Multiplayer -> openMultiplayer()
-                                MenuTileAction.NewGame -> {
+                                MenuTileAction.Multiplayer,
+                                MenuTileAction.LocalGame -> {
                                     if (state.isFirstLaunch) {
-                                        isTutorialSheetVisible = true
+                                        pendingFirstLaunchDestination = tile.action
                                     } else {
-                                        onCreateGame()
+                                        openTile(tile.action)
                                     }
                                 }
                             }
@@ -108,11 +112,11 @@ fun MenuScreen(
         }
     }
 
-    if (isTutorialSheetVisible) {
+    if (pendingFirstLaunchDestination != null) {
         ModalBottomSheet(
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             onDismissRequest = {
-                isTutorialSheetVisible = false
+                pendingFirstLaunchDestination = null
             },
         ) {
             Column(
@@ -129,7 +133,7 @@ fun MenuScreen(
                 Button(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
-                        isTutorialSheetVisible = false
+                        pendingFirstLaunchDestination = null
                         viewModel.onAction(MenuAction.CompleteFirstLaunch)
                         openTutorial()
                     },
@@ -140,9 +144,10 @@ fun MenuScreen(
                 OutlinedButton(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
-                        isTutorialSheetVisible = false
+                        val destination = pendingFirstLaunchDestination
+                        pendingFirstLaunchDestination = null
                         viewModel.onAction(MenuAction.CompleteFirstLaunch)
-                        onCreateGame()
+                        destination?.let { openTile(it) }
                     },
                 ) {
                     Text("Нет, я умею играть")
