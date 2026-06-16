@@ -14,16 +14,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,8 +43,8 @@ import com.alextos.thousand.presentation.models.GameUi
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
-import thousand.composeapp.generated.resources.add_24px
 import thousand.composeapp.generated.resources.casino_24px
+import thousand.composeapp.generated.resources.info_24px
 import thousand.composeapp.generated.resources.notifications_24px
 import thousand.composeapp.generated.resources.notifications_off_24px
 import thousand.composeapp.generated.resources.sports_esports_24px
@@ -53,6 +54,7 @@ import thousand.composeapp.generated.resources.sports_esports_24px
 fun GamesListScreen(
     goBack: () -> Unit,
     onCreateGame: () -> Unit,
+    openStatistics: () -> Unit,
     onGameClick: (GameUi) -> Unit,
     openGame: (Long) -> Unit,
 ) {
@@ -73,29 +75,15 @@ fun GamesListScreen(
 
     Screen(
         modifier = Modifier,
-        title = "Список игр",
+        title = "Локальная игра",
         goBack = goBack,
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = onCreateGame,
-                text = {
-                    Text("Новая игра")
-                },
-                icon = {
-                    Icon(
-                        painter = painterResource(Res.drawable.add_24px),
-                        contentDescription = "Создать игру",
-                    )
-                },
-            )
-        },
     ) { modifier ->
         if (state.isLoading) {
             Box(modifier.fillMaxSize(), Alignment.Center) {
                 LoadingIndicator()
             }
         } else if (state.games.isEmpty()) {
-            Column (
+            Column(
                 modifier = modifier
                     .fillMaxSize()
                     .padding(16.dp),
@@ -113,6 +101,20 @@ fun GamesListScreen(
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                item {
+                    LocalGamesInfoCard(
+                        openStatistics = openStatistics,
+                        onCreateGame = onCreateGame,
+                    )
+                }
+
+                item {
+                    Text(
+                        text = "История игр",
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                }
+
                 items(
                     items = state.games,
                     key = { game -> game.id },
@@ -132,6 +134,37 @@ fun GamesListScreen(
                 item {
                     Spacer(Modifier.height(100.dp))
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LocalGamesInfoCard(
+    openStatistics: () -> Unit,
+    onCreateGame: () -> Unit,
+) {
+    InfoCardView(
+        icon = Res.drawable.casino_24px,
+        title = "Играйте на одном устройстве",
+        text = "Играйте с друзьями или ботами и знакомьтесь с игровой статистикой",
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            OutlinedButton(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = openStatistics,
+            ) {
+                Text("Статистика")
+            }
+
+            Button(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = onCreateGame,
+            ) {
+                Text("Новая игра")
             }
         }
     }

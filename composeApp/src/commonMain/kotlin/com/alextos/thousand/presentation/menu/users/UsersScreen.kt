@@ -164,7 +164,7 @@ private fun UserItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .combinedClickable(
-                    onClick = {},
+                    onClick = onRename,
                     onLongClick = {
                         isMenuExpanded = true
                     },

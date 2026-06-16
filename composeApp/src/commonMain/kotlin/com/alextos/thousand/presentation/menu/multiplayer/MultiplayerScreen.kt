@@ -353,7 +353,7 @@ private fun MultiplayerHero(
 ) {
     InfoCardView(
         icon = Res.drawable.diversity_3_24px,
-        title = "Играйте с друзьями",
+        title = "Играйте с друзьями по сети",
         text = "Мультиплеер поможет собрать игроков в одну партию. Хост создает игру и делится кодом подключения с другими",
     ) {
         MultiplayerActions(

@@ -55,12 +55,14 @@ import thousand.composeapp.generated.resources.add_24px
 import thousand.composeapp.generated.resources.casino_24px
 import thousand.composeapp.generated.resources.person_add_24px
 import thousand.composeapp.generated.resources.robot_24px
+import thousand.composeapp.generated.resources.settings_24px
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateGameScreen(
     openGame: (Long) -> Unit,
-    goBack: () -> Unit
+    goBack: () -> Unit,
+    openUsers: () -> Unit,
 ) {
     val viewModel: CreateGameViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -91,13 +93,11 @@ fun CreateGameScreen(
             {
                 if (state.step == CreateGameStep.Players) {
                     IconButton(
-                        onClick = {
-                            viewModel.onAction(CreateGameAction.ShowAddUserSheet)
-                        }
+                        onClick = openUsers,
                     ) {
                         Icon(
-                            painter = painterResource(Res.drawable.add_24px),
-                            contentDescription = "Добавить игрока"
+                            painter = painterResource(Res.drawable.settings_24px),
+                            contentDescription = "Настройки игроков"
                         )
                     }
                 }

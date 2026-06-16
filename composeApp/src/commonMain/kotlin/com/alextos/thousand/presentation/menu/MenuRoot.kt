@@ -63,6 +63,9 @@ fun MenuRoot(
                 onCreateGame = {
                     navController.navigate(MenuRoute.CreateGame)
                 },
+                openStatistics = {
+                    navController.navigate(MenuRoute.Statistics)
+                },
                 onGameClick = { game ->
                     if (game.isFinished) {
                         navController.navigate(MenuRoute.GameScore(game.id))
@@ -78,6 +81,9 @@ fun MenuRoot(
         horizontalTransition<MenuRoute.CreateGame> {
             CreateGameScreen(
                 goBack = navController::popBackStack,
+                openUsers = {
+                    navController.navigate(MenuRoute.Users)
+                },
                 openGame = { gameId ->
                     navController.navigate(MenuRoute.GamesList) {
                         popUpTo(MenuRoute.Menu)
