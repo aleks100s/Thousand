@@ -31,22 +31,35 @@ class AppViewModel(
         observeRemoteUser()
     }
 
+    fun onAction(action: AppAction) {
+        when (action) {
+            AppAction.LaunchFinished -> launchFinished()
+        }
+    }
+
     private fun observeUsers() {
         viewModelScope.launch {
             combine(
                 getAllUsersUseCase(),
                 nativeAccountService.hideMultiplayer,
             ) { users, hideMultiplayer ->
-                AppState(
-                    isLoading = false,
-                    isOnboardingRequired = users.none { user -> user.kind == UserKind.MainUser },
-                    hideMultiplayer = hideMultiplayer,
-                )
+                users to hideMultiplayer
             }.collect { state ->
+                val (users, hideMultiplayer) = state
                 _state.update {
-                    state
+                    it.copy(
+                        isLoading = false,
+                        isOnboardingRequired = users.none { user -> user.kind == UserKind.MainUser },
+                        hideMultiplayer = hideMultiplayer,
+                    )
                 }
             }
+        }
+    }
+
+    private fun launchFinished() {
+        _state.update {
+            it.copy(isLaunchFinished = true)
         }
     }
 
