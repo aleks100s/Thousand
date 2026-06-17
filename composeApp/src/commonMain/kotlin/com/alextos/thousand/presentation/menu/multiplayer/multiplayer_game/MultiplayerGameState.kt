@@ -10,6 +10,7 @@ data class MultiplayerGameState(
     val error: String? = null,
     val gameState: GameState = GameState(),
     val isNotificationEnabled: Boolean = true,
+    val isReactionButtonEnabled: Boolean = true,
     val usersInfo: Map<String, RemoteUserInfo> = emptyMap(),
     val gameResultSheet: MultiplayerGameResultSheetUi? = null,
 )

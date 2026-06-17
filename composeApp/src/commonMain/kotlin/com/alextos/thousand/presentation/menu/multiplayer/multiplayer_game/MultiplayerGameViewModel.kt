@@ -10,6 +10,7 @@ import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.RemoteGame
 import com.alextos.thousand.domain.models.RemoteUserInfo
 import com.alextos.thousand.domain.models.RollAbility
+import com.alextos.thousand.domain.models.UserReaction
 import com.alextos.thousand.domain.repository.MultiplayerRepository
 import com.alextos.thousand.domain.service.DiceHapticsService
 import com.alextos.thousand.domain.service.NativeAccountService
@@ -26,6 +27,7 @@ import com.alextos.thousand.domain.usecase.game.server.GameAction
 import com.alextos.thousand.domain.usecase.game.server.GameState
 import com.alextos.thousand.domain.usecase.game.server.GameStatus
 import com.alextos.thousand.presentation.menu.multiplayer.MultiplayerRoute
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -98,6 +100,7 @@ class MultiplayerGameViewModel(
             MultiplayerGameAction.Rematch -> rematch()
             MultiplayerGameAction.DismissGameResultSheet -> dismissGameResultSheet()
             is MultiplayerGameAction.SendGameAction -> reduceGameAction(action.action)
+            is MultiplayerGameAction.SendReaction -> sendReaction(action.reaction)
             is MultiplayerGameAction.ToggleNotifications -> toggleNotifications(action.isEnabled)
         }
     }
@@ -389,6 +392,32 @@ class MultiplayerGameViewModel(
         }
     }
 
+    private fun sendReaction(reaction: String) {
+        if (state.value.isReactionButtonEnabled.not()) {
+            return
+        }
+
+        val remoteGame = remoteGame ?: return
+        val author = accountService.userProfile.value?.name.orEmpty()
+        val userReaction = UserReaction(
+            author = author,
+            reaction = reaction,
+        )
+
+        viewModelScope.launch {
+            _state.update {
+                it.copy(isReactionButtonEnabled = false)
+            }
+
+            updateRemote(remoteGame.copy(reaction = userReaction))
+            delay(REACTION_COOLDOWN_MILLIS)
+
+            _state.update {
+                it.copy(isReactionButtonEnabled = true)
+            }
+        }
+    }
+
     private suspend fun updateRemote(game: RemoteGame) {
         try {
             multiplayerRepository.updateGame(game)
@@ -415,3 +444,5 @@ private fun List<Flow<Map<String, RemoteUserInfo>>>.zip(): Flow<Map<String, Remo
             accumulated + next
         }
     }
+
+private const val REACTION_COOLDOWN_MILLIS = 10_000L

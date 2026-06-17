@@ -11,6 +11,8 @@ sealed interface MultiplayerGameAction {
         MultiplayerGameAction
     data class SendGameAction(val action: GameAction) :
         MultiplayerGameAction
+    data class SendReaction(val reaction: String) :
+        MultiplayerGameAction
     data class ToggleNotifications(val isEnabled: Boolean) :
         MultiplayerGameAction
 }

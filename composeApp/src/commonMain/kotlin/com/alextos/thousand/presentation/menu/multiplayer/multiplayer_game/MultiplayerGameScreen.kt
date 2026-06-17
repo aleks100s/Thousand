@@ -41,6 +41,7 @@ import com.alextos.thousand.presentation.menu.multiplayer.player_profile.PlayerP
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
+import thousand.composeapp.generated.resources.add_reaction_24px
 import thousand.composeapp.generated.resources.more_horiz_24px
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,6 +57,7 @@ fun MultiplayerGameScreen(
     var isRulesSheetVisible by remember { mutableStateOf(false) }
     var isSettingsSheetVisible by remember { mutableStateOf(false) }
     var isMenuExpanded by remember { mutableStateOf(false) }
+    var isReactionMenuExpanded by remember { mutableStateOf(false) }
     var selectedUserInfo by remember { mutableStateOf<RemoteUserInfo?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
@@ -135,6 +137,47 @@ fun MultiplayerGameScreen(
         goBack = goBack,
         actions = { actionColor ->
             {
+                Box {
+                    IconButton(
+                        enabled = state.isReactionButtonEnabled,
+                        onClick = {
+                            isReactionMenuExpanded = true
+                        },
+                    ) {
+                        Icon(
+                            painter = painterResource(Res.drawable.add_reaction_24px),
+                            contentDescription = "Добавить реакцию",
+                            tint = if (state.isReactionButtonEnabled) {
+                                actionColor
+                            } else {
+                                actionColor.copy(alpha = 0.38f)
+                            },
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = isReactionMenuExpanded && state.isReactionButtonEnabled,
+                        onDismissRequest = {
+                            isReactionMenuExpanded = false
+                        },
+                    ) {
+                        MultiplayerGameReactions.forEach { reaction ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = reaction,
+                                        style = MaterialTheme.typography.titleLarge,
+                                    )
+                                },
+                                onClick = {
+                                    isReactionMenuExpanded = false
+                                    viewModel.onAction(MultiplayerGameAction.SendReaction(reaction))
+                                },
+                            )
+                        }
+                    }
+                }
+
                 Box {
                     IconButton(
                         onClick = {
@@ -347,3 +390,5 @@ fun MultiplayerGameScreen(
         }
     }
 }
+
+private val MultiplayerGameReactions = listOf("😆", "😡", "😢", "😮", "👋", "😑", "👍", "👎", "🔥")
