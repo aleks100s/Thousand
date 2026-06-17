@@ -2,12 +2,12 @@ package com.alextos.thousand.application
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -22,11 +22,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.alextos.thousand.domain.models.Die
 import com.alextos.thousand.domain.models.DieValue
+import com.alextos.thousand.presentation.components.LogoView
 import com.alextos.thousand.presentation.components.RollingDieView
 import kotlinx.coroutines.delay
-import org.jetbrains.compose.resources.painterResource
-import thousand.composeapp.generated.resources.Res
-import thousand.composeapp.generated.resources.logo
 
 @Composable
 fun LaunchScreen(
@@ -64,7 +62,9 @@ fun LaunchScreen(
     }
 
     Box(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .background(MaterialTheme.colorScheme.background)
+            .fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
         Row(
@@ -90,15 +90,12 @@ fun LaunchScreen(
             }
         }
 
-        Image(
+        LogoView(
             modifier = Modifier
-                .size(160.dp)
                 .graphicsLayer {
                     alpha = logoAlpha
                     translationY = -logoInitialOffsetPx * (1f - logoAlpha)
-                },
-            painter = painterResource(Res.drawable.logo),
-            contentDescription = "Логотип Thousand",
+                }
         )
     }
 }

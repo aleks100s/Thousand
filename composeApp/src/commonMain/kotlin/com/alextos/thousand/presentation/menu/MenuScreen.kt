@@ -32,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
+import com.alextos.thousand.presentation.components.LogoView
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,7 +70,9 @@ fun MenuScreen(
 
     Screen(
         modifier = Modifier,
-        title = "1000",
+        titleView = {
+            LogoView()
+        }
     ) { modifier ->
         BoxWithConstraints(modifier = modifier.fillMaxSize()) {
             val columns = if (maxWidth > maxHeight) 3 else 2

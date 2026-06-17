@@ -36,7 +36,8 @@ import kotlin.math.min
 @Composable
 fun Screen(
     modifier: Modifier,
-    title: String,
+    title: String = "",
+    titleView: @Composable (() -> Unit)? = null,
     useDynamicTitle: Boolean = false,
     color: Color? = null,
     goBack: (() -> Unit)? = null,
@@ -59,7 +60,7 @@ fun Screen(
                 if (isTopBarVisible) {
                     TopAppBar(
                         modifier = Modifier.clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)),
-                        title = {
+                        title = titleView ?: {
                             if (useDynamicTitle) {
                                 val scale by animateFloatAsState(
                                     max(min(1.2f + scrollBehavior.state.contentOffset / 150, 1.2f), 1f)

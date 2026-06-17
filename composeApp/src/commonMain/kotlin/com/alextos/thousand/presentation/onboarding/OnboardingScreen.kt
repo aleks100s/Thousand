@@ -1,5 +1,6 @@
 package com.alextos.thousand.presentation.onboarding
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,11 +28,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.alextos.thousand.common.Screen
+import com.alextos.thousand.presentation.components.LogoView
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -41,78 +44,88 @@ fun OnboardingScreen() {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     if (state.isFinalizingInProgress) {
-        Box(Modifier.fillMaxSize(), Alignment.Center) {
+        Box(Modifier.background(MaterialTheme.colorScheme.background).fillMaxSize(), Alignment.Center) {
             LoadingIndicator()
         }
     } else {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                Text(
-                    text = "Как вас зовут?",
-                    style = MaterialTheme.typography.headlineMedium,
-                    textAlign = TextAlign.Center,
-                )
-
-                OutlinedTextField(
-                    modifier = Modifier.fillMaxWidth(),
-                    value = state.name,
-                    onValueChange = { value ->
-                        viewModel.onAction(OnboardingAction.UpdateName(value))
-                    },
-                    label = {
-                        Text("Имя")
-                    },
-                    singleLine = true,
-                    enabled = state.isSaving.not(),
-                )
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = state.name.isNotBlank() && state.isSaving.not(),
-                    onClick = {
-                        viewModel.onAction(OnboardingAction.SaveUser)
-                    },
-                ) {
-                    if (state.isSaving) {
-                        CircularProgressIndicator()
-                    } else {
-                        Text("Продолжить")
-                    }
-                }
+        Screen(
+            Modifier,
+            titleView = {
+                LogoView()
             }
-
+        ) {
             Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.BottomCenter,
+                modifier = it
+                    .background(MaterialTheme.colorScheme.background)
+                    .fillMaxSize()
+                    .padding(24.dp),
+                contentAlignment = Alignment.Center,
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     Text(
-                        text = "Уже зарегистрированы?",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        text = "Как вас зовут?",
+                        color = MaterialTheme.colorScheme.onBackground,
+                        style = MaterialTheme.typography.headlineMedium,
+                        textAlign = TextAlign.Center,
                     )
 
-                    TextButton(
+                    OutlinedTextField(
+                        modifier = Modifier.fillMaxWidth(),
+                        value = state.name,
+                        onValueChange = { value ->
+                            viewModel.onAction(OnboardingAction.UpdateName(value))
+                        },
+                        label = {
+                            Text("Имя")
+                        },
+                        singleLine = true,
                         enabled = state.isSaving.not(),
+                    )
+                    Button(
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = state.name.isNotBlank() && state.isSaving.not(),
                         onClick = {
-                            viewModel.onAction(OnboardingAction.ShowLoginSheet)
+                            viewModel.onAction(OnboardingAction.SaveUser)
                         },
                     ) {
-                        Text("Войти")
+                        if (state.isSaving) {
+                            CircularProgressIndicator()
+                        } else {
+                            Text("Продолжить")
+                        }
+                    }
+                }
+
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.BottomCenter,
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = "Уже зарегистрированы?",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+
+                        TextButton(
+                            enabled = state.isSaving.not(),
+                            onClick = {
+                                viewModel.onAction(OnboardingAction.ShowLoginSheet)
+                            },
+                        ) {
+                            Text("Войти")
+                        }
                     }
                 }
             }
         }
+
 
         if (state.isLoginSheetVisible) {
             LoginSheet(
