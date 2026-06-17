@@ -45,15 +45,15 @@ fun LaunchScreen(
     }
     val diceCollapseProgress by animateFloatAsState(
         targetValue = if (isLogoVisible) 1f else 0f,
-        animationSpec = tween(durationMillis = 500),
+        animationSpec = tween(durationMillis = 400),
     )
     val diceAlpha by animateFloatAsState(
         targetValue = if (isLogoVisible) 0f else 1f,
-        animationSpec = tween(durationMillis = 500),
+        animationSpec = tween(durationMillis = 400),
     )
     val logoAlpha by animateFloatAsState(
         targetValue = if (isLogoVisible) 1f else 0f,
-        animationSpec = tween(durationMillis = 500),
+        animationSpec = tween(durationMillis = 400),
     )
 
     LaunchedEffect(Unit) {
@@ -103,7 +103,7 @@ fun LaunchScreen(
 private const val LAUNCH_DICE_COUNT = 5
 private const val LAUNCH_DICE_CENTER_INDEX = 2
 private const val LAUNCH_DICE_STOP_INTERVAL_MILLIS = 200L
-private const val LAUNCH_DICE_ROLL_DURATION_MILLIS = 1_000L
+private const val LAUNCH_DICE_ROLL_DURATION_MILLIS = 1_200L
 private val LAUNCH_DIE_SIZE: Dp = 48.dp
 private val LAUNCH_DIE_SPACING: Dp = 12.dp
 private val LAUNCH_LOGO_INITIAL_OFFSET: Dp = 48.dp

@@ -26,7 +26,7 @@ class AndroidAccountService(
 
     init {
         updateHideMultiplayer(false)
-        // PlayGamesSdk.initialize(application)
+        PlayGamesSdk.initialize(application)
         application.registerActivityLifecycleCallbacks(this)
         Firebase.auth.addAuthStateListener(this)
     }
@@ -34,10 +34,10 @@ class AndroidAccountService(
     override fun onActivityResumed(activity: Activity) {
         val user = Firebase.auth.currentUser
         if (user == null) {
-            // startSilentAuthenticationFlow(activity)
+            startSilentAuthenticationFlow(activity)
         } else {
             if (user.providerData.none { it.providerId == "password" }) {
-                // signInPlayGames(activity)
+                signInPlayGames(activity)
             }
         }
     }
