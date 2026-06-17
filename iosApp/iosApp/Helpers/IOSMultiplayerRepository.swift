@@ -193,7 +193,8 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
             currentRoll: nil,
             rollAbility: RollAbility.required,
             buttons: [GameButton.rollTheDice],
-            messagesToShow: []
+            messagesToShow: [],
+            reaction: nil
         )
 
         try await Database.database().reference()

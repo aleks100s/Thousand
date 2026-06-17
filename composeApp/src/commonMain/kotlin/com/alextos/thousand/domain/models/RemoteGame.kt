@@ -12,6 +12,7 @@ data class RemoteGame(
     val rollAbility: RollAbility = RollAbility.REQUIRED,
     val buttons: List<GameButton> = emptyList(),
     val messagesToShow: List<String> = emptyList(),
+    val reaction: UserReaction? = null,
 ) {
     fun isFinished(): Boolean = players.any { it.isWinner }
     fun currentPlayer() = players.getOrNull(currentPlayerIndex)

@@ -65,6 +65,7 @@ class MultiplayerGameViewModel(
     private var remoteGame: RemoteGame? = null
     private var needToRequestUserInfo = true
     private var usersInfoJob: Job? = null
+    private val shownReactionIds = mutableSetOf<String>()
 
     init {
         shakeDeviceObserver.delegate = this
@@ -78,6 +79,7 @@ class MultiplayerGameViewModel(
                 }
                 .collect { game ->
                     showMessagesIfNeeded(game.messagesToShow)
+                    showReactionIfNeeded(game)
                     handleGameUpdate(game)
                 }
         }
@@ -109,6 +111,18 @@ class MultiplayerGameViewModel(
             messages.forEach { message ->
                 _events.emit(MultiplayerGameEvent.ShowMessage(message))
             }
+        }
+    }
+
+    private fun showReactionIfNeeded(game: RemoteGame) {
+        val reaction = game.reaction ?: return
+
+        if (shownReactionIds.add(reaction.id).not()) {
+            return
+        }
+
+        viewModelScope.launch {
+            _events.emit(MultiplayerGameEvent.ShowMessage("${reaction.author}: ${reaction.reaction}"))
         }
     }
 
@@ -347,7 +361,8 @@ class MultiplayerGameViewModel(
                 rollAbility = RollAbility.REQUIRED,
                 isTutorial = false
             ),
-            messagesToShow = messages
+            messagesToShow = messages,
+            reaction = null,
         )
         updateRemote(newGame)
     }
@@ -362,6 +377,7 @@ class MultiplayerGameViewModel(
                 currentPlayerIndex = -1,
                 buttons = emptyList(),
                 messagesToShow = messages,
+                reaction = null,
             ) ?: return@launch
             finishRemote(game)
         }

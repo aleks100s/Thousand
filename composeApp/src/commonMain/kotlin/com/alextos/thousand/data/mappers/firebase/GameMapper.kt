@@ -1,7 +1,7 @@
 package com.alextos.thousand.data.mappers.firebase
 
 import com.alextos.thousand.domain.models.RemoteGame
-import com.alextos.thousand.domain.models.User
+import com.alextos.thousand.domain.models.UserReaction
 
 object FirebaseGameMapper {
     fun dictionary(from: RemoteGame): Map<String, Any> = from.toFirebaseMap()
@@ -20,6 +20,10 @@ internal fun RemoteGame.toFirebaseMap(): Map<String, Any> =
         put("buttons", buttons.map { button -> button.name })
         put("messagesToShow", messagesToShow)
         put("currentPlayerIndex", currentPlayerIndex)
+
+        reaction?.let { reaction ->
+            put("reaction", reaction.toFirebaseMap())
+        }
 
         currentRoll?.let { roll ->
             put("currentRoll", roll.toFirebaseMap())
@@ -50,5 +54,32 @@ internal fun Map<*, *>.toFirebaseGame(key: String?): RemoteGame {
             else -> emptyList()
         },
         messagesToShow = get("messagesToShow").asFirebaseStringList(),
+        reaction = get("reaction").toFirebaseUserReaction(),
     )
 }
+
+private fun UserReaction.toFirebaseMap(): Map<String, Any> =
+    mapOf(
+        "id" to id,
+        "author" to author,
+        "reaction" to reaction,
+    )
+
+private fun Any?.toFirebaseUserReaction(): UserReaction? =
+    asFirebaseMap()?.let { reaction ->
+        val reactionValue = reaction.string("reaction") ?: return@let null
+        val id = reaction.string("id")
+
+        if (id.isNullOrBlank()) {
+            UserReaction(
+                author = reaction.string("author").orEmpty(),
+                reaction = reactionValue,
+            )
+        } else {
+            UserReaction(
+                id = id,
+                author = reaction.string("author").orEmpty(),
+                reaction = reactionValue,
+            )
+        }
+    }
