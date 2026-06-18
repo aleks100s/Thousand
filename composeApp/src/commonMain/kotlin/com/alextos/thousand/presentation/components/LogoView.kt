@@ -12,7 +12,7 @@ import thousand.composeapp.generated.resources.logo
 @Composable
 fun LogoView(modifier: Modifier = Modifier) {
     Image(
-        modifier = modifier.width(160.dp),
+        modifier = modifier.width(200.dp),
         painter = painterResource(Res.drawable.logo),
         contentDescription = "Логотип Thousand",
     )

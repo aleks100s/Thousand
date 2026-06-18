@@ -96,7 +96,7 @@ fun appModule(
     single<TurnResultDao> { get<ThousandDatabase>().turnResultDao() }
     single<KeyValueStorage> { DataStoreKeyValueStorage(get()) }
     single<StorageService> { StorageServiceImpl(get()) }
-    single<GameRepository> { GameRepositoryImpl(get(), get(), get(), get(), get(), get(), get(), get()) }
+    single<GameRepository> { GameRepositoryImpl(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     single<NativeAccountService> { nativeAccountService }
     single<MultiplayerRepository> { multiplayerRepository }
     factory { GetAllGamesUseCase(get()) }

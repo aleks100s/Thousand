@@ -1,5 +1,8 @@
 package com.alextos.thousand.data.repository
 
+import androidx.room.immediateTransaction
+import androidx.room.useWriterConnection
+import com.alextos.thousand.data.ThousandDatabase
 import com.alextos.thousand.data.dao.DiceRollDao
 import com.alextos.thousand.data.dao.DieDao
 import com.alextos.thousand.data.dao.GameDao
@@ -20,6 +23,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class GameRepositoryImpl(
+    private val database: ThousandDatabase,
     private val gameDao: GameDao,
     private val userDao: UserDao,
     private val playerDao: PlayerDao,
@@ -62,16 +66,26 @@ class GameRepositoryImpl(
     }
 
     override suspend fun createGame(game: Game): Game {
-        val gameId = gameDao.insert(game.toEntity())
-        gameDao.upsert(game.settings.toEntity(gameId = gameId))
-        playerDao.upsert(game.players.map { it.toEntity(gameId = gameId) })
+        val gameId = database.useWriterConnection { transactor ->
+            transactor.immediateTransaction {
+                val gameId = gameDao.insert(game.toEntity())
+                gameDao.upsert(game.settings.toEntity(gameId = gameId))
+                playerDao.upsert(game.players.map { it.toEntity(gameId = gameId) })
+                return@immediateTransaction gameId
+            }
+        }
+
         return game.copy(id = gameId)
     }
 
     override suspend fun saveGame(game: Game) {
-        gameDao.upsert(game.toEntity())
-        gameDao.upsert(game.settings.toEntity(gameId = game.id))
-        playerDao.upsert(game.players.map { it.toEntity(gameId = game.id) })
+        database.useWriterConnection { transactor ->
+            transactor.immediateTransaction {
+                gameDao.upsert(game.toEntity())
+                gameDao.upsert(game.settings.toEntity(gameId = game.id))
+                playerDao.upsert(game.players.map { it.toEntity(gameId = game.id) })
+            }
+        }
     }
 
     override suspend fun getGame(id: Long): Game? {
@@ -98,44 +112,50 @@ class GameRepositoryImpl(
     }
 
     override suspend fun saveTurn(turn: Turn, game: Game): Turn {
-        val turnId = turnDao.insert(
-            turn.toEntity(gameId = game.id)
-        )
-
-        turn.rolls.forEachIndexed { index, roll ->
-            val rollID = diceRollDao.insert(
-                roll.toEntity(
-                    playerId = turn.player.id,
-                    turnId = turnId,
-                    order = index
+        val turnId = database.useWriterConnection { transactor ->
+            transactor.immediateTransaction {
+                val turnId = turnDao.insert(
+                    turn.toEntity(gameId = game.id)
                 )
-            )
 
-            dieDao.insert(
-                roll.dice.mapIndexed { index, die ->
-                    die.toEntity(
-                        playerId = turn.player.id,
-                        rollId = rollID,
-                        order = index
+                turn.rolls.forEachIndexed { index, roll ->
+                    val rollID = diceRollDao.insert(
+                        roll.toEntity(
+                            playerId = turn.player.id,
+                            turnId = turnId,
+                            order = index
+                        )
+                    )
+
+                    dieDao.insert(
+                        roll.dice.mapIndexed { index, die ->
+                            die.toEntity(
+                                playerId = turn.player.id,
+                                rollId = rollID,
+                                order = index
+                            )
+                        }
                     )
                 }
-            )
-        }
 
-        turnEffectDao.insert(
-            turn.effects.mapIndexed { index, effect ->
-                effect.toEntity(
-                    turnId = turnId,
-                    order = index + 1,
+                turnEffectDao.insert(
+                    turn.effects.mapIndexed { index, effect ->
+                        effect.toEntity(
+                            turnId = turnId,
+                            order = index + 1,
+                        )
+                    }
                 )
-            }
-        )
 
-        turnResultDao.insert(
-            turn.results.map { result ->
-                result.toEntity(turnId = turnId)
+                turnResultDao.insert(
+                    turn.results.map { result ->
+                        result.toEntity(turnId = turnId)
+                    }
+                )
+
+                return@immediateTransaction turnId
             }
-        )
+        }
 
         return turn.copy(id = turnId)
     }
