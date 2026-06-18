@@ -3,13 +3,16 @@ package com.alextos.thousand.presentation.menu
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -18,6 +21,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -28,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -37,7 +42,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.presentation.components.LogoView
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
+import thousand.composeapp.generated.resources.Res
+import thousand.composeapp.generated.resources.book_2_24px
+import thousand.composeapp.generated.resources.casino_24px
+import thousand.composeapp.generated.resources.language_24px
+import thousand.composeapp.generated.resources.school_24px
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -184,23 +196,36 @@ private fun MenuTileView(
             .height(if (tile.size == MenuTileSize.Large) 144.dp else 100.dp)
             .clickable(onClick = onClick),
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(gradient)
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Text(
-                text = tile.title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
+            Icon(
+                modifier = Modifier
+                    .offset(x = 8.dp, y = 8.dp)
+                    .align(Alignment.BottomEnd)
+                    .size(if (tile.size == MenuTileSize.Large) 88.dp else 48.dp),
+                painter = painterResource(tile.action.icon()),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.14f),
             )
-            Text(
-                text = tile.description,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Text(
+                    text = tile.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = tile.description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }
@@ -216,3 +241,11 @@ private fun MenuTileAction.gradient(): Brush =
         start = Offset.Zero,
         end = Offset.Infinite,
     )
+
+private fun MenuTileAction.icon(): DrawableResource =
+    when (this) {
+        MenuTileAction.LocalGame -> Res.drawable.casino_24px
+        MenuTileAction.Multiplayer -> Res.drawable.language_24px
+        MenuTileAction.Rules -> Res.drawable.book_2_24px
+        MenuTileAction.Tutorial -> Res.drawable.school_24px
+    }
