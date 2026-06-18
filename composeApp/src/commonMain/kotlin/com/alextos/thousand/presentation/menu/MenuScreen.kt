@@ -1,5 +1,6 @@
 package com.alextos.thousand.presentation.menu
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -28,6 +29,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -75,7 +79,9 @@ fun MenuScreen(
         }
     ) { modifier ->
         BoxWithConstraints(modifier = modifier.fillMaxSize()) {
-            val columns = if (maxWidth > maxHeight) 3 else 2
+            val isLandscape = maxWidth > maxHeight
+            val columns = if (isLandscape) 6 else 2
+            val largeTileCount = tiles.count { tile -> tile.size == MenuTileSize.Large }
 
             LazyVerticalGrid(
                 modifier = Modifier.fillMaxSize(),
@@ -89,7 +95,12 @@ fun MenuScreen(
                     items = tiles,
                     span = { tile ->
                         GridItemSpan(
-                            if (tile.size == MenuTileSize.Large) maxLineSpan else 1
+                            when {
+                                tile.size == MenuTileSize.Large && isLandscape && largeTileCount > 1 -> 3
+                                tile.size == MenuTileSize.Large -> maxLineSpan
+                                isLandscape -> 2
+                                else -> 1
+                            }
                         )
                     },
                 ) { tile ->
@@ -165,6 +176,8 @@ private fun MenuTileView(
     tile: MenuTile,
     onClick: () -> Unit,
 ) {
+    val gradient = tile.action.gradient()
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -172,7 +185,10 @@ private fun MenuTileView(
             .clickable(onClick = onClick),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(gradient)
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(
@@ -188,3 +204,15 @@ private fun MenuTileView(
         }
     }
 }
+
+private fun MenuTileAction.gradient(): Brush =
+    Brush.linearGradient(
+        colors = when (this) {
+            MenuTileAction.LocalGame -> listOf(Color(0x77FFE3E0), Color(0x77E57373))
+            MenuTileAction.Multiplayer -> listOf(Color(0x77DCEBFF), Color(0x7764A6F7))
+            MenuTileAction.Rules -> listOf(Color(0x77FFF2BF), Color(0x77FFB74D))
+            MenuTileAction.Tutorial -> listOf(Color(0x77DFF7E8), Color(0x7766BB6A))
+        },
+        start = Offset.Zero,
+        end = Offset.Infinite,
+    )
