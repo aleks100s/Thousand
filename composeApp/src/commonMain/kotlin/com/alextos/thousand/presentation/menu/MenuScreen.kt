@@ -48,7 +48,9 @@ import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
 import thousand.composeapp.generated.resources.book_2_24px
 import thousand.composeapp.generated.resources.casino_24px
+import thousand.composeapp.generated.resources.diversity_3_24px
 import thousand.composeapp.generated.resources.language_24px
+import thousand.composeapp.generated.resources.mobile_24px
 import thousand.composeapp.generated.resources.school_24px
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -244,7 +246,7 @@ private fun MenuTileAction.gradient(): Brush =
 
 private fun MenuTileAction.icon(): DrawableResource =
     when (this) {
-        MenuTileAction.LocalGame -> Res.drawable.casino_24px
+        MenuTileAction.LocalGame -> Res.drawable.mobile_24px
         MenuTileAction.Multiplayer -> Res.drawable.language_24px
         MenuTileAction.Rules -> Res.drawable.book_2_24px
         MenuTileAction.Tutorial -> Res.drawable.school_24px

@@ -45,6 +45,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
 import thousand.composeapp.generated.resources.casino_24px
 import thousand.composeapp.generated.resources.info_24px
+import thousand.composeapp.generated.resources.mobile_24px
 import thousand.composeapp.generated.resources.notifications_24px
 import thousand.composeapp.generated.resources.notifications_off_24px
 import thousand.composeapp.generated.resources.sports_esports_24px
@@ -145,7 +146,7 @@ private fun LocalGamesInfoCard(
     onCreateGame: () -> Unit,
 ) {
     InfoCardView(
-        icon = Res.drawable.casino_24px,
+        icon = Res.drawable.mobile_24px,
         title = "Играйте на одном устройстве",
         text = "Играйте с друзьями или ботами и знакомьтесь с игровой статистикой",
     ) {

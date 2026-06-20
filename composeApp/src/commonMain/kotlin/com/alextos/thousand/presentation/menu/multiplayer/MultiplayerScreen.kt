@@ -49,6 +49,7 @@ import com.alextos.thousand.presentation.components.GameStatusView
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
 import thousand.composeapp.generated.resources.diversity_3_24px
+import thousand.composeapp.generated.resources.language_24px
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -352,7 +353,7 @@ private fun MultiplayerHero(
     openCreateLobby: () -> Unit,
 ) {
     InfoCardView(
-        icon = Res.drawable.diversity_3_24px,
+        icon = Res.drawable.language_24px,
         title = "Играйте с друзьями по сети",
         text = "Мультиплеер поможет собрать игроков в одну партию. Хост создает игру и делится кодом подключения с другими",
     ) {
