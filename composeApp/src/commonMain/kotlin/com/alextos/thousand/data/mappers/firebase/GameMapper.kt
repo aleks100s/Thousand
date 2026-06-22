@@ -20,7 +20,7 @@ internal fun RemoteGame.toFirebaseMap(): Map<String, Any> =
         put("buttons", buttons.map { button -> button.name })
         put("messagesToShow", messagesToShow)
         put("currentPlayerIndex", currentPlayerIndex)
-        put("onlinePlayerIds", onlinePlayerIds.toList())
+        put("onlinePlayerIds", onlinePlayerIds.associateWith { true })
 
         reaction?.let { reaction ->
             put("reaction", reaction.toFirebaseMap())
@@ -56,9 +56,24 @@ internal fun Map<*, *>.toFirebaseGame(key: String?): RemoteGame {
         },
         messagesToShow = get("messagesToShow").asFirebaseStringList(),
         reaction = get("reaction").toFirebaseUserReaction(),
-        onlinePlayerIds = get("onlinePlayerIds").asFirebaseStringList().toSet(),
+        onlinePlayerIds = get("onlinePlayerIds").asFirebaseOnlinePlayerIds(),
     )
 }
+
+private fun Any?.asFirebaseOnlinePlayerIds(): Set<String> =
+    asFirebaseMap()
+        ?.entries
+        ?.mapNotNull { entry ->
+            val userId = entry.key as? String ?: return@mapNotNull null
+
+            if (entry.value == true) {
+                userId
+            } else {
+                null
+            }
+        }
+        ?.toSet()
+        ?: emptySet()
 
 private fun UserReaction.toFirebaseMap(): Map<String, Any> =
     mapOf(

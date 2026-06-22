@@ -5,6 +5,17 @@ extension IOSMultiplayerRepository {
         swiftDictionary(from: FirebaseGameMapper.shared.dictionary(from: game))
     }
 
+    func updateDictionary(from game: RemoteGame) -> [String: Any] {
+        var dictionary = dictionary(from: game)
+        dictionary.removeValue(forKey: FirebaseGameKey.onlinePlayerIds)
+
+        if game.reaction == nil {
+            dictionary[FirebaseGameKey.reaction] = NSNull()
+        }
+
+        return dictionary
+    }
+
     func game(from value: Any?, key: String?) -> RemoteGame? {
         FirebaseGameMapper.shared.game(from: firebaseDictionary(from: value), key: key)
     }

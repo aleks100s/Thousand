@@ -71,7 +71,6 @@ class MultiplayerGameViewModel(
     private var needToRequestUserInfo = true
     private var usersInfoJob: Job? = null
     private var isUserAwayFromGame = false
-    private var hasMarkedCurrentUserOnline = false
     private val shownReactionIds = mutableSetOf<String>()
 
     init {
@@ -86,8 +85,11 @@ class MultiplayerGameViewModel(
                     }
                 }
                 .collect { game ->
+                    if (remoteGame == null) {
+                        updateCurrentUserPresence(true)
+                    }
                     showMessagesIfNeeded(game.messagesToShow)
-                    showReactionIfNeeded(game)
+                    showReactionIfNeeded(game.reaction)
                     handleGameUpdate(game)
                 }
         }
@@ -149,8 +151,8 @@ class MultiplayerGameViewModel(
         }
     }
 
-    private fun showReactionIfNeeded(game: RemoteGame) {
-        val reaction = game.reaction ?: return
+    private fun showReactionIfNeeded(reaction: UserReaction?) {
+        val reaction = reaction ?: return
 
         if (shownReactionIds.add(reaction.id).not()) {
             return
@@ -163,7 +165,6 @@ class MultiplayerGameViewModel(
 
     private fun handleGameUpdate(game: RemoteGame) {
         remoteGame = game
-        markCurrentUserOnlineIfNeeded()
         val actualGame = remoteGame ?: game
         loadMissingUsersInfo(game)
         val gameState = mapToGameState(actualGame)
@@ -202,43 +203,16 @@ class MultiplayerGameViewModel(
         )
     }
 
-    private fun markCurrentUserOnlineIfNeeded() {
-        if (hasMarkedCurrentUserOnline || isUserAwayFromGame) {
-            return
-        }
-
-        val userId = accountService.userProfile.value?.id
-        if (userId.isNullOrBlank()) {
-            return
-        }
-
-        hasMarkedCurrentUserOnline = true
-        updateCurrentUserPresence(isOnline = true)
-    }
-
     private fun updateCurrentUserPresence(isOnline: Boolean) {
-        val currentGame = remoteGame ?: return
-        val userId = accountService.userProfile.value?.id
-
-        if (userId.isNullOrBlank()) {
-            return
-        }
-
-        val isAlreadyOnline = userId in currentGame.onlinePlayerIds
-        if (isAlreadyOnline == isOnline) {
-            return
-        }
-
-        val updatedOnlinePlayerIds = if (isOnline) {
-            currentGame.onlinePlayerIds + userId
-        } else {
-            currentGame.onlinePlayerIds - userId
-        }
-        val updatedGame = currentGame.copy(onlinePlayerIds = updatedOnlinePlayerIds)
-        remoteGame = updatedGame
-
         viewModelScope.launch {
-            updateRemote(updatedGame)
+            try {
+                multiplayerRepository.updatePlayerOnlineStatus(
+                    gameKey = gameId,
+                    isOnline = isOnline,
+                )
+            } catch (e: Exception) {
+                _events.emit(MultiplayerGameEvent.Error(e.message ?: "Ошибка при обновлении статуса игрока"))
+            }
         }
     }
 

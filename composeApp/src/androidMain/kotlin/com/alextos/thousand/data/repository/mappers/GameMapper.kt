@@ -12,3 +12,14 @@ internal fun DataSnapshot.toGame(): RemoteGame? {
 
 internal fun RemoteGame.toDatabaseMap(): Map<String, Any> =
     FirebaseGameMapper.dictionary(from = this)
+
+internal fun RemoteGame.toDatabaseUpdateMap(): Map<String, Any?> =
+    toDatabaseMap()
+        .filterKeys { key -> key != "onlinePlayerIds" }
+        .mapValues { entry -> entry.value as Any? }
+        .toMutableMap()
+        .apply {
+            if (reaction == null) {
+                put("reaction", null)
+            }
+        }

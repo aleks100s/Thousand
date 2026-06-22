@@ -15,6 +15,7 @@ interface MultiplayerRepository {
     suspend fun startGame(key: String)
     fun observeGame(key: String): Flow<RemoteGame>
     suspend fun updateGame(game: RemoteGame)
+    suspend fun updatePlayerOnlineStatus(gameKey: String, isOnline: Boolean)
     suspend fun finishGame(game: RemoteGame, userInfo: Map<String, RemoteUserInfo>)
     suspend fun deleteGame(key: String)
     suspend fun userInfo(userId: String): RemoteUserInfo?

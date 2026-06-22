@@ -229,7 +229,7 @@ fun MultiplayerGameScreen(
                         )
                         DropdownMenuItem(
                             text = {
-                                Text(if (state.isHost) "Удалить игру" else "Покинуть игру")
+                                Text("Покинуть игру")
                             },
                             colors = MenuDefaults.itemColors(
                                 textColor = MaterialTheme.colorScheme.error,

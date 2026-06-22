@@ -30,6 +30,11 @@ enum FirebaseLobbyKey {
     static let id = "id"
 }
 
+enum FirebaseGameKey {
+    static let onlinePlayerIds = "onlinePlayerIds"
+    static let reaction = "reaction"
+}
+
 enum FirebasePlatform {
     static let ios = "iOS"
 }

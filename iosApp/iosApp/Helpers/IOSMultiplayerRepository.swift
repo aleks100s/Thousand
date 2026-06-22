@@ -267,7 +267,20 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
         try await Database.database().reference()
             .child(FirebasePath.games)
             .child(game.key)
-            .setValue(dictionary(from: game))
+            .updateChildValues(updateDictionary(from: game))
+    }
+
+    func updatePlayerOnlineStatus(gameKey: String, isOnline: Bool) async throws {
+        guard let user = Auth.auth().currentUser else {
+            return
+        }
+        
+        try await Database.database().reference()
+            .child(FirebasePath.games)
+            .child(gameKey)
+            .child(FirebaseGameKey.onlinePlayerIds)
+            .child(user.uid)
+            .setValue(isOnline)
     }
     
     func finishGame(game: RemoteGame, userInfo: [String: RemoteUserInfo]) async throws {
@@ -275,7 +288,7 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
         try await reference
             .child(FirebasePath.games)
             .child(game.key)
-            .setValue(dictionary(from: game))
+            .updateChildValues(updateDictionary(from: game))
         
         if game.isFinished() {
             let updates = finishedGameStatisticsUpdates(for: game, userInfo: userInfo)

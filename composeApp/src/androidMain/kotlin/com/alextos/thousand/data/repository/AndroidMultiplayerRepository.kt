@@ -1,6 +1,7 @@
 package com.alextos.thousand.data.repository
 
 import com.alextos.thousand.data.repository.mappers.toDatabaseMap
+import com.alextos.thousand.data.repository.mappers.toDatabaseUpdateMap
 import com.alextos.thousand.data.repository.mappers.toFinishedGameStatisticsUpdates
 import com.alextos.thousand.data.repository.mappers.toGame
 import com.alextos.thousand.data.repository.mappers.toLobby
@@ -36,6 +37,7 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
         private const val USERS_NODE = "users"
         private const val LOBBIES_NODE = "lobbies"
         private const val GAMES_NODE = "games"
+        private const val ONLINE_PLAYER_IDS_NODE = "onlinePlayerIds"
     }
 
     @OptIn(ExperimentalUuidApi::class)
@@ -311,7 +313,28 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
             FirebaseDatabase.getInstance().reference
                 .child(GAMES_NODE)
                 .child(game.key)
-                .setValue(game.toDatabaseMap())
+                .updateChildren(game.toDatabaseUpdateMap())
+                .addOnSuccessListener {
+                    continuation.resume(Unit)
+                }
+                .addOnFailureListener {
+                    continuation.cancel(it)
+                }
+        }
+    }
+
+    override suspend fun updatePlayerOnlineStatus(
+        gameKey: String,
+        isOnline: Boolean
+    ) {
+        val user = Firebase.auth.currentUser ?: return
+        suspendCancellableCoroutine { continuation ->
+            FirebaseDatabase.getInstance().reference
+                .child(GAMES_NODE)
+                .child(gameKey)
+                .child(ONLINE_PLAYER_IDS_NODE)
+                .child(user.uid)
+                .setValue(isOnline)
                 .addOnSuccessListener {
                     continuation.resume(Unit)
                 }
@@ -330,7 +353,7 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
             databaseReference
                 .child(GAMES_NODE)
                 .child(game.key)
-                .setValue(game.toDatabaseMap())
+                .updateChildren(game.toDatabaseUpdateMap())
                 .addOnSuccessListener {
                     if (game.isFinished().not()) {
                         continuation.resume(Unit)
