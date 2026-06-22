@@ -16,6 +16,8 @@ data class GameState(
     val rollAbility: RollAbility = RollAbility.REQUIRED,
     val buttons: List<GameButton> = emptyList(),
     val isTutorial: Boolean = false,
+    val isOnlineGame: Boolean = false,
+    val onlinePlayerIds: Set<String> = emptySet(),
     val tutorialNextAction: TutorialNextAction? = null,
     val tutorialAdvice: String? = null,
 )

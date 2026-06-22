@@ -71,6 +71,7 @@ class MultiplayerGameViewModel(
     private var needToRequestUserInfo = true
     private var usersInfoJob: Job? = null
     private var isUserAwayFromGame = false
+    private var hasMarkedCurrentUserOnline = false
     private val shownReactionIds = mutableSetOf<String>()
 
     init {
@@ -105,7 +106,7 @@ class MultiplayerGameViewModel(
         }
 
         isUserAwayFromGame = true
-        handleUserLeftGame()
+        updateCurrentUserPresence(isOnline = false)
     }
 
     override fun userDidReturnToGame() {
@@ -114,7 +115,7 @@ class MultiplayerGameViewModel(
         }
 
         isUserAwayFromGame = false
-        handleUserReturnedToGame()
+        updateCurrentUserPresence(isOnline = true)
     }
 
     override fun onCleared() {
@@ -135,10 +136,6 @@ class MultiplayerGameViewModel(
             is MultiplayerGameAction.ToggleNotifications -> toggleNotifications(action.isEnabled)
         }
     }
-
-    private fun handleUserLeftGame() = Unit
-
-    private fun handleUserReturnedToGame() = Unit
 
     private fun showMessagesIfNeeded(messages: List<String>) {
         if (state.value.isNotificationEnabled.not()) {
@@ -166,14 +163,16 @@ class MultiplayerGameViewModel(
 
     private fun handleGameUpdate(game: RemoteGame) {
         remoteGame = game
+        markCurrentUserOnlineIfNeeded()
+        val actualGame = remoteGame ?: game
         loadMissingUsersInfo(game)
-        val gameState = mapToGameState(game)
+        val gameState = mapToGameState(actualGame)
         _state.update {
             it.copy(
-                isHost = game.host == accountService.userProfile.value?.id,
-                gameCode = game.id.toString(),
+                isHost = actualGame.host == accountService.userProfile.value?.id,
+                gameCode = actualGame.id.toString(),
                 gameState = gameState,
-                gameResultSheet = game.finishedGameResultSheet(),
+                gameResultSheet = actualGame.finishedGameResultSheet(),
             )
         }
     }
@@ -192,8 +191,50 @@ class MultiplayerGameViewModel(
             currentTurn = game.currentTurn,
             currentRoll = game.currentRoll,
             rollAbility = if (isCurrentUser) game.rollAbility else RollAbility.UNAVAILABLE,
-            buttons = if (isCurrentUser) game.buttons else emptyList()
+            buttons = if (isCurrentUser) game.buttons else emptyList(),
+            isOnlineGame = true,
+            onlinePlayerIds = game.onlinePlayerIds,
         )
+    }
+
+    private fun markCurrentUserOnlineIfNeeded() {
+        if (hasMarkedCurrentUserOnline || isUserAwayFromGame) {
+            return
+        }
+
+        val userId = accountService.userProfile.value?.id
+        if (userId.isNullOrBlank()) {
+            return
+        }
+
+        hasMarkedCurrentUserOnline = true
+        updateCurrentUserPresence(isOnline = true)
+    }
+
+    private fun updateCurrentUserPresence(isOnline: Boolean) {
+        val currentGame = remoteGame ?: return
+        val userId = accountService.userProfile.value?.id
+
+        if (userId.isNullOrBlank()) {
+            return
+        }
+
+        val isAlreadyOnline = userId in currentGame.onlinePlayerIds
+        if (isAlreadyOnline == isOnline) {
+            return
+        }
+
+        val updatedOnlinePlayerIds = if (isOnline) {
+            currentGame.onlinePlayerIds + userId
+        } else {
+            currentGame.onlinePlayerIds - userId
+        }
+        val updatedGame = currentGame.copy(onlinePlayerIds = updatedOnlinePlayerIds)
+        remoteGame = updatedGame
+
+        viewModelScope.launch {
+            updateRemote(updatedGame)
+        }
     }
 
     private fun RemoteGame.finishedGameResultSheet(): MultiplayerGameResultSheetUi? {

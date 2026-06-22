@@ -13,6 +13,7 @@ data class RemoteGame(
     val buttons: List<GameButton> = emptyList(),
     val messagesToShow: List<String> = emptyList(),
     val reaction: UserReaction? = null,
+    val onlinePlayerIds: Set<String> = emptySet(),
 ) {
     fun isFinished(): Boolean = players.any { it.isWinner }
     fun currentPlayer() = players.getOrNull(currentPlayerIndex)

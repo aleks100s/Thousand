@@ -63,6 +63,8 @@ fun GameView(
                 game = game,
                 currentPlayer = state.currentPlayer,
                 showBolts = game.isFinished().not(),
+                isOnlineGame = state.isOnlineGame,
+                onlinePlayerIds = state.onlinePlayerIds,
                 onPlayerClick = onPlayerClick,
             )
 

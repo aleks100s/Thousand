@@ -7,14 +7,14 @@ final class IOSGamePresenceObserver: GamePresenceObserver {
 
     init() {
         observers.append(NotificationCenter.default.addObserver(
-            name: UIApplication.didEnterBackgroundNotification,
+            forName: UIApplication.didEnterBackgroundNotification,
             object: nil,
             queue: nil
         ) { [weak self] _ in
             self?.notifyUserLeftGame()
         })
         observers.append(NotificationCenter.default.addObserver(
-            name: UIApplication.willEnterForegroundNotification,
+            forName: UIApplication.willEnterForegroundNotification,
             object: nil,
             queue: nil
         ) { [weak self] _ in

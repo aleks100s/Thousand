@@ -241,7 +241,8 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
             key = gameID,
             currentPlayerIndex = 0,
             rollAbility = RollAbility.REQUIRED,
-            buttons = listOf(GameButton.ROLL_THE_DICE)
+            buttons = listOf(GameButton.ROLL_THE_DICE),
+            onlinePlayerIds = emptySet(),
         )
         val gamesReference = FirebaseDatabase.getInstance().reference
             .child(GAMES_NODE)

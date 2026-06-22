@@ -5,6 +5,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -51,6 +53,8 @@ fun GameHeaderView(
     game: Game,
     currentPlayer: Player? = null,
     showBolts: Boolean = false,
+    isOnlineGame: Boolean = false,
+    onlinePlayerIds: Set<String> = emptySet(),
     onPlayerClick: ((Player) -> Unit)? = null,
 ) {
     val shouldScroll = game.players.size > 2
@@ -78,6 +82,8 @@ fun GameHeaderView(
                     player = player,
                     isActive = currentPlayer == player,
                     showBolts = showBolts && game.settings.isTripleBoltFineActive,
+                    isOnlineGame = isOnlineGame,
+                    isOnline = player.user.id in onlinePlayerIds,
                     onClick = onPlayerClick,
                 )
             }
@@ -99,6 +105,8 @@ fun GameHeaderView(
                     player = it,
                     isActive = currentPlayer == it,
                     showBolts = showBolts && game.settings.isTripleBoltFineActive,
+                    isOnlineGame = isOnlineGame,
+                    isOnline = it.user.id in onlinePlayerIds,
                     onClick = onPlayerClick,
                 )
             }
@@ -111,6 +119,8 @@ private fun PlayerView(
     player: Player,
     isActive: Boolean,
     showBolts: Boolean,
+    isOnlineGame: Boolean,
+    isOnline: Boolean,
     onClick: ((Player) -> Unit)?,
 ) {
     val scale by animateFloatAsState(
@@ -158,17 +168,11 @@ private fun PlayerView(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Icon(
-                    painter = painterResource(
-                        if (player.isBot())
-                            Res.drawable.robot_24px
-                        else if (player.isMain())
-                            Res.drawable.person_heart_24px
-                        else
-                            Res.drawable.person_24px
-                    ),
-                    contentDescription = null,
-                    tint = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
+                PlayerIcon(
+                    player = player,
+                    isActive = isActive,
+                    showOnlineStatus = isOnlineGame && player.isBot().not(),
+                    isOnline = isOnline,
                 )
 
                 Text(
@@ -208,6 +212,62 @@ private fun PlayerView(
                     }
                 }
             )
+        }
+    }
+}
+
+@Composable
+private fun PlayerIcon(
+    player: Player,
+    isActive: Boolean,
+    showOnlineStatus: Boolean,
+    isOnline: Boolean,
+) {
+    Box(modifier = Modifier.size(PLAYER_ICON_SIZE)) {
+        Icon(
+            modifier = Modifier.size(PLAYER_ICON_SIZE),
+            painter = painterResource(
+                if (player.isBot())
+                    Res.drawable.robot_24px
+                else if (player.isMain())
+                    Res.drawable.person_heart_24px
+                else
+                    Res.drawable.person_24px
+            ),
+            contentDescription = null,
+            tint = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
+        )
+
+        if (showOnlineStatus) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .size(ONLINE_STATUS_OUTER_SIZE)
+                    .background(
+                        color = MaterialTheme.colorScheme.background,
+                        shape = CircleShape,
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(ONLINE_STATUS_INNER_SIZE)
+                        .then(
+                            if (isOnline) {
+                                Modifier.background(
+                                    color = ONLINE_STATUS_COLOR,
+                                    shape = CircleShape,
+                                )
+                            } else {
+                                Modifier.border(
+                                    width = 1.dp,
+                                    color = OFFLINE_STATUS_COLOR,
+                                    shape = CircleShape,
+                                )
+                            }
+                        ),
+                )
+            }
         }
     }
 }
@@ -271,7 +331,12 @@ private data class ScoreChangeBubble(
 )
 
 private val SCORE_CHANGE_FLOAT_DISTANCE = 56.dp
+private val PLAYER_ICON_SIZE = 24.dp
+private val ONLINE_STATUS_OUTER_SIZE = 11.dp
+private val ONLINE_STATUS_INNER_SIZE = 8.dp
 private const val SCORE_CHANGE_ANIMATION_DURATION_MS = 1800
 private const val SCORE_CHANGE_FADE_DELAY_MS = 300
+private val ONLINE_STATUS_COLOR = Color(0xFF2E7D32)
+private val OFFLINE_STATUS_COLOR = Color(0xFF8A8F98)
 private val POSITIVE_SCORE_CHANGE_COLOR = Color(0xFF2E7D32)
 private val NEGATIVE_SCORE_CHANGE_COLOR = Color(0xFFC62828)

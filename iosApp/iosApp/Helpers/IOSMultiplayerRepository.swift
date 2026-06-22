@@ -194,7 +194,8 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
             rollAbility: RollAbility.required,
             buttons: [GameButton.rollTheDice],
             messagesToShow: [],
-            reaction: nil
+            reaction: nil,
+            onlinePlayerIds: []
         )
 
         try await Database.database().reference()
