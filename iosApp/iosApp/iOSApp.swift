@@ -4,6 +4,7 @@ import SwiftUI
 @main
 struct iOSApp: App {
     private let observer = DefaultShakeDeviceObserver()
+    private let gamePresenceObserver = IOSGamePresenceObserver()
     private let accountService = IOSAccountService()
     private let multiplayerRepository = IOSMultiplayerRepository()
     
@@ -12,6 +13,7 @@ struct iOSApp: App {
     init() {
         KoinKt.doInitKoin(
             shakeDeviceObserver: observer,
+            gamePresenceObserver: gamePresenceObserver,
             nativeAccountService: accountService,
             multiplayerRepository: multiplayerRepository,
             appDeclaration: { _ in }

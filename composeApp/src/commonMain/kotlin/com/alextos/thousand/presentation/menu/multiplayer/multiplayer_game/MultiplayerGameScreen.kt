@@ -20,6 +20,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -61,6 +62,17 @@ fun MultiplayerGameScreen(
     var selectedUserInfo by remember { mutableStateOf<RemoteUserInfo?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
+    fun leaveGame() {
+        viewModel.onAction(MultiplayerGameAction.LeaveGameScreen)
+        goBack()
+    }
+
+    DisposableEffect(viewModel) {
+        onDispose {
+            viewModel.onAction(MultiplayerGameAction.LeaveGameScreen)
+        }
+    }
+
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
@@ -83,7 +95,7 @@ fun MultiplayerGameScreen(
 
     if (state.error != null) {
         ModalBottomSheet(
-            onDismissRequest = goBack
+            onDismissRequest = ::leaveGame
         ) {
             Column(
                 modifier = Modifier
@@ -94,7 +106,7 @@ fun MultiplayerGameScreen(
             ) {
                 Text(state.error ?: "")
 
-                Button(onClick = goBack) {
+                Button(onClick = ::leaveGame) {
                     Text("Выйти в меню")
                 }
             }
@@ -134,7 +146,7 @@ fun MultiplayerGameScreen(
     Screen(
         modifier = Modifier,
         title = "Игра ${state.gameCode}",
-        goBack = goBack,
+        goBack = ::leaveGame,
         actions = { actionColor ->
             {
                 Box {
@@ -366,7 +378,7 @@ fun MultiplayerGameScreen(
 
                 OutlinedButton(
                     modifier = Modifier.fillMaxWidth(),
-                    onClick = goBack,
+                    onClick = ::leaveGame,
                 ) {
                     Text("Выйти из игры")
                 }

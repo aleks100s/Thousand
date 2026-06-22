@@ -16,6 +16,7 @@ import com.alextos.thousand.data.repository.GameRepositoryImpl
 import com.alextos.thousand.data.service.StorageServiceImpl
 import com.alextos.thousand.domain.repository.GameRepository
 import com.alextos.thousand.domain.repository.MultiplayerRepository
+import com.alextos.thousand.domain.service.GamePresenceObserver
 import com.alextos.thousand.domain.service.NativeAccountService
 import com.alextos.thousand.domain.service.ShakeDeviceObserver
 import com.alextos.thousand.domain.service.StorageService
@@ -81,6 +82,7 @@ expect val platformModule: Module
 
 fun appModule(
     shakeDeviceObserver: ShakeDeviceObserver,
+    gamePresenceObserver: GamePresenceObserver,
     nativeAccountService: NativeAccountService,
     multiplayerRepository: MultiplayerRepository,
 ) = module {
@@ -146,6 +148,7 @@ fun appModule(
     factory { DeleteUserUseCase(get()) }
     factory { UpdateUserUseCase(get(), get()) }
     single { shakeDeviceObserver }
+    single { gamePresenceObserver }
     factory { LocalGameServer(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     factory { TutorialGameServer(get(), get(), get(), get(), get(), get(), get(), get()) }
     factory { MakeBotDecisionUseCase() }

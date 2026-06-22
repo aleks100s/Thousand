@@ -3,6 +3,7 @@ package com.alextos.thousand
 import android.app.Application
 import com.alextos.thousand.data.repository.AndroidMultiplayerRepository
 import com.alextos.thousand.data.service.AndroidAccountService
+import com.alextos.thousand.data.service.AndroidGamePresenceObserver
 import com.alextos.thousand.data.service.AndroidShakeDeviceObserver
 import com.alextos.thousand.di.initKoin
 import org.koin.android.ext.koin.androidContext
@@ -15,9 +16,11 @@ class ThousandApplication : Application() {
         val shakeDeviceObserver = AndroidShakeDeviceObserver(this).apply {
             start()
         }
+        val gamePresenceObserver = AndroidGamePresenceObserver(this)
 
         initKoin(
             shakeDeviceObserver = shakeDeviceObserver,
+            gamePresenceObserver = gamePresenceObserver,
             nativeAccountService = AndroidAccountService(this),
             multiplayerRepository = AndroidMultiplayerRepository(),
         ) {

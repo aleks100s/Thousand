@@ -13,6 +13,8 @@ import com.alextos.thousand.domain.models.RollAbility
 import com.alextos.thousand.domain.models.UserReaction
 import com.alextos.thousand.domain.repository.MultiplayerRepository
 import com.alextos.thousand.domain.service.DiceHapticsService
+import com.alextos.thousand.domain.service.GamePresenceObserver
+import com.alextos.thousand.domain.service.GamePresenceObserverDelegate
 import com.alextos.thousand.domain.service.NativeAccountService
 import com.alextos.thousand.domain.service.ShakeDeviceObserver
 import com.alextos.thousand.domain.service.ShakeDeviceObserverDelegate
@@ -44,6 +46,7 @@ import kotlinx.coroutines.launch
 class MultiplayerGameViewModel(
     savedStateHandle: SavedStateHandle,
     shakeDeviceObserver: ShakeDeviceObserver,
+    private val gamePresenceObserver: GamePresenceObserver,
     private val accountService: NativeAccountService,
     private val multiplayerRepository: MultiplayerRepository,
     private val rollTheDice: RollTheDiceUseCase,
@@ -54,7 +57,7 @@ class MultiplayerGameViewModel(
     private val updateGame: UpdateGameUseCase,
     private val finishRemoteGame: FinishRemoteGameUseCase,
     private val hapticsService: DiceHapticsService
-) : ViewModel(), ShakeDeviceObserverDelegate {
+) : ViewModel(), ShakeDeviceObserverDelegate, GamePresenceObserverDelegate {
     private val gameId = savedStateHandle.toRoute<MultiplayerRoute.MultiplayerGame>().gameId
 
     private val _state = MutableStateFlow(MultiplayerGameState(gameCode = gameId))
@@ -67,10 +70,12 @@ class MultiplayerGameViewModel(
     private var remoteGame: RemoteGame? = null
     private var needToRequestUserInfo = true
     private var usersInfoJob: Job? = null
+    private var isUserAwayFromGame = false
     private val shownReactionIds = mutableSetOf<String>()
 
     init {
         shakeDeviceObserver.delegate = this
+        gamePresenceObserver.delegate = this
         viewModelScope.launch {
             multiplayerRepository
                 .observeGame(gameId)
@@ -94,16 +99,46 @@ class MultiplayerGameViewModel(
         }
     }
 
+    override fun userDidLeaveGame() {
+        if (isUserAwayFromGame) {
+            return
+        }
+
+        isUserAwayFromGame = true
+        handleUserLeftGame()
+    }
+
+    override fun userDidReturnToGame() {
+        if (isUserAwayFromGame.not()) {
+            return
+        }
+
+        isUserAwayFromGame = false
+        handleUserReturnedToGame()
+    }
+
+    override fun onCleared() {
+        if (gamePresenceObserver.delegate === this) {
+            gamePresenceObserver.delegate = null
+        }
+        super.onCleared()
+    }
+
     fun onAction(action: MultiplayerGameAction) {
         when (action) {
             MultiplayerGameAction.DeleteGame -> deleteGame()
             MultiplayerGameAction.Rematch -> rematch()
             MultiplayerGameAction.DismissGameResultSheet -> dismissGameResultSheet()
+            MultiplayerGameAction.LeaveGameScreen -> gamePresenceObserver.notifyUserLeftGame()
             is MultiplayerGameAction.SendGameAction -> reduceGameAction(action.action)
             is MultiplayerGameAction.SendReaction -> sendReaction(action.reaction)
             is MultiplayerGameAction.ToggleNotifications -> toggleNotifications(action.isEnabled)
         }
     }
+
+    private fun handleUserLeftGame() = Unit
+
+    private fun handleUserReturnedToGame() = Unit
 
     private fun showMessagesIfNeeded(messages: List<String>) {
         if (state.value.isNotificationEnabled.not()) {

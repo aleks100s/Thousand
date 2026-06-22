@@ -161,6 +161,7 @@ fun LobbyScreen(
             if (state.isHost) {
                 Button(
                     modifier = Modifier
+                        .padding(16.dp)
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth(),
                     enabled = state.isStartButtonEnabled,

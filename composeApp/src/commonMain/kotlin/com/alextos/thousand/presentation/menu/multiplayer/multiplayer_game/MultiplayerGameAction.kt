@@ -9,6 +9,8 @@ sealed interface MultiplayerGameAction {
         MultiplayerGameAction
     data object DismissGameResultSheet :
         MultiplayerGameAction
+    data object LeaveGameScreen :
+        MultiplayerGameAction
     data class SendGameAction(val action: GameAction) :
         MultiplayerGameAction
     data class SendReaction(val reaction: String) :
