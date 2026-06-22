@@ -63,6 +63,7 @@ internal fun Map<*, *>.toFirebaseGame(key: String?): RemoteGame {
 private fun UserReaction.toFirebaseMap(): Map<String, Any> =
     mapOf(
         "id" to id,
+        "authorId" to authorId,
         "author" to author,
         "reaction" to reaction,
     )
@@ -74,12 +75,14 @@ private fun Any?.toFirebaseUserReaction(): UserReaction? =
 
         if (id.isNullOrBlank()) {
             UserReaction(
+                authorId = reaction.string("authorId").orEmpty(),
                 author = reaction.string("author").orEmpty(),
                 reaction = reactionValue,
             )
         } else {
             UserReaction(
                 id = id,
+                authorId = reaction.string("authorId").orEmpty(),
                 author = reaction.string("author").orEmpty(),
                 reaction = reactionValue,
             )

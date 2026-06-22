@@ -194,6 +194,11 @@ class MultiplayerGameViewModel(
             buttons = if (isCurrentUser) game.buttons else emptyList(),
             isOnlineGame = true,
             onlinePlayerIds = game.onlinePlayerIds,
+            reactionsByAuthorId = game.reaction?.takeIf { reaction ->
+                reaction.authorId.isNotBlank()
+            }?.let { reaction ->
+                mapOf(reaction.authorId to reaction)
+            } ?: emptyMap(),
         )
     }
 
@@ -474,9 +479,10 @@ class MultiplayerGameViewModel(
         }
 
         val remoteGame = remoteGame ?: return
-        val author = accountService.userProfile.value?.name.orEmpty()
+        val userProfile = accountService.userProfile.value
         val userReaction = UserReaction(
-            author = author,
+            authorId = userProfile?.id.orEmpty(),
+            author = userProfile?.name.orEmpty(),
             reaction = reaction,
         )
 

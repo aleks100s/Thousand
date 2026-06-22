@@ -65,6 +65,7 @@ fun GameView(
                 showBolts = game.isFinished().not(),
                 isOnlineGame = state.isOnlineGame,
                 onlinePlayerIds = state.onlinePlayerIds,
+                reactionsByAuthorId = state.reactionsByAuthorId,
                 onPlayerClick = onPlayerClick,
             )
 

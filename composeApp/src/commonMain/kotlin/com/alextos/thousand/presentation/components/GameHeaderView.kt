@@ -37,9 +37,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Player
+import com.alextos.thousand.domain.models.UserReaction
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import thousand.composeapp.generated.resources.Res
@@ -55,6 +58,7 @@ fun GameHeaderView(
     showBolts: Boolean = false,
     isOnlineGame: Boolean = false,
     onlinePlayerIds: Set<String> = emptySet(),
+    reactionsByAuthorId: Map<String, UserReaction> = emptyMap(),
     onPlayerClick: ((Player) -> Unit)? = null,
 ) {
     val shouldScroll = game.players.size > 2
@@ -84,6 +88,7 @@ fun GameHeaderView(
                     showBolts = showBolts && game.settings.isTripleBoltFineActive,
                     isOnlineGame = isOnlineGame,
                     isOnline = player.user.id in onlinePlayerIds,
+                    reaction = reactionsByAuthorId[player.user.id],
                     onClick = onPlayerClick,
                 )
             }
@@ -107,6 +112,7 @@ fun GameHeaderView(
                     showBolts = showBolts && game.settings.isTripleBoltFineActive,
                     isOnlineGame = isOnlineGame,
                     isOnline = it.user.id in onlinePlayerIds,
+                    reaction = reactionsByAuthorId[it.user.id],
                     onClick = onPlayerClick,
                 )
             }
@@ -121,6 +127,7 @@ private fun PlayerView(
     showBolts: Boolean,
     isOnlineGame: Boolean,
     isOnline: Boolean,
+    reaction: UserReaction?,
     onClick: ((Player) -> Unit)?,
 ) {
     val scale by animateFloatAsState(
@@ -130,6 +137,7 @@ private fun PlayerView(
     var previousScore by remember(player.id) { mutableStateOf<Int?>(null) }
     var nextBubbleId by remember(player.id) { mutableStateOf(0L) }
     var scoreBubble by remember(player.id) { mutableStateOf<ScoreChangeBubble?>(null) }
+    var visibleReaction by remember(player.id) { mutableStateOf<UserReaction?>(null) }
 
     LaunchedEffect(player.currentScore) {
         val previous = previousScore
@@ -143,6 +151,16 @@ private fun PlayerView(
             }
         }
         previousScore = player.currentScore
+    }
+
+    LaunchedEffect(reaction?.id ?: visibleReaction?.id) {
+        val newReaction = reaction ?: return@LaunchedEffect
+        visibleReaction = newReaction
+        delay(REACTION_DISPLAY_DURATION_MS)
+
+        if (visibleReaction?.id == newReaction.id) {
+            visibleReaction = null
+        }
     }
 
     Box(
@@ -173,6 +191,7 @@ private fun PlayerView(
                     isActive = isActive,
                     showOnlineStatus = isOnlineGame && player.isBot().not(),
                     isOnline = isOnline,
+                    reaction = visibleReaction?.reaction,
                 )
 
                 Text(
@@ -222,21 +241,31 @@ private fun PlayerIcon(
     isActive: Boolean,
     showOnlineStatus: Boolean,
     isOnline: Boolean,
+    reaction: String?,
 ) {
     Box(modifier = Modifier.size(PLAYER_ICON_SIZE)) {
-        Icon(
-            modifier = Modifier.size(PLAYER_ICON_SIZE),
-            painter = painterResource(
-                if (player.isBot())
-                    Res.drawable.robot_24px
-                else if (player.isMain())
-                    Res.drawable.person_heart_24px
-                else
-                    Res.drawable.person_24px
-            ),
-            contentDescription = null,
-            tint = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
-        )
+        if (reaction == null) {
+            Icon(
+                modifier = Modifier.size(PLAYER_ICON_SIZE),
+                painter = painterResource(
+                    if (player.isBot())
+                        Res.drawable.robot_24px
+                    else if (player.isMain())
+                        Res.drawable.person_heart_24px
+                    else
+                        Res.drawable.person_24px
+                ),
+                contentDescription = null,
+                tint = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
+            )
+        } else {
+            Text(
+                modifier = Modifier.align(Alignment.Center),
+                text = reaction,
+                fontSize = 20.sp,
+                lineHeight = 20.sp,
+            )
+        }
 
         if (showOnlineStatus) {
             Box(
@@ -269,6 +298,7 @@ private fun PlayerIcon(
                 )
             }
         }
+
     }
 }
 
@@ -334,6 +364,7 @@ private val SCORE_CHANGE_FLOAT_DISTANCE = 56.dp
 private val PLAYER_ICON_SIZE = 24.dp
 private val ONLINE_STATUS_OUTER_SIZE = 11.dp
 private val ONLINE_STATUS_INNER_SIZE = 8.dp
+private const val REACTION_DISPLAY_DURATION_MS = 10_000L
 private const val SCORE_CHANGE_ANIMATION_DURATION_MS = 1800
 private const val SCORE_CHANGE_FADE_DELAY_MS = 300
 private val ONLINE_STATUS_COLOR = Color(0xFF2E7D32)
