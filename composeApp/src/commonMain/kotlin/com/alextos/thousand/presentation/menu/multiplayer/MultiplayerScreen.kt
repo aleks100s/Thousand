@@ -1,9 +1,7 @@
 package com.alextos.thousand.presentation.menu.multiplayer
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,9 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -27,6 +24,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,20 +36,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.TextButton
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.InfoCardView
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.domain.models.User
+import com.alextos.thousand.presentation.components.GameHistoryCard
 import com.alextos.thousand.presentation.components.GameStatusView
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
-import thousand.composeapp.generated.resources.diversity_3_24px
 import thousand.composeapp.generated.resources.language_24px
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MultiplayerScreen(
     goBack: () -> Unit,
@@ -267,62 +263,31 @@ private fun LobbyOrGameCard(
         ?: "Без имени"
 
     Box {
-        Card(
+        GameHistoryCard(
+            title = "Игра $code",
+            subtitle = "Хост: $hostName",
+            supportingText = "Игроков: ${players.count()}",
+            accentColor = if (isFinished == true) {
+                MaterialTheme.colorScheme.tertiary
+            } else {
+                MaterialTheme.colorScheme.secondary
+            },
             modifier = Modifier
-                .combinedClickable(
-                    onLongClick = {
-                        isMenuExpanded = true
-                    },
-                    onClick = onClick
-                )
                 .fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-            ),
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Игра $code",
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-
-                    isFinished?.let {
-                        GameStatusView(it, finishedAt = null)
-                    } ?: run {
-                        Text(
-                            text = "Подключиться",
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Хост: $hostName",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-
-                    Text(
-                        text = "Игроков: ${players.count()}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-        }
+            onClick = onClick,
+            onLongClick = {
+                isMenuExpanded = true
+            },
+            trailingContent = {
+                isFinished?.let {
+                    GameStatusView(it, finishedAt = null)
+                } ?: Text(
+                    text = "Подключиться",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            },
+        )
 
         DropdownMenu(
             expanded = isMenuExpanded,
