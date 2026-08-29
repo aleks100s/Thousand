@@ -39,7 +39,6 @@ import com.alextos.thousand.domain.usecase.game.server.GameState
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.GameButton
 import com.alextos.thousand.presentation.menu.play_game.components.ManualDiceInputView
-import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -70,8 +69,22 @@ fun GameView(
             )
 
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                var buttonsVisible by remember { mutableStateOf(true) }
+
+                LaunchedEffect(state.currentTurn.size, state.currentRoll != null, isAnimated) {
+                    buttonsVisible = state.currentRoll == null || !isAnimated
+                }
+
                 state.currentRoll?.let { roll ->
-                    CurrentRollView(roll, animate = isAnimated)
+                    CurrentRollView(
+                        roll = roll,
+                        animate = isAnimated,
+                        animationKey = state.currentTurn.size,
+                        onAllDiceStopped = {
+                            buttonsVisible = true
+                            onAction(GameAction.FinishRoll)
+                        },
+                    )
                 } ?: run {
                     Text("Вы в игре!")
                 }
@@ -83,21 +96,6 @@ fun GameView(
                             .align(Alignment.TopStart),
                         turn = state.currentTurn
                     )
-                }
-
-                var buttonsVisible by remember { mutableStateOf(true) }
-
-                LaunchedEffect(state.currentRoll) {
-                    val delay = (state.currentRoll?.dice?.count() ?: 0) * 250L
-                    if (delay > 0L && isAnimated) {
-                        buttonsVisible = false
-                        delay(delay)
-                        buttonsVisible = true
-                    } else {
-                        buttonsVisible = true
-                    }
-
-                    onAction(GameAction.FinishRoll)
                 }
 
                 if (buttonsVisible) {
@@ -120,7 +118,9 @@ fun GameView(
 @Composable
 private fun CurrentRollView(
     roll: DiceRoll,
-    animate: Boolean = true
+    animate: Boolean = true,
+    animationKey: Int,
+    onAllDiceStopped: () -> Unit,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -130,41 +130,45 @@ private fun CurrentRollView(
             .background(MaterialTheme.colorScheme.background.copy(alpha = 0.3f))
             .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
+        var isResultVisible by remember(animationKey) { mutableStateOf(!animate) }
+        val stoppedDiceIndices = remember(animationKey) { mutableSetOf<Int>() }
+        var allDiceStopped by remember(animationKey) { mutableStateOf(false) }
+
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             roll.dice.forEachIndexed { index, die ->
-                RollingDieView(die, delay = if (animate) (index + 1) * 250L else 0L)
+                SpriteDiceView(
+                    die = die,
+                    animate = animate,
+                    animationIndex = index,
+                    animationKey = animationKey,
+                    onAnimationFinished = {
+                        if (stoppedDiceIndices.add(index) && stoppedDiceIndices.size == roll.dice.size && !allDiceStopped) {
+                            allDiceStopped = true
+                            isResultVisible = true
+                            onAllDiceStopped()
+                        }
+                    },
+                )
             }
         }
 
-        var isResultVisible by remember(roll) { mutableStateOf<Boolean?>(null) }
-        LaunchedEffect(roll) {
-            if (animate) {
-                isResultVisible = false
-                delay(250L * roll.dice.count())
-            }
-            isResultVisible = true
-        }
+        AnimatedVisibility(isResultVisible) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                HorizontalDivider(Modifier.width(256.dp))
 
-        isResultVisible?.let {
-            AnimatedVisibility(it) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    HorizontalDivider(Modifier.width(256.dp))
-
-                    if (roll.rollDescription != null) {
-                        Text(
-                            text = roll.rollDescription,
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    } else {
-                        Text(roll.result.toString())
-                    }
+                if (roll.rollDescription != null) {
+                    Text(
+                        text = roll.rollDescription,
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                } else {
+                    Text(roll.result.toString())
                 }
             }
         }
     }
 }
-
 @Composable
 private fun TurnHistoryView(
     modifier: Modifier,
