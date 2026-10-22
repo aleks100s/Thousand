@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import com.alextos.thousand.domain.models.GameButton
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.Die
 import com.alextos.thousand.domain.models.Game
@@ -12,7 +13,6 @@ import com.alextos.thousand.domain.models.RemoteUserInfo
 import com.alextos.thousand.domain.models.RollAbility
 import com.alextos.thousand.domain.models.UserReaction
 import com.alextos.thousand.domain.repository.MultiplayerRepository
-import com.alextos.thousand.domain.service.DiceHapticsService
 import com.alextos.thousand.domain.service.GamePresenceObserver
 import com.alextos.thousand.domain.service.GamePresenceObserverDelegate
 import com.alextos.thousand.domain.service.NativeAccountService
@@ -56,7 +56,6 @@ class MultiplayerGameViewModel(
     private val formatTurnEffect: FormatTurnEffectUseCase,
     private val updateGame: UpdateGameUseCase,
     private val finishRemoteGame: FinishRemoteGameUseCase,
-    private val hapticsService: DiceHapticsService
 ) : ViewModel(), ShakeDeviceObserverDelegate, GamePresenceObserverDelegate {
     private val gameId = savedStateHandle.toRoute<MultiplayerRoute.MultiplayerGame>().gameId
 
@@ -164,6 +163,10 @@ class MultiplayerGameViewModel(
     }
 
     private fun handleGameUpdate(game: RemoteGame) {
+        val previous = remoteGame
+        if (previous?.currentTurn != game.currentTurn || previous.currentPlayer()?.user?.id != game.currentPlayer()?.user?.id) {
+            rollBlocked = game.currentRoll != null
+        }
         remoteGame = game
         val actualGame = remoteGame ?: game
         loadMissingUsersInfo(game)
@@ -342,13 +345,13 @@ class MultiplayerGameViewModel(
         viewModelScope.launch {
             if (state.value.gameState.rollAbility != RollAbility.UNAVAILABLE && rollBlocked.not()) {
                 val count = state.value.gameState.rollAbility.count
-                hapticsService.playDiceRollSequence(count)
                 applyDiceRoll(rollTheDice(count))
             }
         }
     }
 
     private fun applyDiceRoll(dice: List<Die>) {
+        if (rollBlocked || state.value.gameState.rollAbility == RollAbility.UNAVAILABLE) return
         val rawResult = calculateDiceRollScore(dice)
         val currentPlayer = remoteGame?.currentPlayer() ?: return
         val roll = DiceRoll(
@@ -373,7 +376,12 @@ class MultiplayerGameViewModel(
         ) ?: return
 
         viewModelScope.launch {
-            updateRemote(newGame)
+            try {
+                multiplayerRepository.updateGame(newGame)
+            } catch (e: Exception) {
+                rollBlocked = false
+                _events.emit(MultiplayerGameEvent.Error(e.message ?: "Ошибка при обновлении игры"))
+            }
         }
     }
 
@@ -382,6 +390,7 @@ class MultiplayerGameViewModel(
     }
 
     private suspend fun finishTurn() {
+        if (rollBlocked || GameButton.FINISH_TURN !in state.value.gameState.buttons) return
         val remoteGame = remoteGame ?: return
         val game = Game(settings = remoteGame.settings, players = remoteGame.players)
         val player = remoteGame.currentPlayer() ?: return

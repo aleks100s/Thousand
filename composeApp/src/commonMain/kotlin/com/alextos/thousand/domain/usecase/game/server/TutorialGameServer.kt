@@ -15,6 +15,7 @@ import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.GameButton
 import com.alextos.thousand.domain.models.RollAbility
 import com.alextos.thousand.domain.models.Turn
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,6 +41,8 @@ class TutorialGameServer(
     override val events: SharedFlow<GameEvent> = _events.asSharedFlow()
 
     private var rollBlocked = false
+    private var presentationFinished = CompletableDeferred<Unit>().apply { complete(Unit) }
+    private var botTurnRunning = false
 
     override suspend fun initGame(game: Game?) {
         tutorialRoll.reset()
@@ -77,8 +80,6 @@ class TutorialGameServer(
 
     private suspend fun rollTheDice() {
         if (state.value.rollAbility != RollAbility.UNAVAILABLE && rollBlocked.not()) {
-            val count = state.value.rollAbility.count
-            _events.emit(GameEvent.HapticFeedback(count))
             val tutorialRollResult = tutorialRoll()
             applyDiceRoll(
                 dice = tutorialRollResult.dice,
@@ -93,6 +94,7 @@ class TutorialGameServer(
         tutorialNextAction: TutorialNextAction? = null,
         tutorialAdvice: String? = null,
     ) {
+        if (rollBlocked) return
         val rawResult = calculateDiceRollScore(dice)
         val currentState = state.value
         val currentPlayer = currentState.currentPlayer ?: return
@@ -104,6 +106,7 @@ class TutorialGameServer(
         val currentTurn = state.value.currentTurn.toMutableList()
         currentTurn.add(roll)
         rollBlocked = true
+        presentationFinished = CompletableDeferred()
         _state.update {
             it.copy(
                 currentTurn = currentTurn,
@@ -118,9 +121,11 @@ class TutorialGameServer(
 
     private fun finishRoll() {
         rollBlocked = false
+        presentationFinished.complete(Unit)
     }
 
     private suspend fun finishTurn() {
+        if (rollBlocked) return
         val game = state.value.game
         val player = state.value.currentPlayer
         if (game == null || player == null) {
@@ -182,15 +187,25 @@ class TutorialGameServer(
     }
 
     private suspend fun makeBotTurn() {
-        while (true) {
-            when (state.value.tutorialNextAction) {
-                TutorialNextAction.Reroll -> rollTheDice()
-                TutorialNextAction.FinishTurn -> break
-                null -> rollTheDice()
+        if (botTurnRunning || state.value.currentPlayer?.isBot() != true) return
+        botTurnRunning = true
+        try {
+            while (true) {
+                presentationFinished.await()
+                when (state.value.tutorialNextAction) {
+                    TutorialNextAction.Reroll -> rollTheDice()
+                    TutorialNextAction.FinishTurn -> break
+                    null -> rollTheDice()
+                }
+                presentationFinished.await()
+                delay(3000L)
             }
-            delay(3000L)
+            delay(2000L)
+            presentationFinished.await()
+            botTurnRunning = false
+            finishTurn()
+        } finally {
+            botTurnRunning = false
         }
-        delay(2000L)
-        finishTurn()
     }
 }

@@ -1,0 +1,120 @@
+package com.alextos.thousand.presentation.components.dice
+
+import com.alextos.thousand.domain.models.DiceRoll
+import com.alextos.thousand.domain.models.Die
+import com.alextos.thousand.domain.models.DieValue
+import com.alextos.thousand.domain.models.Game
+import com.alextos.thousand.domain.models.Player
+import com.alextos.thousand.domain.models.User
+import com.alextos.thousand.domain.usecase.game.server.GameState
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
+import kotlin.test.assertTrue
+
+class DiceSceneCoordinatorTest {
+    private val roll = DiceRoll(dice = listOf(Die(value = DieValue.entries.first())), result = 100)
+    private fun game(history: List<DiceRoll> = emptyList(), player: String = "player") = GameState(
+        game = Game(id = 1, players = emptyList()), currentPlayer = Player(user = User(id = player, name = player)),
+        currentTurn = history, currentRoll = history.lastOrNull(),
+    )
+
+    @Test
+    fun initialSnapshotIsStaticAndOnlyNewRollAnimates() {
+        val coordinator = DiceSceneCoordinator {}
+        coordinator.acceptSnapshot(game(listOf(roll)), true)
+        assertFalse(coordinator.state.value.request!!.animate)
+        val first = coordinator.state.value.request!!.presentationId
+        coordinator.acceptSnapshot(game(listOf(roll, roll)), true)
+        assertTrue(coordinator.state.value.request!!.animate)
+        assertNotEquals(first, coordinator.state.value.request!!.presentationId)
+    }
+
+    @Test
+    fun repeatedSnapshotsAndReactionsDoNotRestartPresentation() {
+        val coordinator = DiceSceneCoordinator {}
+        coordinator.acceptSnapshot(game(), true)
+        coordinator.acceptSnapshot(game(listOf(roll)), true)
+        val request = coordinator.state.value.request
+        coordinator.acceptSnapshot(game(listOf(roll)).copy(onlinePlayerIds = setOf("other")), true)
+        assertEquals(request, coordinator.state.value.request)
+    }
+
+    @Test
+    fun staleAndRepeatedCallbacksCannotUnlockAnotherRoll() {
+        var completions = 0
+        val coordinator = DiceSceneCoordinator { completions++ }
+        coordinator.acceptSnapshot(game(), true)
+        coordinator.acceptSnapshot(game(listOf(roll)), true)
+        val oldId = coordinator.state.value.request!!.presentationId
+        coordinator.acceptSnapshot(game(listOf(roll, roll)), true)
+        coordinator.onEvent(DiceSceneEvent.RollFinished(oldId))
+        coordinator.onEvent(DiceSceneEvent.Error(oldId))
+        assertFalse(coordinator.state.value.actionsEnabled)
+        val id = coordinator.state.value.request!!.presentationId
+        coordinator.onEvent(DiceSceneEvent.RollFinished(id))
+        coordinator.onEvent(DiceSceneEvent.RollFinished(id))
+        assertEquals(1, completions)
+        assertTrue(coordinator.state.value.actionsEnabled)
+    }
+
+    @Test
+    fun timeoutFallsBackAndFutureRollsCompleteWithoutWebView() {
+        var completions = 0
+        val coordinator = DiceSceneCoordinator { completions++ }
+        coordinator.acceptSnapshot(game(), true)
+        coordinator.acceptSnapshot(game(listOf(roll)), true)
+        coordinator.fail()
+        coordinator.fail()
+        assertEquals(1, completions)
+        assertEquals(DiceScenePhase.Fallback, coordinator.state.value.phase)
+        coordinator.onEvent(DiceSceneEvent.Ready)
+        coordinator.acceptSnapshot(game(listOf(roll, roll)), true)
+        assertEquals(2, completions)
+        assertTrue(coordinator.state.value.showResult)
+        assertEquals(DiceScenePhase.Fallback, coordinator.state.value.phase)
+    }
+
+    @Test
+    fun backgroundCompletesOnceAndResumeDoesNotReplay() {
+        var completions = 0
+        val coordinator = DiceSceneCoordinator { completions++ }
+        coordinator.acceptSnapshot(game(), true)
+        coordinator.acceptSnapshot(game(listOf(roll)), true)
+        coordinator.setActive(false)
+        coordinator.setActive(true)
+        assertEquals(1, completions)
+        assertFalse(coordinator.state.value.request!!.animate)
+        assertTrue(coordinator.state.value.showResult)
+    }
+
+    @Test
+    fun noRollNeverSendsFinishAndPlayerChangeGetsNewId() {
+        var completions = 0
+        val coordinator = DiceSceneCoordinator { completions++ }
+        coordinator.acceptSnapshot(game(), true)
+        coordinator.onEvent(DiceSceneEvent.Ready)
+        coordinator.setActive(false)
+        assertEquals(0, completions)
+        coordinator.setActive(true)
+        coordinator.acceptSnapshot(game(listOf(roll)), false)
+        val first = coordinator.state.value.request!!.presentationId
+        coordinator.acceptSnapshot(game(listOf(roll), "other"), false)
+        assertNotEquals(first, coordinator.state.value.request!!.presentationId)
+        assertFalse(coordinator.state.value.request!!.animate)
+    }
+
+    @Test
+    fun bridgeRejectsMalformedMessagesAndSafelyQuotesCommands() {
+        assertEquals(null, decodeDiceSceneEvent("not json"))
+        assertEquals(null, decodeDiceSceneEvent("{\"type\":\"rollFinished\"}"))
+        assertEquals(DiceSceneEvent.Ready, decodeDiceSceneEvent("{\"type\":\"ready\"}"))
+        val configuration = DiceSceneConfiguration(
+            DiceSceneRequest("quote'\"\\\n", listOf(1), false), "#000000",
+            DiceSceneBounds(0f, 0f, 1f, 1f), true,
+        )
+        assertTrue(configuration.script().startsWith("window.DiceScene && window.DiceScene.receive(\""))
+        assertFalse(configuration.script().contains('\n'))
+    }
+}

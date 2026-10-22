@@ -9,7 +9,6 @@ import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.User
 import com.alextos.thousand.domain.models.UserKind
-import com.alextos.thousand.domain.service.DiceHapticsService
 import com.alextos.thousand.domain.usecase.user.GetAllUsersUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +23,6 @@ import kotlinx.coroutines.launch
 class TutorialGameViewModel(
     private val getAllUsersUseCase: GetAllUsersUseCase,
     private val gameServer: TutorialGameServer,
-    private val hapticsService: DiceHapticsService,
 ) : ViewModel() {
     private val _state = MutableStateFlow(TutorialGameState())
     val state: StateFlow<TutorialGameState> = _state.asStateFlow()
@@ -50,9 +48,6 @@ class TutorialGameViewModel(
                             }
                         }
 
-                        is GameEvent.HapticFeedback -> {
-                            hapticsService.playDiceRollSequence(event.count)
-                        }
 
                         else -> Unit
                     }

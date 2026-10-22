@@ -7,7 +7,6 @@ import androidx.navigation.toRoute
 import com.alextos.thousand.domain.usecase.game.server.LocalGameServer
 import com.alextos.thousand.domain.usecase.game.server.GameAction
 import com.alextos.thousand.domain.usecase.game.server.GameEvent
-import com.alextos.thousand.domain.service.DiceHapticsService
 import com.alextos.thousand.domain.service.ShakeDeviceObserver
 import com.alextos.thousand.domain.service.ShakeDeviceObserverDelegate
 import com.alextos.thousand.domain.usecase.game.LoadGameUseCase
@@ -25,7 +24,6 @@ class PlayGameViewModel(
     savedStateHandle: SavedStateHandle,
     private val loadGameUseCase: LoadGameUseCase,
     private val gameServer: LocalGameServer,
-    private val hapticsService: DiceHapticsService,
     shakeDeviceObserver: ShakeDeviceObserver
 ) : ViewModel(), ShakeDeviceObserverDelegate {
     private val route = savedStateHandle.toRoute<MenuRoute.PlayGame>()
@@ -65,9 +63,6 @@ class PlayGameViewModel(
                             _events.emit(PlayGameEvent.FinishGame(event.game))
                         }
 
-                        is GameEvent.HapticFeedback -> {
-                            hapticsService.playDiceRollSequence(event.count)
-                        }
                     }
                 }
         }

@@ -43,6 +43,7 @@ kotlin {
             implementation(libs.play.services.games.v2)
         }
         commonMain.dependencies {
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)

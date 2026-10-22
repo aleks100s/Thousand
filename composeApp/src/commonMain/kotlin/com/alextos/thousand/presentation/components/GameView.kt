@@ -1,7 +1,6 @@
 package com.alextos.thousand.presentation.components
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -29,7 +27,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.alextos.thousand.domain.models.Player
@@ -39,7 +36,21 @@ import com.alextos.thousand.domain.usecase.game.server.GameState
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.GameButton
 import com.alextos.thousand.presentation.menu.play_game.components.ManualDiceInputView
-import kotlinx.coroutines.delay
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntSize
+import com.alextos.thousand.presentation.components.dice.DiceSceneBounds
+import com.alextos.thousand.presentation.components.dice.DiceSceneConfiguration
+import com.alextos.thousand.presentation.components.dice.DiceSceneCoordinator
+import com.alextos.thousand.presentation.components.dice.DiceScenePhase
+import com.alextos.thousand.presentation.components.dice.DiceSceneSurface
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -58,7 +69,7 @@ fun GameView(
             LoadingIndicator()
         }
     } else {
-        Column(modifier = modifier.padding(bottom = 16.dp).fillMaxSize()) {
+        Column(modifier = modifier.fillMaxSize()) {
             GameHeaderView(
                 game = game,
                 currentPlayer = state.currentPlayer,
@@ -69,99 +80,95 @@ fun GameView(
                 onPlayerClick = onPlayerClick,
             )
 
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                state.currentRoll?.let { roll ->
-                    CurrentRollView(roll, animate = isAnimated)
-                } ?: run {
-                    Text("Вы в игре!")
-                }
-
-                if (state.currentTurn.count() > 1) {
-                    TurnHistoryView(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .align(Alignment.TopStart),
-                        turn = state.currentTurn
-                    )
-                }
-
-                var buttonsVisible by remember { mutableStateOf(true) }
-
-                LaunchedEffect(state.currentRoll) {
-                    val delay = (state.currentRoll?.dice?.count() ?: 0) * 250L
-                    if (delay > 0L && isAnimated) {
-                        buttonsVisible = false
-                        delay(delay)
-                        buttonsVisible = true
-                    } else {
-                        buttonsVisible = true
-                    }
-
-                    onAction(GameAction.FinishRoll)
-                }
-
-                if (buttonsVisible) {
-                    ButtonsView(
-                        Modifier.align(Alignment.BottomCenter),
-                        state,
-                        isManualInputEnabled,
-                        onAction = {
-                            buttonsVisible = false
-                            onAction(it)
-                        },
-                        onFinishGame = onFinishGame
-                    )
-                }
-            }
+            GameField(state, isAnimated, isManualInputEnabled, onAction, onFinishGame)
         }
     }
 }
 
 @Composable
-private fun CurrentRollView(
-    roll: DiceRoll,
-    animate: Boolean = true
+private fun GameField(
+    state: GameState,
+    isAnimated: Boolean,
+    isManualInputEnabled: Boolean,
+    onAction: (GameAction) -> Unit,
+    onFinishGame: () -> Unit,
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.background.copy(alpha = 0.3f))
-            .padding(horizontal = 12.dp, vertical = 8.dp)
-    ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            roll.dice.forEachIndexed { index, die ->
-                RollingDieView(die, delay = if (animate) (index + 1) * 250L else 0L)
-            }
-        }
-
-        var isResultVisible by remember(roll) { mutableStateOf<Boolean?>(null) }
-        LaunchedEffect(roll) {
-            if (animate) {
-                isResultVisible = false
-                delay(250L * roll.dice.count())
-            }
-            isResultVisible = true
-        }
-
-        isResultVisible?.let {
-            AnimatedVisibility(it) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    HorizontalDivider(Modifier.width(256.dp))
-
-                    if (roll.rollDescription != null) {
-                        Text(
-                            text = roll.rollDescription,
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    } else {
-                        Text(roll.result.toString())
+    val latestAction = rememberUpdatedState(onAction)
+    val coordinator = remember { DiceSceneCoordinator { latestAction.value(GameAction.FinishRoll) } }
+    val presentation by coordinator.state.collectAsState()
+    LaunchedEffect(state.game?.id, state.currentPlayer?.user?.id, state.currentTurn, state.currentRoll, isAnimated) {
+        coordinator.acceptSnapshot(state, isAnimated)
+    }
+    var fieldSize by remember { mutableStateOf(IntSize.Zero) }
+    var historyHeight by remember { mutableStateOf(0) }
+    var buttonsHeight by remember { mutableStateOf(0) }
+    var resultHeight by remember { mutableStateOf(0) }
+    val density = LocalDensity.current
+    val margin = with(density) { 16.dp.toPx() }
+    val height = fieldSize.height.coerceAtLeast(1).toFloat()
+    val width = fieldSize.width.coerceAtLeast(1).toFloat()
+    val top = ((if (state.currentTurn.size > 1) historyHeight else 0) + margin) / height
+    val bottom = (height - buttonsHeight - resultHeight - margin) / height
+    val bounds = DiceSceneBounds(
+        left = (margin / width).coerceIn(0f, .4f),
+        top = top.coerceIn(0f, .85f),
+        right = (1f - margin / width).coerceIn(.6f, 1f),
+        bottom = bottom.coerceIn((top + .05f).coerceAtMost(.9f), 1f),
+    )
+    val color = MaterialTheme.colorScheme.surfaceVariant.toArgb().toUInt().toString(16).padStart(8, '0').takeLast(6)
+    Box(Modifier.fillMaxSize().onSizeChanged { fieldSize = it }, contentAlignment = Alignment.Center) {
+        DiceSceneSurface(
+            coordinator, presentation,
+            DiceSceneConfiguration(presentation.request, "#$color", bounds, presentation.active),
+            Modifier.fillMaxSize().semantics {
+                if (presentation.showResult) {
+                    contentDescription = state.currentRoll?.dice?.joinToString(", ") { it.value.value.toString() }.orEmpty()
+                }
+            },
+        )
+        if (presentation.phase == DiceScenePhase.Fallback) {
+            state.currentRoll?.let { roll ->
+                Box(
+                    Modifier.fillMaxSize().padding(
+                        start = 16.dp, end = 16.dp,
+                        top = with(density) { (bounds.top * height).toDp() },
+                        bottom = with(density) { ((1f - bounds.bottom) * height).toDp() },
+                    ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        roll.dice.forEach { SingleDieView(Modifier.size(48.dp), it.value) }
                     }
                 }
             }
         }
+        if (state.currentRoll == null) Text("Вы в игре!")
+        if (state.currentTurn.size > 1) {
+            TurnHistoryView(
+                Modifier.align(Alignment.TopStart).onSizeChanged { historyHeight = it.height }.padding(16.dp),
+                state.currentTurn,
+            )
+        }
+        state.currentRoll?.let { roll ->
+            Column(
+                modifier = Modifier.align(Alignment.BottomCenter)
+                    .padding(bottom = with(density) { buttonsHeight.toDp() })
+                    .onSizeChanged { resultHeight = it.height }
+                    .alpha(if (presentation.showResult) 1f else 0f)
+                    .then(if (presentation.showResult) Modifier else Modifier.clearAndSetSemantics {})
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(roll.rollDescription ?: roll.result.toString(), textAlign = TextAlign.Center)
+            }
+        }
+        ButtonsView(
+            Modifier.align(Alignment.BottomCenter).onSizeChanged { buttonsHeight = it.height },
+            state, isManualInputEnabled,
+            onAction = onAction,
+            onFinishGame = onFinishGame,
+            actionsEnabled = presentation.actionsEnabled,
+        )
     }
 }
 
@@ -201,7 +208,8 @@ private fun ButtonsView(
     state: GameState,
     isManualInputEnabled: Boolean,
     onAction: (GameAction) -> Unit,
-    onFinishGame: () -> Unit
+    onFinishGame: () -> Unit,
+    actionsEnabled: Boolean,
 ) {
     var isManualInputShown by remember { mutableStateOf(false) }
     val shouldUseManualInput = isManualInputEnabled && state.isTutorial.not()
@@ -248,6 +256,7 @@ private fun ButtonsView(
                     GameButton.FINISH_GAME -> {
                         Button(
                             modifier = Modifier.weight(1f),
+                            enabled = actionsEnabled,
                             onClick = {
                                 onFinishGame()
                             },
@@ -262,7 +271,7 @@ private fun ButtonsView(
                     GameButton.FINISH_TURN -> {
                         Button(
                             modifier = Modifier.weight(1f),
-                            enabled = isFinishTurnEnabled,
+                            enabled = actionsEnabled && isFinishTurnEnabled,
                             onClick = {
                                 onAction(GameAction.FinishTurn)
                             },
@@ -277,7 +286,7 @@ private fun ButtonsView(
                     GameButton.ROLL_THE_DICE -> {
                         Button(
                             modifier = Modifier.weight(1f),
-                            enabled = isRollEnabled,
+                            enabled = actionsEnabled && isRollEnabled,
                             onClick = {
                                 if (shouldUseManualInput) {
                                     isManualInputShown = true
@@ -296,7 +305,7 @@ private fun ButtonsView(
                     GameButton.ROLL_AGAIN -> {
                         Button(
                             modifier = Modifier.weight(1f),
-                            enabled = isRollEnabled,
+                            enabled = actionsEnabled && isRollEnabled,
                             onClick = {
                                 if (shouldUseManualInput) {
                                     isManualInputShown = true
@@ -315,6 +324,7 @@ private fun ButtonsView(
                     GameButton.BOT_TURN -> {
                         Button(
                             modifier = Modifier.weight(1f),
+                            enabled = actionsEnabled,
                             onClick = {
                                 onAction(GameAction.BotTurn)
                             },

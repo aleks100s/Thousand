@@ -8,5 +8,4 @@ interface GameEvent {
     data class Reply(val reply: String): GameEvent
 
     data class FinishGame(val game: Game): GameEvent
-    data class HapticFeedback(val count: Int): GameEvent
 }
