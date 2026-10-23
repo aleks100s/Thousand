@@ -32,10 +32,10 @@ class AndroidDiceHapticsService(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var currentJob: Job? = null
 
-    override suspend fun playDiceRollSequence(count: Int) {
+    override suspend fun playDiceRollSequence() {
         cancel()
         val job = scope.launch(start = CoroutineStart.LAZY) {
-            val phases = DiceHapticPattern.phasesForDiceCount(count)
+            val phases = DiceHapticPattern.phases
             phases.forEachIndexed { index, phase ->
                 playPhase(
                     phase = phase,

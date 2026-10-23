@@ -1,7 +1,7 @@
 package com.alextos.thousand.domain.service
 
 interface DiceHapticsService {
-    suspend fun playDiceRollSequence(count: Int)
+    suspend fun playDiceRollSequence()
 
     fun cancel()
 }
@@ -21,10 +21,4 @@ object DiceHapticPattern {
         DiceHapticPhase(activeMs = 45, pauseMs = 80, pulses = 2, intensity = 0.78f),
         DiceHapticPhase(activeMs = 70, pauseMs = 180, pulses = 1, intensity = 1.00f),
     )
-
-    fun phasesForDiceCount(count: Int): List<DiceHapticPhase> {
-        val phaseCount = count.coerceIn(0, phases.size)
-        if (phaseCount == 0) return emptyList()
-        return phases.takeLast(phaseCount)
-    }
 }

@@ -65,7 +65,7 @@ fun DiceSceneSurface(
     LaunchedEffect(state.phase, state.request?.presentationId, state.active) {
         try {
             if (state.phase == DiceScenePhase.Animating && state.active && state.request?.animate == true) {
-                haptics.playDiceRollSequence(state.request.values.size)
+                haptics.playDiceRollSequence()
                 awaitCancellation()
             }
         } finally {
