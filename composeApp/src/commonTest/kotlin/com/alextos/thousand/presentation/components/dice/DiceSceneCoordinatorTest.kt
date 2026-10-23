@@ -15,6 +15,19 @@ import kotlin.test.assertTrue
 
 class DiceSceneCoordinatorTest {
     @Test
+    fun presentsTheKotlinRollScore() {
+        for ((value, label) in mapOf(0 to "0 очков", 5 to "5 очков", 15 to "15 очков", 100 to "100 очков")) {
+            assertEquals(label, DiceSceneRequest("score", listOf(1), false, score = value).scoreText)
+        }
+        val coordinator = DiceSceneCoordinator {}
+        coordinator.acceptSnapshot(game(listOf(roll.copy(result = 15))), false)
+        assertEquals("15 очков", coordinator.state.value.request?.scoreText)
+        assertTrue(DiceSceneConfiguration(
+            coordinator.state.value.request, "#000000", DiceSceneBounds(0f, 0f, 1f, 1f), true,
+        ).script().contains("15 очков"))
+    }
+
+    @Test
     fun highlightsOnesFivesAndGroupsOfAtLeastThree() {
         fun indices(vararg values: Int) = DiceSceneRequest("test", values.toList(), false).scoringIndices
         assertEquals(listOf(0, 2, 4), indices(1, 2, 5, 2, 1))

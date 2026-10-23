@@ -114,7 +114,7 @@ private fun GameField(
     val height = fieldSize.height.coerceAtLeast(1).toFloat()
     val width = fieldSize.width.coerceAtLeast(1).toFloat()
     val top = ((if (state.currentTurn.size > 1) historyHeight else 0) + margin) / height
-    val bottom = (height - buttonsHeight - resultHeight - margin) / height
+    val bottom = (height - buttonsHeight - (if (presentation.phase == DiceScenePhase.Fallback) resultHeight else 0) - margin) / height
     val bounds = DiceSceneBounds(
         left = (margin / width).coerceIn(0f, .4f),
         top = top.coerceIn(0f, .85f),
@@ -128,7 +128,11 @@ private fun GameField(
             DiceSceneConfiguration(presentation.request, "#$color", bounds, presentation.active),
             Modifier.fillMaxSize().semantics {
                 if (presentation.showResult) {
-                    contentDescription = state.currentRoll?.dice?.joinToString(", ") { it.value.value.toString() }.orEmpty()
+                    contentDescription = listOfNotNull(
+                        state.currentRoll?.dice?.joinToString(", ") { it.value.value.toString() },
+                        presentation.request?.scoreText,
+                        "продолжить или сохранить?",
+                    ).joinToString(". ")
                 }
             },
         )
@@ -175,7 +179,7 @@ private fun GameField(
                 state.currentTurn,
             )
         }
-        state.currentRoll?.let { roll ->
+        if (presentation.phase == DiceScenePhase.Fallback && state.currentRoll != null) {
             Column(
                 modifier = Modifier.align(Alignment.BottomCenter)
                     .padding(bottom = with(density) { buttonsHeight.toDp() })
@@ -185,7 +189,8 @@ private fun GameField(
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text(roll.rollDescription ?: roll.result.toString(), textAlign = TextAlign.Center)
+                Text(presentation.request?.scoreText.orEmpty(), style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center)
+                Text("продолжить или сохранить?", style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center)
             }
         }
         ButtonsView(

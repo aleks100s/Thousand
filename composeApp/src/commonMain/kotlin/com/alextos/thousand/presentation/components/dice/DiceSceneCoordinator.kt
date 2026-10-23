@@ -10,7 +10,11 @@ data class DiceSceneRequest(
     val presentationId: String,
     val values: List<Int>,
     val animate: Boolean,
+    val score: Int = 0,
 ) {
+    val scoreText: String
+        get() = "$score очков"
+
     val scoringIndices: List<Int>
         get() {
             val counts = values.groupingBy { it }.eachCount()
@@ -62,7 +66,7 @@ class DiceSceneCoordinator(private val onFinished: () -> Unit) {
         snapshot = next
         val roll = game.currentRoll
         val request = roll?.let {
-            DiceSceneRequest("$session-${++sequence}", it.dice.map { die -> die.value.value }, animate && !initial && _state.value.active)
+            DiceSceneRequest("$session-${++sequence}", it.dice.map { die -> die.value.value }, animate && !initial && _state.value.active, score = it.result)
         }
         _state.value = _state.value.copy(
             request = request,

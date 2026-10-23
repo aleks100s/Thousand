@@ -3,7 +3,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { faceNormals, orientationFor } from './orientation';
 import { createFeltMaterial, drawWoodenFrame } from './table';
 
-type Request = { presentationId: string; values: number[]; animate: boolean; scoringIndices?: number[] };
+type Request = { presentationId: string; values: number[]; animate: boolean; scoringIndices?: number[]; scoreText?: string };
 type Bounds = { left: number; top: number; right: number; bottom: number };
 type Configuration = { request: Request | null; bounds: Bounds; background: string; active: boolean };
 type NativeWindow = Window & {
@@ -30,6 +30,8 @@ let complete = true;
 let failed = false;
 const canvas = document.querySelector('canvas')!;
 const woodenFrame = document.querySelector<HTMLCanvasElement>('#wooden-frame')!;
+const result = document.querySelector<HTMLElement>('#roll-result')!;
+const score = document.querySelector<HTMLElement>('#roll-score')!;
 
 try {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
@@ -84,7 +86,12 @@ try {
     return ray.ray.intersectPlane(plane, new THREE.Vector3()) ?? new THREE.Vector3();
   }
   function layout() {
-    const { left, top, right, bottom } = config.bounds;
+    const { left, right } = config.bounds;
+    // Native overlays may leave almost no top inset. Keep the dice below the
+    // curved head of the table, where its full width is available.
+    const top = Math.max(config.bounds.top, Math.min(.23, config.bounds.bottom - .20));
+    const resultSpace = Math.min(88 / Math.max(canvas.clientHeight, 1), (config.bounds.bottom - top) * .3);
+    const bottom = config.bounds.bottom - resultSpace;
     const width = Math.max(.01, right - left), height = Math.max(.01, bottom - top);
     const columns = Math.min(dice.length, 3);
     const rows = Math.ceil(dice.length / Math.max(columns, 1));
@@ -96,7 +103,7 @@ try {
       const row = Math.floor(i / columns);
       const inRow = Math.min(columns, dice.length - row * columns);
       const x = cx + ((i % columns) - (inRow - 1) / 2) * width / columns * .82;
-      const y = cy + (row - (rows - 1) / 2) * height / Math.max(rows, 1) * .7;
+      const y = cy + (row - (rows - 1) / 2) * height / Math.max(rows, 1) * .9;
       const point = worldPoint(x, y);
       point.y = scale * .51;
       return point;
@@ -158,12 +165,31 @@ try {
     });
   }
   function render() { renderer.render(scene, camera); }
+  function positionResult() {
+    if (!config.request || !dice.length) { result.hidden = true; return; }
+    score.textContent = config.request.scoreText ?? '0 очков';
+    const height = canvas.clientHeight;
+    const box = new THREE.Box3();
+    let lowest = 0;
+    dice.forEach(die => {
+      die.updateWorldMatrix(true, true);
+      box.setFromObject(die);
+      for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) {
+        const projected = new THREE.Vector3(x, y, z).project(camera);
+        lowest = Math.max(lowest, (1 - projected.y) / 2 * height);
+      }
+    });
+    result.style.top = `${Math.max(config.bounds.top * height, Math.min(lowest + 16, config.bounds.bottom * height - 68))}px`;
+    result.style.left = `${(config.bounds.left + config.bounds.right) / 2 * 100}%`;
+    result.hidden = false;
+  }
   function stopFrame() { cancelAnimationFrame(frame); frame = 0; }
   function finish() {
     stopFrame();
     pose(1);
     halos.forEach(halo => { halo.visible = true; });
     render();
+    positionResult();
     if (!complete && currentId) {
       complete = true;
       send('rollFinished', currentId);
@@ -185,7 +211,7 @@ try {
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     layout();
-    if (complete) pose(1);
+    if (complete) { pose(1); positionResult(); }
     render();
   }
   native.DiceScene = { receive(message) {
@@ -198,6 +224,7 @@ try {
       scene.background = new THREE.Color(config.background);
       if (isNew) {
         stopFrame();
+        result.hidden = true;
         currentId = next.request?.presentationId;
         complete = false;
         startedAt = null;
@@ -209,7 +236,7 @@ try {
       } else {
         layout();
         if (!config.active || !next.request?.animate) finish();
-        else if (complete) { pose(1); render(); }
+        else if (complete) { pose(1); render(); positionResult(); }
       }
     } catch (error) { console.error('Dice scene update failed', error); failed = true; stopFrame(); send('error', currentId); }
   } };
@@ -223,7 +250,7 @@ try {
   send('ready');
   // The browser-only harness exercises the same bridge as the native app.
   if (!native.DiceNative && !native.webkit?.messageHandlers?.diceScene) {
-    native.DiceScene.receive(JSON.stringify({ ...config, request: { presentationId: 'preview', values: [1, 2, 3, 4, 5], scoringIndices: [0, 4], animate: false } }));
+    native.DiceScene.receive(JSON.stringify({ ...config, request: { presentationId: 'preview', values: [1, 2, 3, 4, 5], scoringIndices: [0, 4], scoreText: '15 очков', animate: false } }));
   }
 } catch (error) {
   console.error('Dice scene initialization failed', error);

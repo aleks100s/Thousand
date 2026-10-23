@@ -9,9 +9,13 @@ browser-only preview; the native app uses exactly the same scene/JSON bridge.
 
 `window.DiceScene.receive(JSON.stringify(configuration))` accepts an active flag,
 CSS background color, normalized bounds and an optional request (presentationId,
-values, animate, scoringIndices). Kotlin supplies zero-based scoringIndices: all
+values, animate, scoringIndices, scoreText). Kotlin supplies the formatted roll
+score (for example, "15 очков") and zero-based scoringIndices: all
 ones, fives and groups of at least three equal values. A soft turquoise silhouette
 appears around these dice only after settling, and disappears on the next roll.
+The score and the smaller "продолжить или сохранить?" prompt appear below the dice
+after settling. Their space is reserved inside the supplied bounds; resizing
+repositions them without replaying the roll. Text is assigned with textContent.
 Events ready/rollStarted/rollFinished/error go to DiceNative on
 Android and webkit.messageHandlers.diceScene on iOS. In a browser they are exposed
 as `diceSceneEvent` CustomEvents. New IDs replace previous animations; resizing

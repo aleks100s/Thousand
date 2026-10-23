@@ -36,6 +36,7 @@ data class DiceSceneConfiguration(
                 buildJsonObject {
                     put("presentationId", request.presentationId)
                     put("animate", request.animate)
+                    put("scoreText", request.scoreText)
                     put("values", buildJsonArray { request.values.forEach { add(it) } })
                     put("scoringIndices", buildJsonArray { request.scoringIndices.forEach { add(it) } })
                 }
