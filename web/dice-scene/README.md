@@ -17,6 +17,8 @@ Android and webkit.messageHandlers.diceScene on iOS. In a browser they are expos
 as `diceSceneEvent` CustomEvents. New IDs replace previous animations; resizing
 and repeated configurations never replay a roll. Opposite die faces sum to seven.
 
-The artifact is self-contained; no CDN, network access, textures or local file URLs.
+The artifact is self-contained; no CDN, network access, external textures or local file URLs.
+The dark lime felt uses generated color and bump tiles; the wooden perimeter uses
+a separate canvas with grain, bevels and mitered corners, redrawn only on resize.
 Rendering stops when a roll settles. WebGL context loss is reported to the native
 fallback rather than silently recreating a scene with stale state.

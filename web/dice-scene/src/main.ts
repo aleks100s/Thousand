@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { faceNormals, orientationFor } from './orientation';
+import { createFeltMaterial, drawWoodenFrame } from './table';
 
 type Request = { presentationId: string; values: number[]; animate: boolean; scoringIndices?: number[] };
 type Bounds = { left: number; top: number; right: number; bottom: number };
@@ -28,6 +29,7 @@ let startedAt: number | null = null;
 let complete = true;
 let failed = false;
 const canvas = document.querySelector('canvas')!;
+const woodenFrame = document.querySelector<HTMLCanvasElement>('#wooden-frame')!;
 
 try {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
@@ -51,7 +53,7 @@ try {
   light.shadow.bias = -.0002;
   light.shadow.radius = 4;
   scene.add(light);
-  const tableMaterial = new THREE.MeshStandardMaterial({ color: config.background, roughness: 1 });
+  const tableMaterial = createFeltMaterial(renderer);
   const table = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), tableMaterial);
   table.rotation.x = -Math.PI / 2;
   table.receiveShadow = true;
@@ -179,6 +181,7 @@ try {
   function resize() {
     const width = Math.max(canvas.clientWidth, 1), height = Math.max(canvas.clientHeight, 1);
     renderer.setSize(width, height, false);
+    drawWoodenFrame(woodenFrame, width, height, renderer.getPixelRatio());
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     layout();
@@ -192,7 +195,6 @@ try {
       if (next.request && (!next.request.values.length || next.request.values.length > 5 || next.request.values.some(v => !Number.isInteger(v) || v < 1 || v > 6))) throw new Error('Invalid dice');
       const isNew = next.request?.presentationId !== currentId;
       config = next;
-      tableMaterial.color.set(config.background);
       scene.background = new THREE.Color(config.background);
       if (isNew) {
         stopFrame();
