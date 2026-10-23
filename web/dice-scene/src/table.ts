@@ -40,53 +40,72 @@ export function createFeltMaterial(renderer: THREE.WebGLRenderer) {
   return new THREE.MeshStandardMaterial({ map, bumpMap, bumpScale: .018, roughness: .98, metalness: 0 });
 }
 
-/** Screen-edge rails keep their thickness and mitered corners on every viewport. */
+/** Rounded rails and their shadows are rasterized only when the viewport changes. */
 export function drawWoodenFrame(canvas: HTMLCanvasElement, width: number, height: number, pixelRatio: number) {
   canvas.width = Math.round(width * pixelRatio);
   canvas.height = Math.round(height * pixelRatio);
   const context = canvas.getContext('2d')!;
   context.scale(pixelRatio, pixelRatio);
-  const rail = Math.min(18, Math.max(10, Math.min(width, height) * .032));
-  // A recessed inner edge casts a soft shadow onto the cloth.
-  context.strokeStyle = '#100b06';
-  context.lineWidth = rail;
-  context.shadowColor = 'rgba(0,0,0,.65)';
-  context.shadowBlur = 12;
-  context.strokeRect(rail / 2, rail / 2, width - rail, height - rail);
-  context.shadowBlur = 0;
-  function drawRail(length: number) {
-    context.save();
-    context.beginPath();
-    context.moveTo(0, 0);
-    context.lineTo(length, 0);
-    context.lineTo(length - rail, rail);
-    context.lineTo(rail, rail);
-    context.closePath();
-    context.clip();
-    const bevel = context.createLinearGradient(0, 0, 0, rail);
-    for (const [offset, color] of [[0, '#342010'], [.12, '#977044'], [.25, '#79512d'], [.74, '#624022'], [.88, '#a07947'], [1, '#35200f']] as const) {
-      bevel.addColorStop(offset, color);
-    }
-    context.fillStyle = bevel;
-    context.fillRect(0, 0, length, rail);
-    const random = randomSequence(908);
-    for (let strand = 0; strand < 65; strand++) {
-      const y = random() * rail;
-      const phase = random() * Math.PI * 2;
-      context.strokeStyle = strand % 3 ? 'rgba(35,17,6,.18)' : 'rgba(224,182,113,.14)';
-      context.lineWidth = .3 + random() * .7;
-      context.beginPath();
-      for (let x = 0; x <= length + 8; x += 8) {
-        const dy = Math.sin(x * .017 + phase) * .6 + Math.sin(x * .043 + phase) * .2;
-        if (x === 0) context.moveTo(x, y + dy);
-        else context.lineTo(x, y + dy);
-      }
-      context.stroke();
-    }
-    context.restore();
+  const margin = Math.min(24, Math.max(12, Math.min(width, height) * .04));
+  const rail = Math.min(18, Math.max(11, Math.min(width, height) * .035));
+  const radius = Math.min(width - margin * 2, height - margin * 2) / 2;
+  const contour = (inset: number) => {
+    const path = new Path2D();
+    path.roundRect(margin + inset, margin + inset, width - 2 * (margin + inset), height - 2 * (margin + inset), Math.max(1, radius - inset));
+    return path;
+  };
+  const outer = contour(0), inner = contour(rail);
+  context.fillStyle = '#18201b';
+  context.fillRect(0, 0, width, height);
+  // The table's drop shadow falls to the right, away from the light on the left.
+  context.shadowColor = 'rgba(0,0,0,.85)';
+  context.shadowBlur = 18;
+  context.shadowOffsetX = 9;
+  context.shadowOffsetY = 5;
+  context.fillStyle = '#52361e';
+  context.fill(outer);
+  context.shadowBlur = context.shadowOffsetX = context.shadowOffsetY = 0;
+  context.save();
+  context.clip(outer);
+  const wood = context.createLinearGradient(0, 0, width, height * .15);
+  wood.addColorStop(0, '#a67c48');
+  wood.addColorStop(.32, '#80552f');
+  wood.addColorStop(.7, '#654123');
+  wood.addColorStop(1, '#432b19');
+  context.fillStyle = wood;
+  context.fillRect(0, 0, width, height);
+  const random = randomSequence(908);
+  for (let strand = 0; strand < 90; strand++) {
+    const inset = random() * rail;
+    context.strokeStyle = strand % 3 ? 'rgba(38,18,6,.16)' : 'rgba(236,192,125,.18)';
+    context.lineWidth = .25 + random() * .6;
+    context.stroke(contour(inset));
   }
-  drawRail(width);
-  context.save(); context.translate(width, 0); context.rotate(Math.PI / 2); drawRail(height); context.restore();
-  context.save(); context.translate(width, height); context.rotate(Math.PI); drawRail(width); context.restore();
-  context.save(); context.translate(0, height); context.rotate(-Math.PI / 2); drawRail(height); context.restore();
+  context.restore();
+  // Punch out the playing surface, retaining the WebGL cloth and dice below.
+  context.save();
+  context.globalCompositeOperation = 'destination-out';
+  context.fill(inner);
+  context.restore();
+  const edgeLight = context.createLinearGradient(0, 0, width, 0);
+  edgeLight.addColorStop(0, 'rgba(255,220,158,.7)');
+  edgeLight.addColorStop(.55, 'rgba(182,132,75,.25)');
+  edgeLight.addColorStop(1, 'rgba(15,9,4,.8)');
+  context.strokeStyle = edgeLight;
+  context.lineWidth = 1.5;
+  context.stroke(contour(1));
+  context.strokeStyle = 'rgba(24,13,5,.65)';
+  context.lineWidth = 2;
+  context.stroke(contour(rail - 1));
+  // The raised left rail casts a soft, directional shadow across the felt.
+  context.save();
+  context.clip(inner);
+  context.shadowColor = 'rgba(0,0,0,.7)';
+  context.shadowBlur = 9;
+  context.shadowOffsetX = 7;
+  context.shadowOffsetY = 3;
+  context.strokeStyle = 'rgba(20,12,5,.55)';
+  context.lineWidth = 4;
+  context.stroke(inner);
+  context.restore();
 }

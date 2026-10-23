@@ -45,7 +45,7 @@ try {
   camera.lookAt(0, 0, 0);
   scene.add(new THREE.HemisphereLight(0xffffff, 0x667069, 1.8));
   const light = new THREE.DirectionalLight(0xffffff, 2.0);
-  light.position.set(-3, 9, 4);
+  light.position.set(-5, 9, 3);
   light.castShadow = true;
   light.shadow.mapSize.set(1024, 1024);
   Object.assign(light.shadow.camera, { left: -9, right: 9, top: 9, bottom: -9, near: .1, far: 25 });
@@ -62,7 +62,7 @@ try {
   const ivory = new THREE.MeshStandardMaterial({ color: '#fffdf4', roughness: .28, metalness: .02 });
   // Nested back-face shells create a soft silhouette without a bloom pass or an idle render loop.
   const haloMaterials = [.30, .16, .085, .045, .02].map(opacity => new THREE.MeshBasicMaterial({
-    color: '#b5ef83', transparent: true, opacity, side: THREE.BackSide, depthWrite: false, toneMapped: false,
+    color: '#55e5dc', transparent: true, opacity, side: THREE.BackSide, depthWrite: false, toneMapped: false,
   }));
   const ink = new THREE.MeshStandardMaterial({ color: '#202625', roughness: .6 });
   const pipGeometry = new THREE.CircleGeometry(.075, 20);
@@ -117,7 +117,7 @@ try {
       if (request?.scoringIndices?.includes(index)) {
         haloMaterials.forEach((material, layer) => {
           const shell = new THREE.Mesh(geometry, material);
-          shell.scale.setScalar(1.025 + layer * .025);
+          shell.scale.setScalar(1.04 + layer * .03);
           shell.renderOrder = 1;
           halo.add(shell);
         });

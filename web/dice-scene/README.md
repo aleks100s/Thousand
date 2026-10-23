@@ -10,7 +10,7 @@ browser-only preview; the native app uses exactly the same scene/JSON bridge.
 `window.DiceScene.receive(JSON.stringify(configuration))` accepts an active flag,
 CSS background color, normalized bounds and an optional request (presentationId,
 values, animate, scoringIndices). Kotlin supplies zero-based scoringIndices: all
-ones, fives and groups of at least three equal values. A soft lime silhouette
+ones, fives and groups of at least three equal values. A soft turquoise silhouette
 appears around these dice only after settling, and disappears on the next roll.
 Events ready/rollStarted/rollFinished/error go to DiceNative on
 Android and webkit.messageHandlers.diceScene on iOS. In a browser they are exposed
@@ -19,6 +19,8 @@ and repeated configurations never replay a roll. Opposite die faces sum to seven
 
 The artifact is self-contained; no CDN, network access, external textures or local file URLs.
 The dark lime felt uses generated color and bump tiles; the wooden perimeter uses
-a separate canvas with grain, bevels and mitered corners, redrawn only on resize.
+a separate canvas with grain and rounded, oval rails, redrawn only on resize.
+The table casts an outer shadow; the raised rim casts a shadow onto the felt,
+with highlights and dice shadows matching a light source on the left.
 Rendering stops when a roll settles. WebGL context loss is reported to the native
 fallback rather than silently recreating a scene with stale state.

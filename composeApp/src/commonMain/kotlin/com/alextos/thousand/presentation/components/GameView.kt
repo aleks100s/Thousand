@@ -148,11 +148,11 @@ private fun GameField(
                             SingleDieView(
                                 Modifier.size(48.dp).drawBehind {
                                     if (highlighted) {
-                                        val green = Color(0xFFB5EF83)
-                                        listOf(6.dp to .08f, 3.dp to .18f, 1.dp to .65f).forEach { (spread, alpha) ->
+                                        val turquoise = Color(0xFF55E5DC)
+                                        listOf(8.dp to .08f, 4.dp to .18f, 1.5.dp to .65f).forEach { (spread, alpha) ->
                                             val inset = spread.toPx()
                                             drawRoundRect(
-                                                color = green.copy(alpha = alpha),
+                                                color = turquoise.copy(alpha = alpha),
                                                 topLeft = Offset(-inset / 2, -inset / 2),
                                                 size = Size(size.width + inset, size.height + inset),
                                                 cornerRadius = CornerRadius(5.dp.toPx() + inset / 2),
