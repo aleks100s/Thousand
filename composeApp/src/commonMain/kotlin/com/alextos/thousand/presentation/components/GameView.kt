@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
@@ -122,16 +120,20 @@ private fun GameField(
         bottom = bottom.coerceIn((top + .05f).coerceAtMost(.9f), 1f),
     )
     val color = MaterialTheme.colorScheme.surfaceVariant.toArgb().toUInt().toString(16).padStart(8, '0').takeLast(6)
+    val sceneConfiguration = DiceSceneConfiguration(
+        presentation.request, "#$color", bounds, presentation.active,
+        isOpponentTurn = if (state.isOnlineGame) state.isOpponentTurn else state.currentPlayer?.isMain() == false,
+    )
     Box(Modifier.fillMaxSize().onSizeChanged { fieldSize = it }, contentAlignment = Alignment.Center) {
         DiceSceneSurface(
             coordinator, presentation,
-            DiceSceneConfiguration(presentation.request, "#$color", bounds, presentation.active),
+            sceneConfiguration,
             Modifier.fillMaxSize().semantics {
                 if (presentation.showResult) {
                     contentDescription = listOfNotNull(
                         state.currentRoll?.dice?.joinToString(", ") { it.value.value.toString() },
                         presentation.request?.scoreText,
-                        "продолжить или сохранить?",
+                        sceneConfiguration.promptText,
                     ).joinToString(". ")
                 }
             },
@@ -190,7 +192,7 @@ private fun GameField(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(presentation.request?.scoreText.orEmpty(), style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center)
-                Text("продолжить или сохранить?", style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center)
+                Text(sceneConfiguration.promptText, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center)
             }
         }
         ButtonsView(
@@ -285,37 +287,32 @@ private fun ButtonsView(
             state.buttons.forEach { button ->
                 when (button) {
                     GameButton.FINISH_GAME -> {
-                        Button(
+                        AppButton(
+                            style = AppButtonStyle.Secondary,
                             modifier = Modifier.weight(1f),
                             enabled = actionsEnabled,
                             onClick = {
                                 onFinishGame()
                             },
-                            colors = ButtonDefaults.elevatedButtonColors(
-                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                            )
                         ) {
                             Text("Закончить игру")
                         }
                     }
                     GameButton.FINISH_TURN -> {
-                        Button(
+                        AppButton(
+                            style = AppButtonStyle.Secondary,
                             modifier = Modifier.weight(1f),
                             enabled = actionsEnabled && isFinishTurnEnabled,
                             onClick = {
                                 onAction(GameAction.FinishTurn)
                             },
-                            colors = ButtonDefaults.elevatedButtonColors(
-                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer
-                            )
                         ) {
                             Text("Закончить ход")
                         }
                     }
                     GameButton.ROLL_THE_DICE -> {
-                        Button(
+                        AppButton(
+                            style = AppButtonStyle.Primary,
                             modifier = Modifier.weight(1f),
                             enabled = actionsEnabled && isRollEnabled,
                             onClick = {
@@ -325,16 +322,13 @@ private fun ButtonsView(
                                     onAction(GameAction.RollDice)
                                 }
                             },
-                            colors = ButtonDefaults.elevatedButtonColors(
-                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                containerColor = MaterialTheme.colorScheme.primaryContainer
-                            )
                         ) {
                             Text("Бросить кубики")
                         }
                     }
                     GameButton.ROLL_AGAIN -> {
-                        Button(
+                        AppButton(
+                            style = AppButtonStyle.Primary,
                             modifier = Modifier.weight(1f),
                             enabled = actionsEnabled && isRollEnabled,
                             onClick = {
@@ -344,25 +338,18 @@ private fun ButtonsView(
                                     onAction(GameAction.RollDice)
                                 }
                             },
-                            colors = ButtonDefaults.elevatedButtonColors(
-                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                containerColor = MaterialTheme.colorScheme.primaryContainer
-                            )
                         ) {
                             Text("Перебросить (${state.rollAbility.count})")
                         }
                     }
                     GameButton.BOT_TURN -> {
-                        Button(
+                        AppButton(
+                            style = AppButtonStyle.Secondary,
                             modifier = Modifier.weight(1f),
                             enabled = actionsEnabled,
                             onClick = {
                                 onAction(GameAction.BotTurn)
                             },
-                            colors = ButtonDefaults.elevatedButtonColors(
-                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                            )
                         ) {
                             Text("Ход оппонента")
                         }

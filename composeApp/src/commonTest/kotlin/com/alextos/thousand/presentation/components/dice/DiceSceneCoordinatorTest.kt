@@ -15,6 +15,15 @@ import kotlin.test.assertTrue
 
 class DiceSceneCoordinatorTest {
     @Test
+    fun opponentPromptIsPassedToTheScene() {
+        val configuration = DiceSceneConfiguration(null, "#000000", DiceSceneBounds(0f, 0f, 1f, 1f), true)
+        assertEquals("продолжить или сохранить?", configuration.promptText)
+        val opponent = configuration.copy(isOpponentTurn = true)
+        assertEquals("ход противника", opponent.promptText)
+        assertTrue(opponent.script().contains("ход противника"))
+    }
+
+    @Test
     fun presentsTheKotlinRollScore() {
         for ((value, label) in mapOf(0 to "0 очков", 5 to "5 очков", 15 to "15 очков", 100 to "100 очков")) {
             assertEquals(label, DiceSceneRequest("score", listOf(1), false, score = value).scoreText)

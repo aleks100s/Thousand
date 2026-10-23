@@ -5,7 +5,7 @@ import { createFeltMaterial, drawWoodenFrame } from './table';
 
 type Request = { presentationId: string; values: number[]; animate: boolean; scoringIndices?: number[]; scoreText?: string };
 type Bounds = { left: number; top: number; right: number; bottom: number };
-type Configuration = { request: Request | null; bounds: Bounds; background: string; active: boolean };
+type Configuration = { request: Request | null; bounds: Bounds; background: string; active: boolean; promptText?: string };
 type NativeWindow = Window & {
   DiceNative?: { postMessage(message: string): void };
   webkit?: { messageHandlers?: { diceScene?: { postMessage(message: string): void } } };
@@ -32,6 +32,7 @@ const canvas = document.querySelector('canvas')!;
 const woodenFrame = document.querySelector<HTMLCanvasElement>('#wooden-frame')!;
 const result = document.querySelector<HTMLElement>('#roll-result')!;
 const score = document.querySelector<HTMLElement>('#roll-score')!;
+const prompt = document.querySelector<HTMLElement>('#roll-prompt')!;
 
 try {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
@@ -168,6 +169,7 @@ try {
   function positionResult() {
     if (!config.request || !dice.length) { result.hidden = true; return; }
     score.textContent = config.request.scoreText ?? '0 очков';
+    prompt.textContent = config.promptText ?? 'продолжить или сохранить?';
     const height = canvas.clientHeight;
     const box = new THREE.Box3();
     let lowest = 0;

@@ -18,6 +18,7 @@ data class GameState(
     val buttons: List<GameButton> = emptyList(),
     val isTutorial: Boolean = false,
     val isOnlineGame: Boolean = false,
+    val isOpponentTurn: Boolean = false,
     val onlinePlayerIds: Set<String> = emptySet(),
     val reactionsByAuthorId: Map<String, UserReaction> = emptyMap(),
     val tutorialNextAction: TutorialNextAction? = null,

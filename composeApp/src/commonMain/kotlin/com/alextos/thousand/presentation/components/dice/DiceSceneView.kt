@@ -21,10 +21,14 @@ data class DiceSceneConfiguration(
     val background: String,
     val bounds: DiceSceneBounds,
     val active: Boolean,
+    val isOpponentTurn: Boolean = false,
 ) {
+    val promptText: String get() = if (isOpponentTurn) "ход противника" else "продолжить или сохранить?"
+
     fun script(): String {
         val message = buildJsonObject {
             put("active", active)
+            put("promptText", promptText)
             put("background", background)
             put("bounds", buildJsonObject {
                 put("left", bounds.left)

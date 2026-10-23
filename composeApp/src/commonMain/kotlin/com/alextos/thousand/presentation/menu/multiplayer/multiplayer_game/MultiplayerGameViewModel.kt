@@ -197,6 +197,7 @@ class MultiplayerGameViewModel(
             rollAbility = if (isCurrentUser) game.rollAbility else RollAbility.UNAVAILABLE,
             buttons = if (isCurrentUser) game.buttons else emptyList(),
             isOnlineGame = true,
+            isOpponentTurn = !isCurrentUser,
             onlinePlayerIds = game.onlinePlayerIds,
             reactionsByAuthorId = game.reaction?.takeIf { reaction ->
                 reaction.authorId.isNotBlank()
