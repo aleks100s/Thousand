@@ -10,7 +10,13 @@ data class DiceSceneRequest(
     val presentationId: String,
     val values: List<Int>,
     val animate: Boolean,
-)
+) {
+    val scoringIndices: List<Int>
+        get() {
+            val counts = values.groupingBy { it }.eachCount()
+            return values.indices.filter { values[it] == 1 || values[it] == 5 || counts.getValue(values[it]) >= 3 }
+        }
+}
 
 sealed interface DiceSceneEvent {
     data object Ready : DiceSceneEvent

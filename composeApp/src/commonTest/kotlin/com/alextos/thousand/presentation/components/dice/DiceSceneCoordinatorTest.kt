@@ -14,6 +14,19 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class DiceSceneCoordinatorTest {
+    @Test
+    fun highlightsOnesFivesAndGroupsOfAtLeastThree() {
+        fun indices(vararg values: Int) = DiceSceneRequest("test", values.toList(), false).scoringIndices
+        assertEquals(listOf(0, 2, 4), indices(1, 2, 5, 2, 1))
+        for (face in listOf(2, 3, 4, 6)) {
+            assertEquals(emptyList(), indices(face, face))
+            assertEquals(listOf(0, 1, 2), indices(face, face, face))
+            assertEquals(listOf(0, 1, 2, 3, 4), indices(face, face, face, face, face))
+        }
+        assertEquals(emptyList(), indices(2, 3, 4, 6))
+        assertEquals(emptyList(), indices())
+    }
+
     private val roll = DiceRoll(dice = listOf(Die(value = DieValue.entries.first())), result = 100)
     private fun game(history: List<DiceRoll> = emptyList(), player: String = "player") = GameState(
         game = Game(id = 1, players = emptyList()), currentPlayer = Player(user = User(id = player, name = player)),

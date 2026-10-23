@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { faceNormals, orientationFor } from './orientation';
 
-type Request = { presentationId: string; values: number[]; animate: boolean };
+type Request = { presentationId: string; values: number[]; animate: boolean; scoringIndices?: number[] };
 type Bounds = { left: number; top: number; right: number; bottom: number };
 type Configuration = { request: Request | null; bounds: Bounds; background: string; active: boolean };
 type NativeWindow = Window & {
@@ -58,6 +58,10 @@ try {
   scene.add(table);
   const geometry = new RoundedBoxGeometry(1, 1, 1, 4, .09);
   const ivory = new THREE.MeshStandardMaterial({ color: '#fffdf4', roughness: .28, metalness: .02 });
+  // Nested back-face shells create a soft silhouette without a bloom pass or an idle render loop.
+  const haloMaterials = [.30, .16, .085, .045, .02].map(opacity => new THREE.MeshBasicMaterial({
+    color: '#b5ef83', transparent: true, opacity, side: THREE.BackSide, depthWrite: false, toneMapped: false,
+  }));
   const ink = new THREE.MeshStandardMaterial({ color: '#202625', roughness: .6 });
   const pipGeometry = new THREE.CircleGeometry(.075, 20);
   const patterns: [number, number][][] = [
@@ -68,6 +72,7 @@ try {
     [[-.23, .25], [.23, .25], [-.23, 0], [.23, 0], [-.23, -.25], [.23, -.25]],
   ];
   let dice: THREE.Group[] = [];
+  let halos: THREE.Group[] = [];
   let targets: THREE.Vector3[] = [];
   let scale = 1;
   const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -98,12 +103,25 @@ try {
   }
   function rebuild(request: Request | null) {
     dice.forEach(die => scene.remove(die));
-    dice = (request?.values ?? []).map(() => {
+    halos = [];
+    dice = (request?.values ?? []).map((_, index) => {
       const die = new THREE.Group();
       const body = new THREE.Mesh(geometry, ivory);
       body.castShadow = true;
       body.receiveShadow = true;
       die.add(body);
+      const halo = new THREE.Group();
+      halo.visible = false;
+      if (request?.scoringIndices?.includes(index)) {
+        haloMaterials.forEach((material, layer) => {
+          const shell = new THREE.Mesh(geometry, material);
+          shell.scale.setScalar(1.025 + layer * .025);
+          shell.renderOrder = 1;
+          halo.add(shell);
+        });
+      }
+      die.add(halo);
+      halos.push(halo);
       faceNormals.forEach((normal, index) => {
         const rotation = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
         patterns[index].forEach(([x, y]) => {
@@ -142,6 +160,7 @@ try {
   function finish() {
     stopFrame();
     pose(1);
+    halos.forEach(halo => { halo.visible = true; });
     render();
     if (!complete && currentId) {
       complete = true;
@@ -202,7 +221,7 @@ try {
   send('ready');
   // The browser-only harness exercises the same bridge as the native app.
   if (!native.DiceNative && !native.webkit?.messageHandlers?.diceScene) {
-    native.DiceScene.receive(JSON.stringify({ ...config, request: { presentationId: 'preview', values: [1, 2, 3, 4, 5], animate: false } }));
+    native.DiceScene.receive(JSON.stringify({ ...config, request: { presentationId: 'preview', values: [1, 2, 3, 4, 5], scoringIndices: [0, 4], animate: false } }));
   }
 } catch (error) {
   console.error('Dice scene initialization failed', error);

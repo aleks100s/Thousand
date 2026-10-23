@@ -39,6 +39,12 @@ import com.alextos.thousand.presentation.menu.play_game.components.ManualDiceInp
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -137,7 +143,27 @@ private fun GameField(
                     contentAlignment = Alignment.Center,
                 ) {
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        roll.dice.forEach { SingleDieView(Modifier.size(48.dp), it.value) }
+                        roll.dice.forEachIndexed { index, die ->
+                            val highlighted = index in presentation.request?.scoringIndices.orEmpty()
+                            SingleDieView(
+                                Modifier.size(48.dp).drawBehind {
+                                    if (highlighted) {
+                                        val green = Color(0xFFB5EF83)
+                                        listOf(6.dp to .08f, 3.dp to .18f, 1.dp to .65f).forEach { (spread, alpha) ->
+                                            val inset = spread.toPx()
+                                            drawRoundRect(
+                                                color = green.copy(alpha = alpha),
+                                                topLeft = Offset(-inset / 2, -inset / 2),
+                                                size = Size(size.width + inset, size.height + inset),
+                                                cornerRadius = CornerRadius(5.dp.toPx() + inset / 2),
+                                                style = Stroke(inset),
+                                            )
+                                        }
+                                    }
+                                },
+                                die.value,
+                            )
+                        }
                     }
                 }
             }
