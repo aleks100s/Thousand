@@ -195,8 +195,12 @@ private fun GameField(
                 Text(sceneConfiguration.promptText, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center)
             }
         }
+        val hideActions = !sceneConfiguration.isOpponentTurn && !presentation.actionsEnabled
         ButtonsView(
-            Modifier.align(Alignment.BottomCenter).onSizeChanged { buttonsHeight = it.height },
+            Modifier.align(Alignment.BottomCenter)
+                .onSizeChanged { buttonsHeight = it.height }
+                .alpha(if (hideActions) 0f else 1f)
+                .then(if (hideActions) Modifier.clearAndSetSemantics {} else Modifier),
             state, isManualInputEnabled,
             onAction = { action ->
                 if (action == GameAction.FinishTurn) coordinator.clearCompletedRoll()
