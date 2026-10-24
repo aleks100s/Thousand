@@ -57,6 +57,7 @@ import com.alextos.thousand.presentation.components.dice.DiceScenePhase
 import com.alextos.thousand.presentation.components.dice.DiceSceneSurface
 import com.alextos.thousand.presentation.components.dice.DiceSceneHeader
 import com.alextos.thousand.presentation.components.dice.DiceSceneEvent
+import com.alextos.thousand.application.theme.ThousandTheme
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -193,7 +194,11 @@ private fun GameField(
                 }
             }
         }
-        if (state.currentRoll == null) Text("Вы в игре!")
+        if (state.currentRoll == null && presentation.phase == DiceScenePhase.Fallback) {
+            Box(Modifier.fillMaxSize().padding(top = headerSize), contentAlignment = Alignment.Center) {
+                Text("Вы в игре!", style = MaterialTheme.typography.headlineMedium)
+            }
+        }
         if (state.currentTurn.size > 1) {
             TurnHistoryView(
                 Modifier.align(Alignment.TopStart).padding(top = headerSize).onSizeChanged { historyHeight = it.height }.padding(16.dp),
@@ -299,13 +304,15 @@ private fun ButtonsView(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         AnimatedVisibility(state.tutorialAdvice != null) {
-            Text(
-                modifier = Modifier.fillMaxWidth(),
-                text = state.tutorialAdvice ?: "",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.bodySmall,
-                textAlign = TextAlign.Center
-            )
+            ThousandTheme(darkTheme = true) {
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = state.tutorialAdvice ?: "",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center,
+                )
+            }
         }
 
         Row(

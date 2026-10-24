@@ -34,6 +34,7 @@ const woodenFrame = document.querySelector<HTMLCanvasElement>('#wooden-frame')!;
 const result = document.querySelector<HTMLElement>('#roll-result')!;
 const score = document.querySelector<HTMLElement>('#roll-score')!;
 const prompt = document.querySelector<HTMLElement>('#roll-prompt')!;
+const emptyTable = document.querySelector<HTMLElement>('#table-empty')!;
 const header = createGameHeader(document.querySelector<HTMLElement>('#game-header')!, event => send(event.type, undefined, event));
 
 try {
@@ -296,6 +297,7 @@ try {
         drawWoodenFrame(woodenFrame, canvas.clientWidth, canvas.clientHeight, renderer.getPixelRatio());
       }
       scene.background = new THREE.Color(config.background);
+      emptyTable.hidden = !!next.request;
       if (!next.request) {
         stopFrame();
         currentId = undefined;
