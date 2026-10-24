@@ -42,7 +42,7 @@ class DiceSceneCoordinatorTest {
     @Test
     fun opponentPromptIsPassedToTheScene() {
         val configuration = DiceSceneConfiguration(null, "#000000", DiceSceneBounds(0f, 0f, 1f, 1f), true)
-        assertEquals("продолжить или сохранить?", configuration.promptText)
+        assertEquals("", configuration.promptText)
         val opponent = configuration.copy(isOpponentTurn = true)
         assertEquals("ход противника", opponent.promptText)
         assertTrue(opponent.script().contains("ход противника"))

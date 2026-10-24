@@ -13,9 +13,10 @@ values, animate, scoringIndices, scoreText). Kotlin supplies the formatted roll
 score (for example, "15 очков") and zero-based scoringIndices: all
 ones, fives and groups of at least three equal values. A soft turquoise silhouette
 appears around these dice only after settling, and disappears on the next roll.
-The score and the smaller "продолжить или сохранить?" prompt appear below the dice
-after settling. Their space is reserved inside the supplied bounds; resizing
-repositions them without replaying the roll. Text is assigned with textContent.
+The score appears below the dice after settling. Dice, spacing and score form a
+single block centered between the header and the bottom of the viewport. Rounded
+mesh vertices determine its visible bounds; decorative glow does not shift it.
+Resizing repositions the block without replaying the roll. Text uses textContent.
 Landscape uses a single row for all dice, with a larger size limit and a projected
 volume fit that reserves space for the score and prompt. Portrait uses up to two rows.
 In landscape the upper-left history height does not constrain the central row;

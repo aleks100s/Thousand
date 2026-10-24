@@ -64,6 +64,11 @@ try {
   table.receiveShadow = true;
   scene.add(table);
   const geometry = new RoundedBoxGeometry(1, 1, 1, 4, .09);
+  const vertices = geometry.getAttribute('position');
+  const silhouetteVertices = [...new Map(Array.from({ length: vertices.count }, (_, i) => {
+    const point = new THREE.Vector3().fromBufferAttribute(vertices, i);
+    return [point.toArray().map(v => v.toFixed(5)).join(','), point] as const;
+  })).values()];
   const ivory = new THREE.MeshStandardMaterial({ color: '#fffdf4', roughness: .28, metalness: .02 });
   // Nested back-face shells create a soft silhouette without a bloom pass or an idle render loop.
   const haloMaterials = [.30, .16, .085, .045, .02].map(opacity => new THREE.MeshBasicMaterial({
@@ -87,6 +92,22 @@ try {
   function worldPoint(x: number, y: number): THREE.Vector3 {
     ray.setFromCamera(new THREE.Vector2(x * 2 - 1, 1 - y * 2), camera);
     return ray.ray.intersectPlane(plane, new THREE.Vector3()) ?? new THREE.Vector3();
+  }
+  function settledRange() {
+    let min = Infinity, max = -Infinity;
+    const point = new THREE.Vector3();
+    targets.forEach((target, index) => {
+      // Like a CSS box-shadow, the decorative glow does not shift the content box.
+      const size = scale;
+      const rotation = orientationFor(config.request!.values[index]);
+      for (const vertex of silhouetteVertices) {
+        point.copy(vertex).applyQuaternion(rotation).multiplyScalar(size).add(target).project(camera);
+        const screenY = (1 - point.y) / 2;
+        min = Math.min(min, screenY);
+        max = Math.max(max, screenY);
+      }
+    });
+    return { min, max };
   }
   function layout() {
     const landscape = canvas.clientWidth > canvas.clientHeight;
@@ -143,6 +164,19 @@ try {
     } else if (targets.length) {
       const offset = worldPoint(cx, cy + .04).sub(worldPoint(cx, cy));
       targets.forEach(target => target.add(offset));
+    }
+    if (targets.length) {
+      const scoreStyle = getComputedStyle(score), promptStyle = getComputedStyle(prompt);
+      const textHeight = parseFloat(scoreStyle.lineHeight) + (config.isOpponentTurn
+        ? parseFloat(promptStyle.lineHeight) + parseFloat(promptStyle.marginTop) : 0);
+      // Center the whole stack (dice + gap + text) below the header, rather
+      // than centering only the dice inside the area reserved above buttons.
+      const desiredCenter = .5 - (12 + textHeight) / (2 * Math.max(canvas.clientHeight, 1));
+      for (let pass = 0; pass < 3; pass++) {
+        const range = settledRange();
+        const offset = worldPoint(cx, cy + desiredCenter - (range.min + range.max) / 2).sub(worldPoint(cx, cy));
+        targets.forEach(target => target.add(offset));
+      }
     }
     dice.forEach(die => die.scale.setScalar(scale));
   }
@@ -204,20 +238,11 @@ try {
   function positionResult() {
     if (!config.request || !dice.length) { result.hidden = true; return; }
     score.textContent = config.request.scoreText ?? '0 очков';
-    prompt.textContent = config.promptText ?? 'продолжить или сохранить?';
+    prompt.textContent = config.isOpponentTurn ? 'ход противника' : '';
     prompt.hidden = !prompt.textContent;
     const height = canvas.clientHeight;
-    const box = new THREE.Box3();
-    let lowest = 0;
-    dice.forEach(die => {
-      die.updateWorldMatrix(true, true);
-      box.setFromObject(die);
-      for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) {
-        const projected = new THREE.Vector3(x, y, z).project(camera);
-        lowest = Math.max(lowest, (1 - projected.y) / 2 * height);
-      }
-    });
-    result.style.top = `${Math.max(canvas.clientWidth > height ? 0 : config.bounds.top * height, lowest + 12)}px`;
+    const lowest = settledRange().max * height;
+    result.style.top = `${lowest + 12}px`;
     result.style.left = `${(config.bounds.left + config.bounds.right) / 2 * 100}%`;
     result.hidden = false;
   }

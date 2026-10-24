@@ -29,7 +29,7 @@ data class DiceSceneConfiguration(
     val promptText: String get() = when {
         isOpponentTurn -> "ход противника"
         isTutorial -> ""
-        else -> "продолжить или сохранить?"
+        else -> ""
     }
 
     fun script(): String {

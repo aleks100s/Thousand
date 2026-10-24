@@ -19,7 +19,7 @@ struct ContentView: View {
                 && proxy.size.width > proxy.size.height
 
             ComposeView()
-                .ignoresSafeArea(.all, edges: isLandscapePhone ? .vertical : .all)
+                .ignoresSafeArea(.all, edges: isLandscapePhone ? .all.subtracting(.leading) : .all)
                 .background()
                 .onShake {
                     observer.shake()
