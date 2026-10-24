@@ -29,6 +29,7 @@ data class DiceSceneConfiguration(
         val message = buildJsonObject {
             put("active", active)
             put("promptText", promptText)
+            put("isOpponentTurn", isOpponentTurn)
             put("background", background)
             put("bounds", buildJsonObject {
                 put("left", bounds.left)

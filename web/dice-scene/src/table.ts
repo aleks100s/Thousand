@@ -17,27 +17,47 @@ export function createFeltMaterial(renderer: THREE.WebGLRenderer) {
   const color = context.createImageData(256, 256);
   const bump = bumpContext.createImageData(256, 256);
   const random = randomSequence(713);
+  // Tileable low-frequency nap prevents the felt from looking like flat noise.
+  const tufts = Array.from({ length: 16 * 16 }, () => random() - .5);
+  const tuftAt = (x: number, y: number) => tufts[(y % 16) * 16 + x % 16];
   for (let y = 0; y < 256; y++) {
     for (let x = 0; x < 256; x++) {
       const i = (y * 256 + x) * 4;
       const weave = Math.sin(x * Math.PI / 2) * Math.cos(y * Math.PI / 2);
-      const nap = (random() - .5) * 9 + weave * 2;
-      color.data.set([48 + nap, 72 + nap, 32 + nap * .6, 255], i);
-      const height = 128 + weave * 20 + (random() - .5) * 42;
+      const tx = x / 16, ty = y / 16, ix = Math.floor(tx), iy = Math.floor(ty);
+      const fx = (tx - ix) ** 2 * (3 - 2 * (tx - ix));
+      const fy = (ty - iy) ** 2 * (3 - 2 * (ty - iy));
+      const tuft = THREE.MathUtils.lerp(
+        THREE.MathUtils.lerp(tuftAt(ix, iy), tuftAt(ix + 1, iy), fx),
+        THREE.MathUtils.lerp(tuftAt(ix, iy + 1), tuftAt(ix + 1, iy + 1), fx), fy,
+      );
+      const nap = (random() - .5) * 15 + weave * 2 + tuft * 14;
+      color.data.set([24 + nap * .6, 74 + nap, 68 + nap * .9, 255], i);
+      const height = 128 + weave * 16 + (random() - .5) * 64 + tuft * 35;
       bump.data.set([height, height, height, 255], i);
     }
   }
   context.putImageData(color, 0, 0);
   bumpContext.putImageData(bump, 0, 0);
+  // Short, irregular fibers give the surface a soft brushed-wool appearance.
+  for (let fiber = 0; fiber < 6000; fiber++) {
+    const x = random() * 256, y = random() * 256;
+    context.strokeStyle = fiber % 2 ? 'rgba(113,159,135,.10)' : 'rgba(7,30,24,.16)';
+    context.lineWidth = .4 + random() * .5;
+    context.beginPath();
+    context.moveTo(x, y);
+    context.lineTo(x + .5 + random() * 2, y - 1 - random() * 3);
+    context.stroke();
+  }
   const map = new THREE.CanvasTexture(cloth);
   map.colorSpace = THREE.SRGBColorSpace;
   const bumpMap = new THREE.CanvasTexture(relief);
   for (const texture of [map, bumpMap]) {
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(160, 160);
+    texture.repeat.set(72, 72);
     texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 4);
   }
-  return new THREE.MeshStandardMaterial({ map, bumpMap, bumpScale: .018, roughness: .98, metalness: 0 });
+  return new THREE.MeshStandardMaterial({ map, bumpMap, bumpScale: .028, roughness: 1, metalness: 0 });
 }
 
 /** Rounded rails and their shadows are rasterized only when the viewport changes. */

@@ -5,7 +5,7 @@ import { createFeltMaterial, drawWoodenFrame } from './table';
 
 type Request = { presentationId: string; values: number[]; animate: boolean; scoringIndices?: number[]; scoreText?: string };
 type Bounds = { left: number; top: number; right: number; bottom: number };
-type Configuration = { request: Request | null; bounds: Bounds; background: string; active: boolean; promptText?: string };
+type Configuration = { request: Request | null; bounds: Bounds; background: string; active: boolean; promptText?: string; isOpponentTurn?: boolean };
 type NativeWindow = Window & {
   DiceNative?: { postMessage(message: string): void };
   webkit?: { messageHandlers?: { diceScene?: { postMessage(message: string): void } } };
@@ -87,28 +87,61 @@ try {
     return ray.ray.intersectPlane(plane, new THREE.Vector3()) ?? new THREE.Vector3();
   }
   function layout() {
-    const { left, right } = config.bounds;
+    const landscape = canvas.clientWidth > canvas.clientHeight;
+    const left = landscape ? Math.max(.12, config.bounds.left) : config.bounds.left;
+    const right = landscape ? Math.min(.88, config.bounds.right) : config.bounds.right;
     // Native overlays may leave almost no top inset. Keep the dice below the
     // curved head of the table, where its full width is available.
-    const top = Math.max(config.bounds.top, Math.min(.23, config.bounds.bottom - .20));
-    const resultSpace = Math.min(88 / Math.max(canvas.clientHeight, 1), (config.bounds.bottom - top) * .3);
+    // History occupies the upper-left corner, not the entire landscape row.
+    // Its growing height must not shrink dice on every subsequent reroll.
+    const top = landscape ? .16 : Math.max(config.bounds.top, Math.min(.23, config.bounds.bottom - .20));
+    const resultSpace = landscape
+      ? 76 / Math.max(canvas.clientHeight, 1)
+      : Math.min(88 / Math.max(canvas.clientHeight, 1), (config.bounds.bottom - top) * .3);
     const bottom = config.bounds.bottom - resultSpace;
     const width = Math.max(.01, right - left), height = Math.max(.01, bottom - top);
-    const columns = Math.min(dice.length, 3);
+    const columns = landscape ? dice.length : Math.min(dice.length, 3);
     const rows = Math.ceil(dice.length / Math.max(columns, 1));
     const cx = (left + right) / 2, cy = (top + bottom) / 2;
     const worldWidth = worldPoint(right, cy).distanceTo(worldPoint(left, cy));
     const worldHeight = worldPoint(cx, bottom).distanceTo(worldPoint(cx, top));
-    scale = Math.min(1.15, worldWidth / Math.max(columns, 1) / 1.7, worldHeight / Math.max(rows, 1) / 2.1);
+    scale = Math.min(landscape ? 1.8 : 1.15, worldWidth / Math.max(columns, 1) / 1.7, worldHeight / Math.max(rows, 1) / (landscape ? 1.35 : 2.1));
     targets = dice.map((_, i) => {
       const row = Math.floor(i / columns);
       const inRow = Math.min(columns, dice.length - row * columns);
       const x = cx + ((i % columns) - (inRow - 1) / 2) * width / columns * .82;
-      const y = cy + (row - (rows - 1) / 2) * height / Math.max(rows, 1) * .9;
+      const y = cy + (landscape ? height * .22 : 0) + (row - (rows - 1) / 2) * height / Math.max(rows, 1) * .9;
       const point = worldPoint(x, y);
       point.y = scale * .51;
       return point;
     });
+    if (landscape && targets.length) {
+      // Fit the projected cube volume, including its halo, rather than just the
+      // table footprint. A single die must leave the same room for the score.
+      const projectedRange = () => {
+        let min = Infinity, max = -Infinity;
+        targets.forEach(target => {
+          for (const x of [-.6, .6]) for (const y of [-.6, .6]) for (const z of [-.6, .6]) {
+            const point = new THREE.Vector3(target.x + x * scale, target.y + y * scale, target.z + z * scale).project(camera);
+            const screenY = (1 - point.y) / 2;
+            min = Math.min(min, screenY);
+            max = Math.max(max, screenY);
+          }
+        });
+        return { min, max };
+      };
+      const extent = projectedRange();
+      scale *= Math.min(1, height * 1.04 / (extent.max - extent.min));
+      scale *= config.isOpponentTurn ? .9 : 1.06;
+      targets.forEach(target => { target.y = scale * .51; });
+      const fitted = projectedRange();
+      const desiredCenter = Math.min(.5, cy + .08);
+      const offset = worldPoint(cx, cy + desiredCenter - (fitted.min + fitted.max) / 2).sub(worldPoint(cx, cy));
+      targets.forEach(target => target.add(offset));
+    } else if (targets.length) {
+      const offset = worldPoint(cx, cy + .04).sub(worldPoint(cx, cy));
+      targets.forEach(target => target.add(offset));
+    }
     dice.forEach(die => die.scale.setScalar(scale));
   }
   function rebuild(request: Request | null) {
@@ -181,7 +214,7 @@ try {
         lowest = Math.max(lowest, (1 - projected.y) / 2 * height);
       }
     });
-    result.style.top = `${Math.max(config.bounds.top * height, Math.min(lowest + 16, config.bounds.bottom * height - 68))}px`;
+    result.style.top = `${Math.max(canvas.clientWidth > height ? 0 : config.bounds.top * height, lowest + 12)}px`;
     result.style.left = `${(config.bounds.left + config.bounds.right) / 2 * 100}%`;
     result.hidden = false;
   }

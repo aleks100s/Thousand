@@ -16,6 +16,10 @@ appears around these dice only after settling, and disappears on the next roll.
 The score and the smaller "продолжить или сохранить?" prompt appear below the dice
 after settling. Their space is reserved inside the supplied bounds; resizing
 repositions them without replaying the roll. Text is assigned with textContent.
+Landscape uses a single row for all dice, with a larger size limit and a projected
+volume fit that reserves space for the score and prompt. Portrait keeps two rows.
+In landscape the upper-left history height does not constrain the central row;
+rerolls with fewer dice retain their size even as the history grows.
 Kotlin supplies "ход противника" as promptText during another player's turn;
 changing this label does not replay the roll.
 Events ready/rollStarted/rollFinished/error go to DiceNative on
@@ -24,7 +28,8 @@ as `diceSceneEvent` CustomEvents. New IDs replace previous animations; resizing
 and repeated configurations never replay a roll. Opposite die faces sum to seven.
 
 The artifact is self-contained; no CDN, network access, external textures or local file URLs.
-The dark lime felt uses generated color and bump tiles; the wooden perimeter uses
+The green-teal felt uses generated color and bump tiles with mottled nap and
+short wool fibers; the wooden perimeter uses
 a separate canvas with grain and rounded, oval rails, redrawn only on resize.
 The table casts an outer shadow; the raised rim casts a shadow onto the felt,
 with highlights and dice shadows matching a light source on the left.
