@@ -113,7 +113,7 @@ private fun GameField(
     var resultHeight by remember { mutableStateOf(0) }
     val density = LocalDensity.current
     val margin = with(density) { 16.dp.toPx() }
-    val headerSize = if (fieldSize.width > fieldSize.height) 88.dp else 112.dp
+    val headerSize = if (fieldSize.width > fieldSize.height) 82.dp else 104.dp
     val headerHeight = with(density) { headerSize.toPx() }
     val height = fieldSize.height.coerceAtLeast(1).toFloat()
     val width = fieldSize.width.coerceAtLeast(1).toFloat()

@@ -7,7 +7,7 @@
   <style>
     html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#184a44}
     #table-scene{position:absolute;inset:0;overflow:hidden}
-    .has-header #table-scene{top:112px}
+    .has-header #table-scene{top:104px}
     canvas{display:block;width:100%;height:100%;touch-action:none}
     #wooden-frame{position:absolute;inset:0;pointer-events:none}
     #roll-result{position:absolute;transform:translateX(-50%);width:76%;text-align:center;pointer-events:none;color:#f2f7ed;font-family:system-ui,-apple-system,sans-serif;text-shadow:0 2px 8px rgba(0,0,0,.5)}
@@ -15,8 +15,8 @@
     #table-empty{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;text-align:center;color:#f2f7ed;font-family:system-ui,-apple-system,sans-serif;text-shadow:0 2px 8px rgba(0,0,0,.5)}
     #table-empty[hidden]{display:none}
     #roll-prompt{margin-top:7px;font-size:14px;line-height:1.4;color:#d1ddc7}
-    #game-header{box-sizing:border-box;position:absolute;inset:0 0 auto;height:112px;background:linear-gradient(110deg,#0c2531,#071722);color:#eef8fc;font-family:system-ui,-apple-system,sans-serif;z-index:2;border-bottom:1px solid #193540}
-    .players-list{display:flex;gap:16px;padding:10px 16px 8px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;touch-action:pan-x;overscroll-behavior-x:contain}
+    #game-header{box-sizing:border-box;position:absolute;inset:0 0 auto;height:104px;background:linear-gradient(110deg,#0c2531,#071722);color:#eef8fc;font-family:system-ui,-apple-system,sans-serif;z-index:2;border-bottom:1px solid #193540}
+    .players-list{display:flex;gap:16px;padding:10px 16px 4px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;touch-action:pan-x;overscroll-behavior-x:contain}
     .players-list::-webkit-scrollbar{display:none}
     .header-player{flex:1 0 auto;min-width:140px;display:flex;align-items:center;gap:12px;padding:3px 4px;border:0;background:none;color:inherit;text-align:left;font:inherit;cursor:pointer}
     .header-player:disabled{opacity:1;cursor:default}
@@ -31,16 +31,18 @@
     .online-dot{position:absolute;right:-1px;bottom:0;width:8px;height:8px;border:2px solid #102633;background:#788b94;border-radius:50%}
     .online-dot.online{background:#72e5b0}
     .avatar-reaction{position:absolute;inset:0;display:grid;place-items:center;font-size:29px;border-radius:50%;background:#142534}
-    .progress-row{display:flex;align-items:center;gap:12px;padding:5px 20px 0}
+    .progress-row{display:flex;align-items:center;gap:12px;padding:2px 20px 0}
     .score-track{position:relative;height:8px;flex:1;border-radius:5px;background:#344456;box-shadow:inset 0 1px 3px #0008}
     .score-fill{position:absolute;inset:0 auto 0 0;border-radius:5px;background:linear-gradient(90deg,#70e8de,#94efbc);box-shadow:0 0 7px #68cbb840}
+    .barrel-zones{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none}
+    .barrel-zone{position:absolute;top:0;height:100%;background:repeating-linear-gradient(135deg,rgba(213,193,255,.48) 0,rgba(213,193,255,.48) 1px,transparent 1px,transparent 6px)}
     .score-goal{font-size:14px;color:#c1cbd7;font-weight:600}
     .barrel-tick{position:absolute;top:-2px;width:2px;height:12px;background:#b4c5c7c9;transform:translateX(-50%)}
     .barrel-tick span{position:absolute;top:13px;left:50%;transform:translateX(-50%);font-size:8px;line-height:10px;color:#a5bac6}
     @media (orientation:landscape){
-      #game-header{height:88px}
-      .has-header #table-scene{top:88px}
-      .players-list{padding:6px 16px 4px}
+      #game-header{height:82px}
+      .has-header #table-scene{top:82px}
+      .players-list{padding:6px 16px 2px}
       .player-avatar{width:36px;height:36px;flex-basis:36px}
       .player-name{font-size:13px;line-height:17px}
       .player-score{font-size:19px;line-height:22px}

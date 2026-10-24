@@ -28,7 +28,7 @@ changing this label does not replay the roll.
 
 The optional header contains immutable saved player scores, the active player ID,
 the game goal and enabled barrel boundaries. The header sits above the table
-(112px in portrait, 88px in landscape);
+(104px in portrait, 82px in landscape);
 native normalized overlay bounds are converted to table coordinates. Cards grow
 to fill the row or scroll horizontally when their intrinsic widths no longer fit.
 Player selection events retain native player actions, online state, bolts and reactions.

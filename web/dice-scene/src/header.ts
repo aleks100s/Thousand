@@ -16,7 +16,8 @@ export function createGameHeader(root: HTMLElement, emit: (event: HeaderEvent) =
   const progressRow = document.createElement('div'); progressRow.className = 'progress-row';
   const track = document.createElement('div'); track.className = 'score-track'; track.setAttribute('role', 'progressbar');
   const fill = document.createElement('div'); fill.className = 'score-fill';
-  const ticks = document.createElement('div'); ticks.className = 'barrel-ticks'; track.append(fill, ticks);
+  const zones = document.createElement('div'); zones.className = 'barrel-zones'; zones.setAttribute('aria-hidden', 'true');
+  const ticks = document.createElement('div'); ticks.className = 'barrel-ticks'; track.append(fill, zones, ticks);
   const goal = document.createElement('span'); goal.className = 'score-goal'; progressRow.append(track, goal); root.append(list, progressRow);
   let shown: HeaderState | null = null, latest: HeaderState | null = null;
   let pending: (() => void) | null = null, animation = 0, animating = false;
@@ -51,6 +52,14 @@ export function createGameHeader(root: HTMLElement, emit: (event: HeaderEvent) =
     });
     list.scrollLeft = previousScroll;
     ticks.replaceChildren();
+    zones.replaceChildren();
+    for (let i = 0; i + 1 < state.barrelBoundaries.length; i += 2) {
+      const start = state.barrelBoundaries[i], end = state.barrelBoundaries[i + 1];
+      const zone = document.createElement('span'); zone.className = 'barrel-zone';
+      zone.style.left = `${start / state.goal * 100}%`;
+      zone.style.width = `${(end - start) / state.goal * 100}%`;
+      zones.append(zone);
+    }
     state.barrelBoundaries.forEach(boundary => {
       const tick = document.createElement('span'); tick.className = 'barrel-tick'; tick.style.left = `${boundary / state.goal * 100}%`;
       tick.title = `${boundary} очков — граница бочки`; tick.setAttribute('aria-label', tick.title);
