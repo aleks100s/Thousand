@@ -198,7 +198,10 @@ private fun GameField(
         ButtonsView(
             Modifier.align(Alignment.BottomCenter).onSizeChanged { buttonsHeight = it.height },
             state, isManualInputEnabled,
-            onAction = onAction,
+            onAction = { action ->
+                if (action == GameAction.FinishTurn) coordinator.clearCompletedRoll()
+                onAction(action)
+            },
             onFinishGame = onFinishGame,
             actionsEnabled = presentation.actionsEnabled,
         )

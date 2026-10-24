@@ -257,6 +257,16 @@ try {
       const isNew = next.request?.presentationId !== currentId;
       config = next;
       scene.background = new THREE.Color(config.background);
+      if (!next.request) {
+        stopFrame();
+        currentId = undefined;
+        startedAt = null;
+        complete = true;
+        result.hidden = true;
+        rebuild(null);
+        render();
+        return;
+      }
       if (isNew) {
         stopFrame();
         result.hidden = true;

@@ -19,6 +19,9 @@ internal fun RemoteGame.toDatabaseUpdateMap(): Map<String, Any?> =
         .mapValues { entry -> entry.value as Any? }
         .toMutableMap()
         .apply {
+            if (currentRoll == null) {
+                put("currentRoll", null)
+            }
             if (reaction == null) {
                 put("reaction", null)
             }

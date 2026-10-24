@@ -15,6 +15,31 @@ import kotlin.test.assertTrue
 
 class DiceSceneCoordinatorTest {
     @Test
+    fun endingTheTurnClearsTheRollAndIgnoresItsCallbacks() {
+        var finishes = 0
+        val coordinator = DiceSceneCoordinator { finishes++ }
+        val previous = game(listOf(roll))
+        coordinator.acceptSnapshot(previous, true)
+        coordinator.onEvent(DiceSceneEvent.Ready)
+        val oldId = coordinator.state.value.request!!.presentationId
+        coordinator.onEvent(DiceSceneEvent.RollFinished(oldId))
+        coordinator.clearCompletedRoll()
+        coordinator.acceptSnapshot(previous, true)
+        coordinator.onEvent(DiceSceneEvent.RollStarted(oldId))
+        coordinator.onEvent(DiceSceneEvent.RollFinished(oldId))
+        assertEquals(null, coordinator.state.value.request)
+        assertFalse(coordinator.state.value.showResult)
+        assertTrue(coordinator.state.value.actionsEnabled)
+        assertEquals(1, finishes)
+        coordinator.acceptSnapshot(game(player = "opponent"), true)
+        assertEquals(null, coordinator.state.value.request)
+        assertEquals(1, finishes)
+        coordinator.acceptSnapshot(game(listOf(roll), player = "opponent"), true)
+        assertNotEquals(oldId, coordinator.state.value.request!!.presentationId)
+        assertTrue(coordinator.state.value.request!!.animate)
+    }
+
+    @Test
     fun opponentPromptIsPassedToTheScene() {
         val configuration = DiceSceneConfiguration(null, "#000000", DiceSceneBounds(0f, 0f, 1f, 1f), true)
         assertEquals("продолжить или сохранить?", configuration.promptText)

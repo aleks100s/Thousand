@@ -80,6 +80,15 @@ class DiceSceneCoordinator(private val onFinished: () -> Unit) {
         if (failed || !_state.value.active) complete()
     }
 
+    fun clearCompletedRoll() {
+        if (!_state.value.completed) return
+        // Keep the snapshot: unrelated updates must not replay the finished turn.
+        _state.value = _state.value.copy(
+            request = null,
+            phase = if (failed) DiceScenePhase.Fallback else if (_state.value.ready) DiceScenePhase.Idle else DiceScenePhase.Loading,
+        )
+    }
+
     fun onEvent(event: DiceSceneEvent) {
         if (failed) return
         val current = _state.value
