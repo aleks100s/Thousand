@@ -19,6 +19,8 @@ mesh vertices determine its visible bounds; decorative glow does not shift it.
 Resizing repositions the block without replaying the roll. Text uses textContent.
 Landscape uses a single row for all dice, with a larger size limit and a projected
 volume fit that reserves space for the score and prompt. Portrait uses up to two rows.
+Both orientations size dice using five slots (five columns or a three-by-two grid).
+Rerolls remove slots and recenter the remaining dice without enlarging them.
 In landscape the upper-left history height does not constrain the central row;
 rerolls with fewer dice retain their size even as the history grows.
 Kotlin supplies "ход противника" as promptText during another player's turn;

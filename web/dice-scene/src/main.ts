@@ -124,12 +124,15 @@ try {
       : Math.min(88 / Math.max(canvas.clientHeight, 1), (config.bounds.bottom - top) * .3);
     const bottom = config.bounds.bottom - resultSpace;
     const width = Math.max(.01, right - left), height = Math.max(.01, bottom - top);
-    const columns = landscape ? dice.length : Math.min(dice.length, 3);
+    // Size and spacing always use a full five-dice layout. A reroll only
+    // removes slots; fewer dice must never cause the remaining dice to zoom in.
+    const columns = landscape ? 5 : 3;
+    const sizingRows = landscape ? 1 : 2;
     const rows = Math.ceil(dice.length / Math.max(columns, 1));
     const cx = (left + right) / 2, cy = (top + bottom) / 2;
     const worldWidth = worldPoint(right, cy).distanceTo(worldPoint(left, cy));
     const worldHeight = worldPoint(cx, bottom).distanceTo(worldPoint(cx, top));
-    scale = Math.min(landscape ? 1.8 : 1.15, worldWidth / Math.max(columns, 1) / 1.7, worldHeight / Math.max(rows, 1) / (landscape ? 1.35 : 2.1));
+    scale = Math.min(landscape ? 1.8 : 1.15, worldWidth / columns / 1.7, worldHeight / sizingRows / (landscape ? 1.35 : 2.1));
     targets = dice.map((_, i) => {
       const row = Math.floor(i / columns);
       const inRow = Math.min(columns, dice.length - row * columns);
