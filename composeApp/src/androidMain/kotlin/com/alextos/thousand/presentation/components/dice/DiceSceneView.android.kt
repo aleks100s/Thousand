@@ -39,9 +39,7 @@ actual fun DiceSceneView(
                 isVerticalScrollBarEnabled = false
                 isHorizontalScrollBarEnabled = false
                 isFocusable = false
-                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
-                // The scene has no web controls. Compose owns every touch, including overlays.
-                setOnTouchListener { _, _ -> true }
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_AUTO
                 settings.apply {
                     javaScriptEnabled = true
                     domStorageEnabled = false

@@ -25,6 +25,7 @@ fun DiceSceneSurface(
     state: DicePresentationState,
     configuration: DiceSceneConfiguration,
     modifier: Modifier = Modifier,
+    onSceneEvent: (DiceSceneEvent) -> Unit = {},
 ) {
     var html by remember { mutableStateOf<String?>(null) }
     val haptics = koinInject<DiceHapticsService>()
@@ -73,6 +74,11 @@ fun DiceSceneSurface(
         }
     }
     if (state.phase != DiceScenePhase.Fallback) {
-        html?.let { DiceSceneView(it, configuration, coordinator::onEvent, modifier) }
+        html?.let {
+            DiceSceneView(it, configuration, { event ->
+                coordinator.onEvent(event)
+                onSceneEvent(event)
+            }, modifier)
+        }
     }
 }

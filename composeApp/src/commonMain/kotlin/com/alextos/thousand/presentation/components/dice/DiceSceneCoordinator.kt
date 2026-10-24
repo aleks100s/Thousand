@@ -27,6 +27,8 @@ sealed interface DiceSceneEvent {
     data class RollStarted(val presentationId: String) : DiceSceneEvent
     data class RollFinished(val presentationId: String) : DiceSceneEvent
     data class Error(val presentationId: String?) : DiceSceneEvent
+    data class PlayerSelected(val playerId: String) : DiceSceneEvent
+    data class HeaderAnimation(val running: Boolean) : DiceSceneEvent
 }
 
 enum class DiceScenePhase { Loading, Idle, Animating, ShowingResult, Fallback }
@@ -93,6 +95,7 @@ class DiceSceneCoordinator(private val onFinished: () -> Unit) {
         if (failed) return
         val current = _state.value
         when (event) {
+            is DiceSceneEvent.PlayerSelected, is DiceSceneEvent.HeaderAnimation -> Unit
             DiceSceneEvent.Ready -> if (!current.ready) _state.value = current.copy(
                 ready = true,
                 phase = if (current.showResult) DiceScenePhase.ShowingResult else DiceScenePhase.Idle,

@@ -17,11 +17,25 @@ The score and the smaller "продолжить или сохранить?" prom
 after settling. Their space is reserved inside the supplied bounds; resizing
 repositions them without replaying the roll. Text is assigned with textContent.
 Landscape uses a single row for all dice, with a larger size limit and a projected
-volume fit that reserves space for the score and prompt. Portrait keeps two rows.
+volume fit that reserves space for the score and prompt. Portrait uses up to two rows.
 In landscape the upper-left history height does not constrain the central row;
 rerolls with fewer dice retain their size even as the history grows.
 Kotlin supplies "ход противника" as promptText during another player's turn;
 changing this label does not replay the roll.
+
+The optional header contains immutable saved player scores, the active player ID,
+the game goal and enabled barrel boundaries. The header sits above the table
+(112px in portrait, 88px in landscape);
+native normalized overlay bounds are converted to table coordinates. Cards grow
+to fill the row or scroll horizontally when their intrinsic widths no longer fit.
+Player selection events retain native player actions, online state, bolts and reactions.
+When the outgoing player's saved score increases, the header animates its number
+and progress for 850ms before switching the active card and applying the latest
+table command. Commands received during this animation replace the pending command.
+Backgrounding or reduced-motion preference skips the animation. The native host
+blocks actions during it and falls back after a bounded timeout.
+An empty promptText hides the decision prompt during tutorials; the opponent
+turn label is still shown. The landscape layout reserves less text space then.
 Events ready/rollStarted/rollFinished/error go to DiceNative on
 Android and webkit.messageHandlers.diceScene on iOS. In a browser they are exposed
 as `diceSceneEvent` CustomEvents. New IDs replace previous animations; resizing

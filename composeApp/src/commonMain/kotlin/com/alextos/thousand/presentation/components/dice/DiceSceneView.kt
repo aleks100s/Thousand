@@ -8,6 +8,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
@@ -22,8 +23,14 @@ data class DiceSceneConfiguration(
     val bounds: DiceSceneBounds,
     val active: Boolean,
     val isOpponentTurn: Boolean = false,
+    val header: DiceSceneHeader? = null,
+    val isTutorial: Boolean = false,
 ) {
-    val promptText: String get() = if (isOpponentTurn) "ход противника" else "продолжить или сохранить?"
+    val promptText: String get() = when {
+        isOpponentTurn -> "ход противника"
+        isTutorial -> ""
+        else -> "продолжить или сохранить?"
+    }
 
     fun script(): String {
         val message = buildJsonObject {
@@ -31,6 +38,7 @@ data class DiceSceneConfiguration(
             put("promptText", promptText)
             put("isOpponentTurn", isOpponentTurn)
             put("background", background)
+            put("header", header?.json() ?: JsonNull)
             put("bounds", buildJsonObject {
                 put("left", bounds.left)
                 put("top", bounds.top)
@@ -60,6 +68,8 @@ fun decodeDiceSceneEvent(message: String): DiceSceneEvent? = runCatching {
         "rollStarted" -> id?.let { DiceSceneEvent.RollStarted(it) }
         "rollFinished" -> id?.let { DiceSceneEvent.RollFinished(it) }
         "error" -> DiceSceneEvent.Error(id)
+        "playerSelected" -> json["playerId"]?.jsonPrimitive?.contentOrNull?.let { DiceSceneEvent.PlayerSelected(it) }
+        "headerAnimation" -> json["running"]?.jsonPrimitive?.booleanOrNull?.let { DiceSceneEvent.HeaderAnimation(it) }
         else -> null
     }
 }.getOrNull()

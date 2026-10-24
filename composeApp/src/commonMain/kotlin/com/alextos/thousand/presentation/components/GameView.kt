@@ -55,6 +55,9 @@ import com.alextos.thousand.presentation.components.dice.DiceSceneConfiguration
 import com.alextos.thousand.presentation.components.dice.DiceSceneCoordinator
 import com.alextos.thousand.presentation.components.dice.DiceScenePhase
 import com.alextos.thousand.presentation.components.dice.DiceSceneSurface
+import com.alextos.thousand.presentation.components.dice.DiceSceneHeader
+import com.alextos.thousand.presentation.components.dice.DiceSceneEvent
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -73,18 +76,8 @@ fun GameView(
             LoadingIndicator()
         }
     } else {
-        Column(modifier = modifier.fillMaxSize()) {
-            GameHeaderView(
-                game = game,
-                currentPlayer = state.currentPlayer,
-                showBolts = game.isFinished().not(),
-                isOnlineGame = state.isOnlineGame,
-                onlinePlayerIds = state.onlinePlayerIds,
-                reactionsByAuthorId = state.reactionsByAuthorId,
-                onPlayerClick = onPlayerClick,
-            )
-
-            GameField(state, isAnimated, isManualInputEnabled, onAction, onFinishGame)
+        Box(modifier = modifier.fillMaxSize()) {
+            GameField(state, isAnimated, isManualInputEnabled, onAction, onFinishGame, onPlayerClick)
         }
     }
 }
@@ -96,10 +89,20 @@ private fun GameField(
     isManualInputEnabled: Boolean,
     onAction: (GameAction) -> Unit,
     onFinishGame: () -> Unit,
+    onPlayerClick: ((Player) -> Unit)?,
 ) {
     val latestAction = rememberUpdatedState(onAction)
     val coordinator = remember { DiceSceneCoordinator { latestAction.value(GameAction.FinishRoll) } }
     val presentation by coordinator.state.collectAsState()
+    var headerAnimating by remember { mutableStateOf(false) }
+    LaunchedEffect(headerAnimating, presentation.active, presentation.phase) {
+        if (!presentation.active || presentation.phase == DiceScenePhase.Fallback) headerAnimating = false
+        else if (headerAnimating) {
+            delay(2_000)
+            headerAnimating = false
+            coordinator.fail()
+        }
+    }
     LaunchedEffect(state.game?.id, state.currentPlayer?.user?.id, state.currentTurn, state.currentRoll, isAnimated) {
         coordinator.acceptSnapshot(state, isAnimated)
     }
@@ -109,9 +112,11 @@ private fun GameField(
     var resultHeight by remember { mutableStateOf(0) }
     val density = LocalDensity.current
     val margin = with(density) { 16.dp.toPx() }
+    val headerSize = if (fieldSize.width > fieldSize.height) 88.dp else 112.dp
+    val headerHeight = with(density) { headerSize.toPx() }
     val height = fieldSize.height.coerceAtLeast(1).toFloat()
     val width = fieldSize.width.coerceAtLeast(1).toFloat()
-    val top = ((if (state.currentTurn.size > 1) historyHeight else 0) + margin) / height
+    val top = (headerHeight + (if (state.currentTurn.size > 1) historyHeight else 0) + margin) / height
     val bottom = (height - buttonsHeight - (if (presentation.phase == DiceScenePhase.Fallback) resultHeight else 0) - margin) / height
     val bounds = DiceSceneBounds(
         left = (margin / width).coerceIn(0f, .4f),
@@ -123,6 +128,8 @@ private fun GameField(
     val sceneConfiguration = DiceSceneConfiguration(
         presentation.request, "#$color", bounds, presentation.active,
         isOpponentTurn = if (state.isOnlineGame) state.isOpponentTurn else state.currentPlayer?.isMain() == false,
+        header = DiceSceneHeader.from(state, onPlayerClick != null),
+        isTutorial = state.isTutorial,
     )
     Box(Modifier.fillMaxSize().onSizeChanged { fieldSize = it }, contentAlignment = Alignment.Center) {
         DiceSceneSurface(
@@ -133,12 +140,24 @@ private fun GameField(
                     contentDescription = listOfNotNull(
                         state.currentRoll?.dice?.joinToString(", ") { it.value.value.toString() },
                         presentation.request?.scoreText,
-                        sceneConfiguration.promptText,
+                        sceneConfiguration.promptText.takeIf { it.isNotBlank() },
                     ).joinToString(". ")
+                }
+            },
+            onSceneEvent = { event ->
+                when (event) {
+                    is DiceSceneEvent.PlayerSelected -> state.game?.players?.find { it.user.id == event.playerId }?.let { onPlayerClick?.invoke(it) }
+                    is DiceSceneEvent.HeaderAnimation -> headerAnimating = event.running
+                    else -> Unit
                 }
             },
         )
         if (presentation.phase == DiceScenePhase.Fallback) {
+            Column(Modifier.align(Alignment.TopCenter)) {
+                state.game?.let { game ->
+                    GameHeaderView(game, state.currentPlayer, !game.isFinished(), state.isOnlineGame, state.onlinePlayerIds, state.reactionsByAuthorId, onPlayerClick)
+                }
+            }
             state.currentRoll?.let { roll ->
                 Box(
                     Modifier.fillMaxSize().padding(
@@ -177,7 +196,7 @@ private fun GameField(
         if (state.currentRoll == null) Text("Вы в игре!")
         if (state.currentTurn.size > 1) {
             TurnHistoryView(
-                Modifier.align(Alignment.TopStart).onSizeChanged { historyHeight = it.height }.padding(16.dp),
+                Modifier.align(Alignment.TopStart).padding(top = headerSize).onSizeChanged { historyHeight = it.height }.padding(16.dp),
                 state.currentTurn,
             )
         }
@@ -192,10 +211,12 @@ private fun GameField(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(presentation.request?.scoreText.orEmpty(), style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center)
-                Text(sceneConfiguration.promptText, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center)
+                if (sceneConfiguration.promptText.isNotBlank()) {
+                    Text(sceneConfiguration.promptText, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center)
+                }
             }
         }
-        val hideActions = !sceneConfiguration.isOpponentTurn && !presentation.actionsEnabled
+        val hideActions = headerAnimating || (!sceneConfiguration.isOpponentTurn && !presentation.actionsEnabled)
         ButtonsView(
             Modifier.align(Alignment.BottomCenter)
                 .onSizeChanged { buttonsHeight = it.height }
@@ -207,7 +228,7 @@ private fun GameField(
                 onAction(action)
             },
             onFinishGame = onFinishGame,
-            actionsEnabled = presentation.actionsEnabled,
+            actionsEnabled = presentation.actionsEnabled && !headerAnimating,
         )
     }
 }

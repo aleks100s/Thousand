@@ -2,18 +2,19 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { faceNormals, orientationFor } from './orientation';
 import { createFeltMaterial, drawWoodenFrame } from './table';
+import { createGameHeader, type HeaderState } from './header';
 
 type Request = { presentationId: string; values: number[]; animate: boolean; scoringIndices?: number[]; scoreText?: string };
 type Bounds = { left: number; top: number; right: number; bottom: number };
-type Configuration = { request: Request | null; bounds: Bounds; background: string; active: boolean; promptText?: string; isOpponentTurn?: boolean };
+type Configuration = { request: Request | null; bounds: Bounds; background: string; active: boolean; promptText?: string; isOpponentTurn?: boolean; header?: HeaderState | null };
 type NativeWindow = Window & {
   DiceNative?: { postMessage(message: string): void };
   webkit?: { messageHandlers?: { diceScene?: { postMessage(message: string): void } } };
   DiceScene?: { receive(message: string): void };
 };
 const native = window as NativeWindow;
-const send = (type: string, presentationId?: string) => {
-  const message = JSON.stringify({ type, presentationId });
+const send = (type: string, presentationId?: string, extra: object = {}) => {
+  const message = JSON.stringify({ type, presentationId, ...extra });
   if (native.DiceNative) native.DiceNative.postMessage(message);
   else if (native.webkit?.messageHandlers?.diceScene) native.webkit.messageHandlers.diceScene.postMessage(message);
   else window.dispatchEvent(new CustomEvent('diceSceneEvent', { detail: JSON.parse(message) }));
@@ -33,6 +34,7 @@ const woodenFrame = document.querySelector<HTMLCanvasElement>('#wooden-frame')!;
 const result = document.querySelector<HTMLElement>('#roll-result')!;
 const score = document.querySelector<HTMLElement>('#roll-score')!;
 const prompt = document.querySelector<HTMLElement>('#roll-prompt')!;
+const header = createGameHeader(document.querySelector<HTMLElement>('#game-header')!, event => send(event.type, undefined, event));
 
 try {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
@@ -88,15 +90,15 @@ try {
   }
   function layout() {
     const landscape = canvas.clientWidth > canvas.clientHeight;
-    const left = landscape ? Math.max(.12, config.bounds.left) : config.bounds.left;
-    const right = landscape ? Math.min(.88, config.bounds.right) : config.bounds.right;
+    const left = landscape ? Math.max(.16, config.bounds.left) : config.bounds.left;
+    const right = landscape ? Math.min(.84, config.bounds.right) : config.bounds.right;
     // Native overlays may leave almost no top inset. Keep the dice below the
     // curved head of the table, where its full width is available.
     // History occupies the upper-left corner, not the entire landscape row.
     // Its growing height must not shrink dice on every subsequent reroll.
-    const top = landscape ? .16 : Math.max(config.bounds.top, Math.min(.23, config.bounds.bottom - .20));
+    const top = landscape ? Math.max(.08, 28 / Math.max(canvas.clientHeight, 1)) : Math.max(config.bounds.top, Math.min(.23, config.bounds.bottom - .20));
     const resultSpace = landscape
-      ? 76 / Math.max(canvas.clientHeight, 1)
+      ? (config.promptText === '' ? 42 : 60) / Math.max(canvas.clientHeight, 1)
       : Math.min(88 / Math.max(canvas.clientHeight, 1), (config.bounds.bottom - top) * .3);
     const bottom = config.bounds.bottom - resultSpace;
     const width = Math.max(.01, right - left), height = Math.max(.01, bottom - top);
@@ -135,7 +137,7 @@ try {
       scale *= config.isOpponentTurn ? .9 : 1.06;
       targets.forEach(target => { target.y = scale * .51; });
       const fitted = projectedRange();
-      const desiredCenter = Math.min(.5, cy + .08);
+      const desiredCenter = Math.min(.5, cy + .08, bottom - (fitted.max - fitted.min) / 2);
       const offset = worldPoint(cx, cy + desiredCenter - (fitted.min + fitted.max) / 2).sub(worldPoint(cx, cy));
       targets.forEach(target => target.add(offset));
     } else if (targets.length) {
@@ -203,6 +205,7 @@ try {
     if (!config.request || !dice.length) { result.hidden = true; return; }
     score.textContent = config.request.scoreText ?? '0 очков';
     prompt.textContent = config.promptText ?? 'продолжить или сохранить?';
+    prompt.hidden = !prompt.textContent;
     const height = canvas.clientHeight;
     const box = new THREE.Box3();
     let lowest = 0;
@@ -249,13 +252,24 @@ try {
     if (complete) { pose(1); positionResult(); }
     render();
   }
-  native.DiceScene = { receive(message) {
+  function applyConfiguration(next: Configuration) {
     if (failed) return;
     try {
-      const next = JSON.parse(message) as Configuration;
-      if (next.request && (!next.request.values.length || next.request.values.length > 5 || next.request.values.some(v => !Number.isInteger(v) || v < 1 || v > 6))) throw new Error('Invalid dice');
       const isNew = next.request?.presentationId !== currentId;
-      config = next;
+      const fullHeight = Math.max(window.innerHeight, 1);
+      const headerHeight = next.header ? document.querySelector<HTMLElement>('#game-header')!.offsetHeight : 0;
+      const tableHeight = Math.max(fullHeight - headerHeight, 1);
+      config = { ...next, bounds: {
+        ...next.bounds,
+        top: Math.max(0, (next.bounds.top * fullHeight - headerHeight) / tableHeight),
+        bottom: Math.min(1, (next.bounds.bottom * fullHeight - headerHeight) / tableHeight),
+      } };
+      if (camera.aspect !== canvas.clientWidth / Math.max(canvas.clientHeight, 1)) {
+        renderer.setSize(Math.max(canvas.clientWidth, 1), Math.max(canvas.clientHeight, 1), false);
+        camera.aspect = canvas.clientWidth / Math.max(canvas.clientHeight, 1);
+        camera.updateProjectionMatrix();
+        drawWoodenFrame(woodenFrame, canvas.clientWidth, canvas.clientHeight, renderer.getPixelRatio());
+      }
       scene.background = new THREE.Color(config.background);
       if (!next.request) {
         stopFrame();
@@ -284,12 +298,21 @@ try {
         else if (complete) { pose(1); render(); positionResult(); }
       }
     } catch (error) { console.error('Dice scene update failed', error); failed = true; stopFrame(); send('error', currentId); }
+  }
+  native.DiceScene = { receive(message) {
+    if (failed) return;
+    try {
+      const next = JSON.parse(message) as Configuration;
+      if (next.request && (!next.request.values.length || next.request.values.length > 5 || next.request.values.some(v => !Number.isInteger(v) || v < 1 || v > 6))) throw new Error('Invalid dice');
+      document.body.classList.toggle('has-header', !!next.header);
+      header.update(next.header ?? null, next.active, () => applyConfiguration(next));
+    } catch (error) { console.error('Dice scene update failed', error); failed = true; stopFrame(); send('error', currentId); }
   } };
   canvas.addEventListener('webglcontextlost', event => {
     event.preventDefault(); failed = true; stopFrame(); send('error', currentId);
   });
   window.addEventListener('error', () => { failed = true; stopFrame(); send('error', currentId); });
-  document.addEventListener('visibilitychange', () => { if (document.hidden) finish(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { header.stop(); finish(); } });
   new ResizeObserver(resize).observe(canvas);
   resize();
   send('ready');

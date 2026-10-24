@@ -80,7 +80,7 @@ actual fun DiceSceneView(
                 scrollView.scrollEnabled = false
                 scrollView.bounces = false
                 scrollView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentBehavior.UIScrollViewContentInsetAdjustmentNever
-                userInteractionEnabled = false
+                userInteractionEnabled = true
                 loadHTMLString(html, baseURL = NSURL(string = "https://dice.thousand.invalid/"))
             }
         },
@@ -94,6 +94,6 @@ actual fun DiceSceneView(
             handler.webView = null
             handler.onEvent = {}
         },
-        properties = UIKitInteropProperties(interactionMode = null, isNativeAccessibilityEnabled = false),
+        properties = UIKitInteropProperties(isNativeAccessibilityEnabled = true),
     )
 }
