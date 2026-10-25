@@ -1,5 +1,6 @@
 package com.alextos.thousand.presentation.menu.multiplayer.lobby
 
+import com.alextos.thousand.presentation.components.AppBottomSheet as ModalBottomSheet
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -16,12 +17,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -89,7 +88,7 @@ internal fun LobbyContent(state: LobbyState, goBack: () -> Unit, onAction: (Lobb
             ) {
                 Text(state.error)
 
-                Button(onClick = goBack) {
+                AppButton(onClick = goBack) {
                     Text("Выйти в меню")
                 }
             }
@@ -176,7 +175,7 @@ internal fun LobbyContent(state: LobbyState, goBack: () -> Unit, onAction: (Lobb
                     onClick = { shareText("Присоединяйся к игре «Тысяча»!\n${LobbyLinks.create(state.lobbyId)}") },
                 ) { Text("Поделиться ссылкой") }
                 if (state.isHost) {
-                    Button(
+                    AppButton(
                         modifier = Modifier.fillMaxWidth(),
                         enabled = state.isStartButtonEnabled,
                         onClick = { onAction(LobbyAction.StartGame) },

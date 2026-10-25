@@ -1,12 +1,15 @@
 package com.alextos.thousand.presentation.menu.multiplayer.multiplayer_game
 
+import com.alextos.thousand.presentation.components.AppButtonStyle
+import com.alextos.thousand.presentation.components.AppButton
+import androidx.compose.material3.Button as DangerButton
+import com.alextos.thousand.presentation.components.AppBottomSheet as ModalBottomSheet
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -15,8 +18,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -107,7 +108,7 @@ fun MultiplayerGameScreen(
             ) {
                 Text(state.error ?: "")
 
-                Button(onClick = ::leaveGame) {
+                AppButton(onClick = ::leaveGame) {
                     Text("Выйти в меню")
                 }
             }
@@ -132,7 +133,7 @@ fun MultiplayerGameScreen(
                     style = MaterialTheme.typography.bodyMedium,
                 )
 
-                Button(
+                AppButton(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
                         errorMessage = null
@@ -286,7 +287,7 @@ fun MultiplayerGameScreen(
                     style = MaterialTheme.typography.bodyMedium,
                 )
 
-                Button(
+                DangerButton(
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error,
@@ -300,7 +301,7 @@ fun MultiplayerGameScreen(
                     Text("Удалить игру")
                 }
 
-                OutlinedButton(
+                AppButton(style = AppButtonStyle.Secondary,
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
                         isDeleteGameSheetVisible = false
@@ -365,7 +366,7 @@ fun MultiplayerGameScreen(
                     style = MaterialTheme.typography.bodyMedium,
                 )
 
-                Button(
+                AppButton(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
                         viewModel.onAction(MultiplayerGameAction.Rematch)
@@ -374,7 +375,7 @@ fun MultiplayerGameScreen(
                     Text(if (gameResultSheet.isCurrentUser) "Сыграть еще раз" else "Реванш")
                 }
 
-                OutlinedButton(
+                AppButton(style = AppButtonStyle.Secondary,
                     modifier = Modifier.fillMaxWidth(),
                     onClick = ::leaveGame,
                 ) {

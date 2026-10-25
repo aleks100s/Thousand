@@ -1,5 +1,7 @@
 package com.alextos.thousand.presentation.menu.game_list
 
+import com.alextos.thousand.presentation.components.AppButtonStyle
+import com.alextos.thousand.presentation.components.AppButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -18,7 +19,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -146,14 +146,14 @@ private fun LocalGamesInfoCard(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            OutlinedButton(
+            AppButton(style = AppButtonStyle.Secondary,
                 modifier = Modifier.fillMaxWidth(),
                 onClick = openStatistics,
             ) {
                 Text("Статистика")
             }
 
-            Button(
+            AppButton(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = onCreateGame,
             ) {

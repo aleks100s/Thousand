@@ -1,5 +1,10 @@
 package com.alextos.thousand.presentation.menu.multiplayer
 
+import com.alextos.thousand.presentation.components.appTextFieldColors
+import com.alextos.thousand.application.theme.AppShapes
+import com.alextos.thousand.presentation.components.AppButtonStyle
+import com.alextos.thousand.presentation.components.AppButton
+import com.alextos.thousand.presentation.components.AppBottomSheet as ModalBottomSheet
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,15 +18,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -240,7 +242,7 @@ fun MultiplayerScreen(
                     style = MaterialTheme.typography.bodyMedium,
                 )
 
-                Button(
+                AppButton(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
                         isCreateGameUnavailableSheetVisible = false
@@ -348,7 +350,7 @@ private fun MultiplayerActions(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            OutlinedButton(
+            AppButton(style = AppButtonStyle.Secondary,
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
                     onAction(MultiplayerAction.ShowJoinLobbySheet)
@@ -357,7 +359,7 @@ private fun MultiplayerActions(
                 Text("Присоединиться")
             }
 
-            Button(
+            AppButton(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = openCreateLobby,
             ) {
@@ -365,7 +367,7 @@ private fun MultiplayerActions(
             }
         }
     } else {
-        Button(
+        AppButton(
             modifier = Modifier.fillMaxWidth(),
             onClick = {
                 onAction(MultiplayerAction.ShowLoginSheet)
@@ -405,6 +407,8 @@ private fun JoinLobbySheet(
             Text(text = "Введите четырехзначный код для подключения")
 
             OutlinedTextField(
+                colors = appTextFieldColors(),
+                shape = AppShapes.Row,
                 value = lobbyId,
                 onValueChange = { value ->
                     lobbyId = value
@@ -423,7 +427,7 @@ private fun JoinLobbySheet(
                 Text(text = state.lobbyError, color = MaterialTheme.colorScheme.error)
             }
 
-            Button(
+            AppButton(
                 modifier = Modifier.fillMaxWidth(),
                 enabled = canJoinLobby,
                 onClick = {
@@ -466,6 +470,8 @@ private fun LoginSheet(
             )
 
             OutlinedTextField(
+                colors = appTextFieldColors(),
+                shape = AppShapes.Row,
                 value = email,
                 onValueChange = { value ->
                     email = value
@@ -479,6 +485,8 @@ private fun LoginSheet(
             )
 
             OutlinedTextField(
+                colors = appTextFieldColors(),
+                shape = AppShapes.Row,
                 value = password,
                 onValueChange = { value ->
                     password = value
@@ -500,7 +508,7 @@ private fun LoginSheet(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                OutlinedButton(
+                AppButton(style = AppButtonStyle.Secondary,
                     modifier = Modifier.weight(1f),
                     enabled = buttonsEnabled,
                     onClick = {
@@ -522,7 +530,7 @@ private fun LoginSheet(
                     }
                 }
 
-                Button(
+                AppButton(
                     modifier = Modifier.weight(1f),
                     enabled = buttonsEnabled,
                     onClick = {

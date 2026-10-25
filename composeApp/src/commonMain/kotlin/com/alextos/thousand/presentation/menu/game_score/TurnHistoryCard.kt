@@ -1,5 +1,7 @@
 package com.alextos.thousand.presentation.menu.game_score
 
+import com.alextos.thousand.application.theme.AppShapes
+import com.alextos.thousand.application.theme.AppColors
 import com.alextos.thousand.presentation.components.PanelSegment
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,17 +18,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alextos.thousand.presentation.components.SingleDieView
 
-private val HistoryMint = Color(0xFF89F1D1)
-private val HistoryCream = Color(0xFFF5EBD9)
-private val HistoryMuted = Color(0xFFB9CCE4)
-private val HistoryLine = Color(0xFF24505C)
+private val HistoryMint = AppColors.Positive
+private val HistoryCream = AppColors.TextPrimary
+private val HistoryMuted = AppColors.TextSecondary
+private val HistoryLine = AppColors.OutlineSubtle
 
 @Composable
 internal fun TurnHistoryLazyRow(row: TurnHistoryRow) {
@@ -46,12 +47,12 @@ private fun TurnHistoryHeader(turn: TurnHistoryUi) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(
             text = "ХОД ${turn.number}",
-            color = Color(0xFF08212A),
+            color = AppColors.OnAccent,
             fontWeight = FontWeight.ExtraBold,
             style = MaterialTheme.typography.labelLarge,
             modifier = Modifier.clip(CircleShape)
-                .background(Brush.verticalGradient(listOf(Color(0xFFFFD48B), Color(0xFFFFB950))))
-                .border(1.dp, Color(0xFFFFDB94), CircleShape)
+                .background(Brush.verticalGradient(listOf(AppColors.Highlight, AppColors.Highlight)))
+                .border(1.dp, AppColors.Highlight, CircleShape)
                 .padding(horizontal = 12.dp, vertical = 7.dp),
         )
         Text(turn.playerName, color = HistoryCream, style = MaterialTheme.typography.titleMedium,
@@ -62,15 +63,15 @@ private fun TurnHistoryHeader(turn: TurnHistoryUi) {
 @Composable
 private fun TurnHistoryEffect(message: String) {
     Row(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
-            .background(Brush.horizontalGradient(listOf(Color(0xFF382A12), Color(0xCC201B12))))
-            .border(1.dp, Color(0xFFFFA51F), RoundedCornerShape(12.dp)).padding(10.dp),
+        Modifier.fillMaxWidth().clip(AppShapes.Row)
+            .background(Brush.horizontalGradient(listOf(AppColors.Highlight.copy(alpha = .12f), AppColors.Highlight.copy(alpha = .12f))))
+            .border(1.dp, AppColors.Highlight, AppShapes.Row).padding(10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text("!", color = Color(0xFF25200F), fontWeight = FontWeight.Black, textAlign = TextAlign.Center,
-            modifier = Modifier.size(22.dp).background(Color(0xFFFFC35F), CircleShape))
-        Text(message, color = Color(0xFFFFC35F), style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
+        Text("!", color = AppColors.OnAccent, fontWeight = FontWeight.Black, textAlign = TextAlign.Center,
+            modifier = Modifier.size(22.dp).background(AppColors.Highlight, CircleShape))
+        Text(message, color = AppColors.Highlight, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
     }
 }
 
@@ -87,25 +88,25 @@ private fun TurnHistoryFooter(turn: TurnHistoryUi) {
 @Composable
 private fun HistoryRollRow(number: Int, roll: HistoryRollUi) {
     BoxWithConstraints(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
-            .background(Brush.horizontalGradient(listOf(Color(0x99204C59), Color(0x3300202A)))).padding(6.dp),
+        Modifier.fillMaxWidth().clip(AppShapes.Row)
+            .background(Brush.horizontalGradient(listOf(AppColors.SurfaceInset, AppColors.SurfaceInset))).padding(6.dp),
     ) {
         val dieSize = ((maxWidth - 102.dp) / 5).coerceIn(16.dp, 48.dp)
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(number.toString(), textAlign = TextAlign.Center, color = HistoryCream,
                 fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier.size(24.dp).background(Color(0xFF234B58), CircleShape).wrapContentHeight(Alignment.CenterVertically))
+                modifier = Modifier.size(24.dp).background(AppColors.SurfaceMuted, CircleShape).wrapContentHeight(Alignment.CenterVertically))
             Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                 roll.dice.forEach { die ->
-                    Box(Modifier.size(dieSize).then(if (die.scoring) Modifier.border(1.5.dp, HistoryMint, RoundedCornerShape(25)) else Modifier).padding(3.dp)) {
+                    Box(Modifier.size(dieSize).then(if (die.scoring) Modifier.border(1.5.dp, AppColors.Scoring, RoundedCornerShape(25)) else Modifier).padding(3.dp)) {
                         SingleDieView(Modifier.fillMaxSize(), die.value)
                     }
                 }
             }
             Text(roll.score.toString(), color = if (roll.score > 0) HistoryMint else HistoryCream,
                 fontWeight = FontWeight.Bold, fontSize = 18.sp, textAlign = TextAlign.Center,
-                modifier = Modifier.width(54.dp).clip(RoundedCornerShape(9.dp)).background(Color(0xAA052C29))
-                    .border(1.dp, Color(0xFF15574C), RoundedCornerShape(9.dp)).padding(vertical = 8.dp))
+                modifier = Modifier.width(54.dp).clip(AppShapes.Inset).background(AppColors.Positive.copy(alpha = .08f))
+                    .border(1.dp, AppColors.Positive.copy(alpha = .35f), AppShapes.Inset).padding(vertical = 8.dp))
         }
     }
 }

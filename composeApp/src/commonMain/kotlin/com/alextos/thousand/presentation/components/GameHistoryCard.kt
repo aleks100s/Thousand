@@ -1,8 +1,12 @@
 package com.alextos.thousand.presentation.components
 
+import com.alextos.thousand.application.theme.AppShapes
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
+import com.alextos.thousand.application.theme.AppColors
+import com.alextos.thousand.application.theme.AppDimens
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -70,10 +74,9 @@ fun GameHistoryCard(
                 onClick = onClick,
                 onLongClick = onLongClick,
             ),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-        ),
+        shape = AppShapes.Panel,
+        colors = CardDefaults.cardColors(containerColor = AppColors.Surface),
+        border = BorderStroke(AppDimens.Border, AppColors.Outline),
     ) {
         Row(
             modifier = Modifier

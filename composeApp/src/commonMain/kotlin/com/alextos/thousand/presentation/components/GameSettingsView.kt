@@ -1,18 +1,15 @@
 package com.alextos.thousand.presentation.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import com.alextos.thousand.application.theme.AppShapes
+import com.alextos.thousand.application.theme.AppColors
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -23,9 +20,9 @@ import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import thousand.composeapp.generated.resources.*
 
-private val SettingsCream = Color(0xFFF5F0DF)
-private val SettingsBody = Color(0xFFB9CCE4)
-private val SettingsShape = RoundedCornerShape(16.dp)
+private val SettingsCream = AppColors.TextPrimary
+private val SettingsBody = AppColors.TextSecondary
+private val SettingsShape = AppShapes.Panel
 
 @Composable
 fun GameSettingsView(
@@ -86,20 +83,12 @@ internal fun GameSettingsCard(
 ) {
     val action = if (onCheckedChange != null) Modifier.toggleable(checked, role = Role.Switch, onValueChange = onCheckedChange) else Modifier
     Row(
-        Modifier.widthIn(max = 760.dp).fillMaxWidth().clip(SettingsShape)
-            .background(Color(0xC000202A)).border(1.5.dp, Color(0xFF087F98), SettingsShape)
+        Modifier.widthIn(max = 760.dp).fillMaxWidth().appPanel()
             .then(action).padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Box(
-            Modifier.size(42.dp).clip(RoundedCornerShape(12.dp))
-                .background(Brush.verticalGradient(listOf(Color(0xFF07333F), Color(0xFF01222D))))
-                .border(1.dp, Color(0xFF0B5364), RoundedCornerShape(12.dp)),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(painterResource(icon), contentDescription = null, tint = Color(0xFFFFC56A), modifier = Modifier.size(26.dp))
-        }
+        AppIconBadge(icon)
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
             Text(title, color = SettingsCream, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
             Text(description, color = SettingsBody, style = MaterialTheme.typography.bodySmall)
@@ -108,13 +97,13 @@ internal fun GameSettingsCard(
             Switch(
                 checked = checked, onCheckedChange = null,
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color.White, checkedTrackColor = Color(0xFF809FFF),
-                    checkedBorderColor = Color(0xFF809FFF), uncheckedThumbColor = Color(0xFFA5BBC6),
-                    uncheckedTrackColor = Color(0xFF183B47), uncheckedBorderColor = Color(0xFF496572),
+                    checkedThumbColor = Color.White, checkedTrackColor = AppColors.Accent,
+                    checkedBorderColor = AppColors.Accent, uncheckedThumbColor = AppColors.TextSecondary,
+                    uncheckedTrackColor = AppColors.SurfaceMuted, uncheckedBorderColor = AppColors.OutlineSubtle,
                 ),
             )
         } else {
-            Text(value.orEmpty(), color = if (checked) Color(0xFF89F1D1) else SettingsBody,
+            Text(value.orEmpty(), color = if (checked) AppColors.Positive else SettingsBody,
                 style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
         }
     }
@@ -123,13 +112,12 @@ internal fun GameSettingsCard(
 @Composable
 private fun GameModeCard(settings: GameSettings, onSettingsChange: (GameSettings) -> Unit) {
     Column(
-        Modifier.widthIn(max = 760.dp).fillMaxWidth().clip(SettingsShape)
-            .background(Color(0xC000202A)).border(1.5.dp, Color(0xFF087F98), SettingsShape).padding(12.dp),
+        Modifier.widthIn(max = 760.dp).fillMaxWidth().appPanel().padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Icon(painterResource(if (settings.isVirtualDiceEnabled) Res.drawable.sports_esports_24px else GameRuleSymbol.Combinations.icon),
-                contentDescription = null, tint = Color(0xFFFFC56A))
+                contentDescription = null, tint = AppColors.Highlight)
             Text(if (settings.isVirtualDiceEnabled) "В игровом режиме вам не понадобятся настоящие кубики - вы сможете играть прямо на телефоне."
                 else "Режим ассистента позволяет вести счет реальной игры в приложении",
                 color = SettingsBody, style = MaterialTheme.typography.bodySmall)
@@ -140,7 +128,7 @@ private fun GameModeCard(settings: GameSettings, onSettingsChange: (GameSettings
                     selected = settings.isVirtualDiceEnabled == virtual,
                     onClick = { onSettingsChange(settings.copy(isVirtualDiceEnabled = virtual)) },
                     shape = SegmentedButtonDefaults.itemShape(index, 2),
-                    colors = SegmentedButtonDefaults.colors(activeContainerColor = Color(0xFFFFC56A), activeContentColor = Color(0xFF08212A),
+                    colors = SegmentedButtonDefaults.colors(activeContainerColor = AppColors.Accent, activeContentColor = AppColors.OnAccent,
                         inactiveContainerColor = Color.Transparent, inactiveContentColor = SettingsCream),
                     label = { Text(if (virtual) "Игровой режим" else "Режим ассистента") },
                 )

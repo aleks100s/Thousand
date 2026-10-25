@@ -1,12 +1,16 @@
 package com.alextos.thousand.presentation.menu.statistics
 
+import com.alextos.thousand.application.theme.AppDimens
+import com.alextos.thousand.presentation.components.AppIconBadge
+import com.alextos.thousand.presentation.components.AppPanel
+import com.alextos.thousand.application.theme.AppShapes
+import com.alextos.thousand.application.theme.AppColors
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -16,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -27,12 +30,12 @@ import org.jetbrains.compose.resources.painterResource
 import thousand.composeapp.generated.resources.*
 import kotlin.math.roundToInt
 
-internal val StatisticsCream = Color(0xFFF5F0DF)
-internal val StatisticsBody = Color(0xFFA6C5DD)
-internal val StatisticsOutline = Color(0xFF087F9D)
-internal val StatisticsBlue = Color(0xFF8DBDFF)
-internal val StatisticsPurple = Color(0xFFB59AF8)
-internal val StatisticsGold = Color(0xFFFFCE72)
+internal val StatisticsCream = AppColors.TextPrimary
+internal val StatisticsBody = AppColors.TextSecondary
+internal val StatisticsOutline = AppColors.Outline
+internal val StatisticsBlue = AppColors.Accent
+internal val StatisticsPurple = AppColors.Purple
+internal val StatisticsGold = AppColors.Highlight
 
 internal data class StatisticsMetricUi(
     val label: String,
@@ -43,13 +46,7 @@ internal data class StatisticsMetricUi(
 
 @Composable
 internal fun StatisticsPanel(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    val shape = RoundedCornerShape(16.dp)
-    Column(
-        modifier.fillMaxWidth().clip(shape)
-            .background(Brush.horizontalGradient(listOf(Color(0xE0053040), Color(0xE0001826))))
-            .border(1.5.dp, StatisticsOutline, shape).padding(14.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp), content = content,
-    )
+    AppPanel(modifier, content = content)
 }
 
 @Composable
@@ -63,7 +60,7 @@ internal fun StatisticsSummary(
             Text(title, Modifier.weight(1f), color = StatisticsCream,
                 style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             if (onHistogram != null) TextButton(onClick = onHistogram) {
-                Icon(painterResource(Res.drawable.statistics_bar_chart), null, Modifier.size(18.dp), tint = StatisticsBlue)
+                Icon(painterResource(Res.drawable.statistics_bar_chart), null, Modifier.size(AppDimens.IconCompact), tint = StatisticsBlue)
                 Spacer(Modifier.width(5.dp))
                 Text("Гистограмма", color = StatisticsBlue)
             }
@@ -95,12 +92,7 @@ internal fun StatisticsSummary(
 
 @Composable
 private fun MetricIcon(metric: StatisticsMetricUi) {
-    val shape = RoundedCornerShape(12.dp)
-    Box(Modifier.size(40.dp).clip(shape)
-        .background(Brush.verticalGradient(listOf(metric.accent.copy(alpha = .22f), Color(0xFF062532))))
-        .border(1.dp, metric.accent.copy(alpha = .45f), shape), contentAlignment = Alignment.Center) {
-        Icon(painterResource(metric.icon), null, Modifier.size(27.dp), tint = metric.accent)
-    }
+    AppIconBadge(metric.icon, tint = metric.accent)
 }
 
 @Composable
@@ -127,13 +119,13 @@ internal fun StatisticsTableRow(
         val tableWidth = maxWidth.coerceAtLeast(if (values.size > 3) 640.dp else 0.dp)
         val viewport = if (scrollState != null) Modifier.horizontalScroll(scrollState) else Modifier
         Box(Modifier.fillMaxWidth().then(viewport)) {
-            val shape = RoundedCornerShape(if (header) 10.dp else 14.dp)
+            val shape = if (header) AppShapes.Row else AppShapes.Panel
             val action = if (onClick != null) Modifier.clickable(role = Role.Button,
                 onClickLabel = "Показать распределение: $name", onClick = onClick) else Modifier
             Row(
                 Modifier.width(tableWidth).heightIn(min = if (header) 44.dp else 64.dp).clip(shape)
-                    .background(if (header) Color(0xE0052E3D) else Color(0xC0001E2B))
-                    .border(1.dp, if (header) Color(0xFF08465A) else Color(0xFF07546B), shape)
+                    .background(if (header) AppColors.SurfaceRaised else AppColors.Surface)
+                    .border(if (header) AppDimens.BorderSubtle else AppDimens.Border, AppColors.Outline, shape)
                     .then(action).padding(horizontal = 12.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -141,9 +133,9 @@ internal fun StatisticsTableRow(
                 Row(Modifier.weight(2.5f), verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (!header) {
-                        Box(Modifier.size(28.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFF1B3541)),
+                        Box(Modifier.size(AppDimens.AvatarCompact).clip(AppShapes.Inset).background(AppColors.SurfaceMuted),
                             contentAlignment = Alignment.Center) {
-                            Icon(painterResource(Res.drawable.person_24px), null, Modifier.size(20.dp), tint = Color(0xFFCBD8DF))
+                            Icon(painterResource(Res.drawable.person_24px), null, Modifier.size(AppDimens.IconCompact), tint = AppColors.TextSecondary)
                         }
                     }
                     Text(name, Modifier.weight(1f), color = if (header) StatisticsBody else StatisticsCream,
@@ -158,7 +150,7 @@ internal fun StatisticsTableRow(
                 }
                 if (showAction) {
                     if (header) Spacer(Modifier.width(20.dp))
-                    else Icon(painterResource(Res.drawable.statistics_bar_chart), "Гистограмма", Modifier.size(20.dp), tint = StatisticsBlue)
+                    else Icon(painterResource(Res.drawable.statistics_bar_chart), "Гистограмма", Modifier.size(AppDimens.IconCompact), tint = StatisticsBlue)
                 }
             }
         }

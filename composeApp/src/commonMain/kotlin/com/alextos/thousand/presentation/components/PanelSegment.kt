@@ -1,5 +1,7 @@
 package com.alextos.thousand.presentation.components
 
+import com.alextos.thousand.application.theme.AppDimens
+import com.alextos.thousand.application.theme.AppColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
@@ -24,23 +25,23 @@ import androidx.compose.ui.unit.dp
 internal fun PanelSegment(
     first: Boolean,
     last: Boolean,
-    padding: Dp = 10.dp,
+    padding: Dp = AppDimens.CardPadding,
     gap: Dp = 8.dp,
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val shape = RoundedCornerShape(
-        topStart = if (first) 18.dp else 0.dp, topEnd = if (first) 18.dp else 0.dp,
-        bottomStart = if (last) 18.dp else 0.dp, bottomEnd = if (last) 18.dp else 0.dp,
+        topStart = if (first) AppDimens.PanelRadius else 0.dp, topEnd = if (first) AppDimens.PanelRadius else 0.dp,
+        bottomStart = if (last) AppDimens.PanelRadius else 0.dp, bottomEnd = if (last) AppDimens.PanelRadius else 0.dp,
     )
     Column(
-        modifier.widthIn(max = 760.dp).fillMaxWidth().clip(shape).background(Color(0xB300202A))
+        modifier.widthIn(max = 760.dp).fillMaxWidth().clip(shape).background(AppColors.Surface)
             .drawWithCache {
-                val stroke = 1.5.dp.toPx()
+                val stroke = AppDimens.Border.toPx()
                 val inset = stroke / 2
                 val right = size.width - inset
                 val bottom = size.height - inset
-                val radius = 18.dp.toPx().coerceAtMost(size.height).coerceAtMost(size.width / 2)
+                val radius = AppDimens.PanelRadius.toPx().coerceAtMost(size.height).coerceAtMost(size.width / 2)
                 val path = Path().apply {
                     if (first) {
                         moveTo(inset, radius)
@@ -56,7 +57,7 @@ internal fun PanelSegment(
                     } else moveTo(inset, size.height)
                     lineTo(inset, if (first) radius else 0f)
                 }
-                onDrawBehind { drawPath(path, Color(0xFF087F98), style = Stroke(stroke)) }
+                onDrawBehind { drawPath(path, AppColors.Outline, style = Stroke(stroke)) }
             }
             .padding(start = padding, end = padding, top = if (first) padding else 0.dp, bottom = if (last) padding else gap),
         verticalArrangement = Arrangement.spacedBy(gap),

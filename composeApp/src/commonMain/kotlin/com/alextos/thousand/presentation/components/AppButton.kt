@@ -1,5 +1,6 @@
 package com.alextos.thousand.presentation.components
 
+import com.alextos.thousand.application.theme.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,7 +32,7 @@ fun AppButton(
 ) {
     val primary = style == AppButtonStyle.Primary
     val background = if (primary) {
-        Brush.verticalGradient(listOf(Color(0xFFFFD096), Color(0xFFFF8A24)))
+        AppBrushes.PrimaryAction
     } else {
         Brush.verticalGradient(listOf(Color.Black, Color.Black))
     }
@@ -43,7 +44,7 @@ fun AppButton(
         enabled = enabled,
         onClick = onClick,
         shape = CircleShape,
-        border = if (primary) null else BorderStroke(1.dp, Color.White),
+        border = if (primary) null else BorderStroke(AppDimens.BorderSubtle, AppColors.White),
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.Transparent,

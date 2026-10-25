@@ -1,5 +1,7 @@
 package com.alextos.thousand.presentation.menu.statistics.dice_statistics
 
+import com.alextos.thousand.application.theme.AppShapes
+import com.alextos.thousand.presentation.components.AppBottomSheet as ModalBottomSheet
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -38,9 +40,6 @@ fun DiceStatisticsScreen(goBack: () -> Unit) {
     histogram?.let { data ->
         ModalBottomSheet(
             onDismissRequest = { histogram = null },
-            containerColor = androidx.compose.ui.graphics.Color(0xFF031F2B), contentColor = StatisticsCream,
-            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-            dragHandle = { BottomSheetDefaults.DragHandle(color = StatisticsOutline) },
         ) {
             DiceDistributionHistogram(data.title, data.distribution)
         }
@@ -90,7 +89,7 @@ private fun DiceDistributionHistogram(title: String, distribution: List<DieValue
             StatisticsPanel {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     SingleDieView(Modifier.size(28.dp), DieValue.entries.first { it.value == item.value })
-                    Box(Modifier.weight(1f).height(20.dp).clip(RoundedCornerShape(6.dp)).background(StatisticsOutline.copy(alpha = .2f))) {
+                    Box(Modifier.weight(1f).height(20.dp).clip(AppShapes.Inset).background(StatisticsOutline.copy(alpha = .2f))) {
                         val fraction = if (maxCount == 0) 0f else item.count.toFloat() / maxCount
                         Box(Modifier.fillMaxWidth(fraction).fillMaxHeight().background(StatisticsBlue))
                     }

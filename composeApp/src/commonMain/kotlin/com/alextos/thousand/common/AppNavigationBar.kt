@@ -1,5 +1,9 @@
 package com.alextos.thousand.common
 
+import androidx.compose.foundation.layout.size
+import com.alextos.thousand.application.theme.AppDimens
+import com.alextos.thousand.application.theme.AppBrushes
+import com.alextos.thousand.application.theme.AppColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.RowScope
@@ -16,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.font.FontWeight
@@ -33,16 +36,16 @@ internal fun AppNavigationBar(
     backButtonIcon: Painter,
     actions: @Composable (Color) -> @Composable RowScope.() -> Unit,
 ) {
-    val foreground = Color(0xFFF5F0DF)
+    val foreground = AppColors.TextPrimary
     BoxWithConstraints {
         val compact = maxWidth > maxHeight && maxHeight < 600.dp
         CenterAlignedTopAppBar(
             modifier = Modifier
                 .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-                .background(Brush.verticalGradient(listOf(Color(0xFF0C202D), Color(0xFF071722))))
+                .background(AppBrushes.Navigation)
                 .drawWithContent {
                     drawContent()
-                    drawLine(Color(0xFF020C13), Offset(0f, size.height - .5.dp.toPx()), Offset(size.width, size.height - .5.dp.toPx()), 1.dp.toPx())
+                    drawLine(AppColors.NavigationDivider, Offset(0f, size.height - .5.dp.toPx()), Offset(size.width, size.height - .5.dp.toPx()), 1.dp.toPx())
                     drawLine(foreground.copy(alpha = .16f), Offset(12.dp.toPx(), .5.dp.toPx()), Offset(size.width - 12.dp.toPx(), .5.dp.toPx()), 1.dp.toPx())
                 },
             title = titleView ?: {
@@ -65,7 +68,7 @@ internal fun AppNavigationBar(
             navigationIcon = {
                 if (goBack != null) {
                     IconButton(onClick = goBack) {
-                        Icon(backButtonIcon, contentDescription = "Назад")
+                        Icon(backButtonIcon, contentDescription = "Назад", modifier = Modifier.size(AppDimens.Icon))
                     }
                 }
             },

@@ -11,60 +11,60 @@
     .has-header #table-scene{top:104px}
     canvas{display:block;width:100%;height:100%;touch-action:none}
     #wooden-frame{position:absolute;inset:0;pointer-events:none}
-    #roll-result{position:absolute;transform:translateX(-50%);width:76%;text-align:center;pointer-events:none;color:#f2f7ed;font-family:system-ui,-apple-system,sans-serif;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+    #roll-result{position:absolute;transform:translateX(-50%);width:76%;text-align:center;pointer-events:none;color:var(--app-text-primary);font-family:system-ui,-apple-system,sans-serif;text-shadow:0 2px 8px rgba(0,0,0,.5)}
     #roll-score,#table-empty{font-size:30px;font-weight:650;line-height:1.2;letter-spacing:-.5px}
-    #table-empty{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;text-align:center;color:#f2f7ed;font-family:system-ui,-apple-system,sans-serif;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+    #table-empty{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;text-align:center;color:var(--app-text-primary);font-family:system-ui,-apple-system,sans-serif;text-shadow:0 2px 8px rgba(0,0,0,.5)}
     #table-empty[hidden]{display:none}
-    #roll-prompt{margin-top:7px;font-size:14px;line-height:1.4;color:#d1ddc7}
-    #game-header{box-sizing:border-box;position:absolute;inset:0 0 auto;height:104px;background:linear-gradient(110deg,#0c2531,#071722);color:#eef8fc;font-family:system-ui,-apple-system,sans-serif;z-index:2;border-bottom:1px solid #193540}
+    #roll-prompt{margin-top:7px;font-size:14px;line-height:1.4;color:var(--app-text-secondary)}
+    #game-header{box-sizing:border-box;position:absolute;inset:0 0 auto;height:104px;background:linear-gradient(110deg,var(--app-navigation-top),var(--app-navigation-bottom));color:var(--app-text-primary);font-family:system-ui,-apple-system,sans-serif;z-index:2;border-bottom:1px solid var(--app-outline-subtle)}
     .players-list{display:flex;gap:16px;padding:10px 16px 4px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;touch-action:pan-x;overscroll-behavior-x:contain}
     .players-list::-webkit-scrollbar{display:none}
     .header-player{flex:1 0 auto;min-width:140px;display:flex;align-items:center;gap:12px;padding:3px 4px;border:0;background:none;color:inherit;text-align:left;font:inherit;cursor:pointer}
     .header-player:disabled{opacity:1;cursor:default}
-    .player-avatar{position:relative;display:block;width:46px;height:46px;flex:0 0 46px;border-radius:50%;border:2px solid #61718e;box-shadow:0 2px 7px #0006}
+    .player-avatar{position:relative;display:block;width:var(--app-badge);height:var(--app-badge);flex:0 0 var(--app-badge);border-radius:50%;border:2px solid var(--app-avatar-outline);box-shadow:0 2px 7px #0006}
     .player-avatar svg{width:100%;height:100%;border-radius:50%;display:block}
-    .header-player[data-active=true] .player-avatar{border-color:#85efcf;box-shadow:0 0 0 3px #65cfb85c,0 0 14px #4fdfbb3d}
+    .header-player[data-active=true] .player-avatar{border-color:var(--app-positive);box-shadow:0 0 0 3px rgba(var(--app-positive-rgb),.36),0 0 14px rgba(var(--app-positive-rgb),.24)}
     .player-meta{display:flex;flex-direction:column;gap:2px;min-width:0}
     .player-name{font-size:14px;line-height:19px;font-weight:550;max-width:144px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .player-score{font-size:22px;line-height:26px;font-weight:750;letter-spacing:.2px}
-    .header-player[data-active=true] .player-score{color:#87f2d0}
+    .header-player[data-active=true] .player-score{color:var(--app-positive)}
     .player-bolts{position:absolute;left:-4px;bottom:-2px;display:flex;gap:2px;pointer-events:none}
-    .bolt-card{display:block;width:6px;height:10px;border-radius:1.5px;background:#e3474e;border:1px solid #ff929680;box-shadow:0 1px 3px #0008}
-    .online-dot{position:absolute;right:-1px;bottom:0;width:8px;height:8px;border:2px solid #102633;background:#788b94;border-radius:50%}
-    .online-dot.online{background:#72e5b0}
-    .avatar-reaction{position:absolute;left:calc(100% - 7px);top:-4px;padding:2px 7px;max-width:120px;font-size:22px;line-height:28px;border-radius:13px 13px 13px 3px;border:1px solid #e8b961;background:linear-gradient(145deg,#44361d,#26231b);box-shadow:0 4px 12px #0007;white-space:nowrap;pointer-events:none;z-index:3}
+    .bolt-card{display:block;width:6px;height:10px;border-radius:1.5px;background:var(--app-danger);border:1px solid rgba(var(--app-danger-rgb),.5);box-shadow:0 1px 3px #0008}
+    .online-dot{position:absolute;right:-1px;bottom:0;width:8px;height:8px;border:2px solid var(--app-navigation-bottom);background:var(--app-outline-subtle);border-radius:50%}
+    .online-dot.online{background:var(--app-positive)}
+    .avatar-reaction{position:absolute;left:calc(100% - 7px);top:-4px;padding:2px 7px;max-width:120px;font-size:22px;line-height:28px;border-radius:13px 13px 13px 3px;border:1px solid var(--app-highlight);background:var(--app-surface-inset);box-shadow:0 4px 12px #0007;white-space:nowrap;pointer-events:none;z-index:3}
     .progress-row{display:flex;align-items:center;gap:12px;padding:2px 20px 0}
-    .score-track{position:relative;height:8px;flex:1;border-radius:5px;background:#344456;box-shadow:inset 0 1px 3px #0008}
-    .score-fill{position:absolute;inset:0 auto 0 0;border-radius:5px;background:linear-gradient(90deg,#70e8de,#94efbc);box-shadow:0 0 7px #68cbb840}
+    .score-track{position:relative;height:8px;flex:1;border-radius:5px;background:var(--app-surface-muted);box-shadow:inset 0 1px 3px #0008}
+    .score-fill{position:absolute;inset:0 auto 0 0;border-radius:5px;background:linear-gradient(90deg,var(--app-accent),var(--app-positive));box-shadow:0 0 7px rgba(var(--app-positive-rgb),.25)}
     .barrel-zones{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none}
-    .barrel-zone{position:absolute;top:0;height:100%;background:repeating-linear-gradient(135deg,rgba(213,193,255,.48) 0,rgba(213,193,255,.48) 1px,transparent 1px,transparent 6px)}
-    .score-goal{font-size:14px;color:#c1cbd7;font-weight:600}
-    .barrel-tick{position:absolute;top:-2px;width:2px;height:12px;background:#b4c5c7c9;transform:translateX(-50%)}
-    .barrel-tick span{position:absolute;top:13px;left:50%;transform:translateX(-50%);font-size:8px;line-height:10px;color:#a5bac6}
+    .barrel-zone{position:absolute;top:0;height:100%;background:repeating-linear-gradient(135deg,rgba(var(--app-purple-rgb),.48) 0,rgba(var(--app-purple-rgb),.48) 1px,transparent 1px,transparent 6px)}
+    .score-goal{font-size:14px;color:var(--app-text-secondary);font-weight:600}
+    .barrel-tick{position:absolute;top:-2px;width:2px;height:12px;background:rgba(var(--app-text-secondary-rgb),.8);transform:translateX(-50%)}
+    .barrel-tick span{position:absolute;top:13px;left:50%;transform:translateX(-50%);font-size:8px;line-height:10px;color:var(--app-text-secondary)}
     @media (orientation:landscape){
       #game-header{height:82px}
       .has-header #table-scene{top:82px}
       .players-list{padding:6px 16px 2px}
-      .player-avatar{width:36px;height:36px;flex-basis:36px}
+      .player-avatar{width:var(--app-badge-compact);height:var(--app-badge-compact);flex-basis:var(--app-badge-compact)}
       .player-name{font-size:13px;line-height:17px}
       .player-score{font-size:19px;line-height:22px}
       #roll-score,#table-empty{font-size:24px}
       #roll-prompt{font-size:12px;margin-top:5px}
     }
-    #game-notifications{position:absolute;inset:0;pointer-events:none;z-index:10;font:14px/1.5 system-ui,-apple-system,sans-serif;color:#edf8f5}
+    #game-notifications{position:absolute;inset:0;pointer-events:none;z-index:10;font:14px/1.5 system-ui,-apple-system,sans-serif;color:var(--app-text-primary)}
     .toast-stack{position:absolute;right:16px;top:var(--notifications-top,12px);display:flex;flex-direction:column;align-items:flex-end;gap:9px;width:min(320px,calc(100% - 32px));max-height:calc(100% - var(--notifications-top,12px) - var(--notifications-bottom,90px) - 12px);overflow-y:auto;scrollbar-width:thin;pointer-events:auto;padding:0 0 8px 6px;box-sizing:border-box}
-    .game-bubble{--bubble-accent:#7edbdf;box-sizing:border-box;position:relative;display:flex;align-items:flex-start;gap:10px;background:linear-gradient(145deg,#12343e,#091e28);border:1px solid #487781;border-left:3px solid var(--bubble-accent);border-radius:15px 15px 3px 15px;box-shadow:0 6px 18px #0006,inset 0 1px #ffffff0d;color:#edf8f5}
-    .game-toast{flex-shrink:0;max-width:100%;padding:13px 32px 13px 12px;pointer-events:auto;animation:bubble-arrive .2s ease-out}
-    .game-bubble[data-kind=reply]{--bubble-accent:#ceadff;background:linear-gradient(145deg,#302b47,#192536);border-color:#82719f;border-radius:18px 18px 4px 18px}
-    .game-bubble[data-kind=reaction]{--bubble-accent:#ffca78;background:linear-gradient(145deg,#42351f,#252b29);border-color:#8e7448;border-radius:24px 24px 6px 24px}
-    .bubble-icon{display:block;flex:0 0 24px;width:24px;height:24px;padding:4px;box-sizing:border-box;border-radius:8px;background:#ffffff0c;color:var(--bubble-accent)}
+    .game-bubble{--bubble-accent:var(--app-accent);box-sizing:border-box;position:relative;display:flex;align-items:flex-start;gap:var(--app-item-gap);background:var(--app-surface);border:var(--app-border) solid var(--app-outline);border-left:3px solid var(--bubble-accent);border-radius:var(--app-panel-radius) var(--app-panel-radius) var(--app-inset-radius) var(--app-panel-radius);box-shadow:0 6px 18px #0006,inset 0 1px #ffffff0d;color:var(--app-text-primary)}
+    .game-toast{flex-shrink:0;max-width:100%;padding:12px 52px 12px 12px;pointer-events:auto;animation:bubble-arrive .2s ease-out}
+    .game-bubble[data-kind=reply]{--bubble-accent:var(--app-purple);background:var(--app-surface-raised);border-color:var(--app-purple);border-radius:var(--app-panel-radius) var(--app-panel-radius) var(--app-inset-radius) var(--app-panel-radius)}
+    .game-bubble[data-kind=reaction]{--bubble-accent:var(--app-highlight);background:var(--app-surface);border-color:var(--app-highlight);border-radius:var(--app-sheet-radius) var(--app-sheet-radius) var(--app-inset-radius) var(--app-sheet-radius)}
+    .bubble-icon{display:block;flex:0 0 var(--app-badge-compact);width:var(--app-badge-compact);height:var(--app-badge-compact);padding:6px;box-sizing:border-box;border-radius:var(--app-row-radius);background:var(--app-icon-surface-top);color:var(--bubble-accent)}
     .bubble-icon svg{display:block;width:100%;height:100%;overflow:visible}
     .bubble-copy{min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}
     .game-toast .bubble-copy{max-height:180px;overflow:auto}
-    .bubble-close{position:absolute;top:4px;right:4px;width:24px;height:24px;border:0;border-radius:50%;background:transparent;color:#c0d6da;font:20px/1 system-ui;cursor:pointer;touch-action:manipulation}
-    .bubble-close:focus-visible{outline:2px solid #ffb65c;outline-offset:1px}
+    .bubble-close{position:absolute;top:0;right:0;width:var(--app-touch-target);height:var(--app-touch-target);border:0;border-radius:50%;background:transparent;color:var(--app-text-secondary);font:24px/1 system-ui;cursor:pointer;touch-action:manipulation}
+    .bubble-close:focus-visible{outline:2px solid var(--app-accent);outline-offset:1px}
     .bubble-close:hover{background:#ffffff12}
-    .game-advice{--bubble-accent:#99e6bd;position:absolute;bottom:var(--notifications-bottom,90px);left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:650px;padding:10px 13px;border-color:#497c72;border-radius:12px;background:linear-gradient(135deg,#153a37,#10282e);font-size:12px;line-height:1.5;pointer-events:auto;max-height:30%;overflow:auto}
+    .game-advice{--bubble-accent:var(--app-positive);position:absolute;bottom:var(--notifications-bottom,90px);left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:650px;padding:10px 13px;border-color:var(--app-positive);border-radius:var(--app-row-radius);background:var(--app-surface-raised);font-size:12px;line-height:1.5;pointer-events:auto;max-height:30%;overflow:auto}
     .game-advice[hidden]{display:none}
     .bubble-leaving{animation:bubble-leave .18s ease-in forwards}
     @keyframes bubble-arrive{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}

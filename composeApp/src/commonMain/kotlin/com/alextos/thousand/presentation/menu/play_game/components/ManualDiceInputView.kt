@@ -1,5 +1,6 @@
 package com.alextos.thousand.presentation.menu.play_game.components
 
+import com.alextos.thousand.presentation.components.AppButton
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
@@ -65,7 +65,7 @@ fun ManualDiceInputView(
             }
         }
 
-        Button(
+        AppButton(
             onClick = {
                 onSubmit(dice)
             },

@@ -1,5 +1,6 @@
 package com.alextos.thousand.presentation.menu.create_game
 
+import com.alextos.thousand.application.theme.AppColors
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
@@ -14,7 +15,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.presentation.components.GameSettingsView
@@ -95,11 +95,11 @@ internal fun CreateGameContent(state: CreateGameState, onAction: (CreateGameActi
     state.pendingDeleteUser?.let { user ->
         AlertDialog(
             onDismissRequest = { onAction(CreateGameAction.CancelDeletePlayer) },
-            containerColor = Color(0xFF062431), titleContentColor = Color(0xFFF5F0DF), textContentColor = Color(0xFFAACBDD),
+            containerColor = AppColors.Sheet, titleContentColor = AppColors.TextPrimary, textContentColor = AppColors.TextSecondary,
             title = { Text("Удалить игрока?") },
             text = { Text("Игрок «${user.name}» будет удалён из списка локальных игроков.") },
-            confirmButton = { TextButton(onClick = { onAction(CreateGameAction.ConfirmDeletePlayer) }) { Text("Удалить", color = Color(0xFFFF7778)) } },
-            dismissButton = { TextButton(onClick = { onAction(CreateGameAction.CancelDeletePlayer) }) { Text("Отмена", color = Color(0xFFAACBDD)) } },
+            confirmButton = { TextButton(onClick = { onAction(CreateGameAction.ConfirmDeletePlayer) }) { Text("Удалить", color = AppColors.Danger) } },
+            dismissButton = { TextButton(onClick = { onAction(CreateGameAction.CancelDeletePlayer) }) { Text("Отмена", color = AppColors.TextSecondary) } },
         )
     }
 }

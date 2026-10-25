@@ -1,5 +1,7 @@
 package com.alextos.thousand.presentation.menu.game_score
 
+import com.alextos.thousand.application.theme.AppShapes
+import com.alextos.thousand.application.theme.AppColors
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -71,7 +73,7 @@ private fun ScoreChart(
     series: List<PlayerScoreSeries>,
     colors: List<Color>,
 ) {
-    val axisColor = Color(0xFF24505C)
+    val axisColor = AppColors.OutlineSubtle
     val textMeasurer = rememberTextMeasurer()
     val maxScore = series.flatMap { it.points }.maxOrNull()?.coerceAtLeast(100) ?: 100
     val maxIndex = series.maxOfOrNull { it.points.lastIndex }?.coerceAtLeast(1) ?: 1
@@ -159,7 +161,7 @@ private fun ChartLegend(
                         .size(10.dp)
                         .background(
                             color = colors[index % colors.size],
-                            shape = RoundedCornerShape(5.dp),
+                            shape = AppShapes.Inset,
                         )
                 )
                 Text(
@@ -190,7 +192,7 @@ internal fun PlayerStatisticsCard(
             )
 
             Text("Статистика игрока · сравнение со всеми играми", color = SummaryMuted, style = MaterialTheme.typography.labelSmall)
-            HorizontalDivider(color = Color(0xFF24505C))
+            HorizontalDivider(color = AppColors.OutlineSubtle)
 
             StatisticComparisonRow(
                 title = "Средний ход",
@@ -246,12 +248,12 @@ private fun StatisticComparisonRow(
 @Composable
 private fun chartColors(): List<Color> {
     return listOf(
-        Color(0xFF89F1D1),
-        Color(0xFFFFC35F),
-        Color(0xFF89BDFF),
-        Color(0xFFFF9292),
-        Color(0xFFD4ACFF),
-        Color(0xFF8AE2EE),
+        AppColors.Positive,
+        AppColors.Highlight,
+        AppColors.ChartBlue,
+        AppColors.Danger,
+        AppColors.Purple,
+        AppColors.ChartCyan,
     )
 }
 
@@ -274,7 +276,7 @@ private fun Double.toRoundedTenths(): Int {
     return (this * 10).roundToInt()
 }
 
-private val SummaryCream = Color(0xFFF5EBD9)
-private val SummaryMuted = Color(0xFFB9CCE4)
-private val PositiveDeltaColor = Color(0xFF89F1D1)
-private val NegativeDeltaColor = Color(0xFFFF9292)
+private val SummaryCream = AppColors.TextPrimary
+private val SummaryMuted = AppColors.TextSecondary
+private val PositiveDeltaColor = AppColors.Positive
+private val NegativeDeltaColor = AppColors.Danger

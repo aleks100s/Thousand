@@ -1,5 +1,6 @@
 package com.alextos.thousand.presentation.menu.play_game
 
+import com.alextos.thousand.presentation.components.AppBottomSheet as ModalBottomSheet
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.DropdownMenu
@@ -8,7 +9,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -65,7 +65,7 @@ fun PlayGameScreen(
             }
         }
     }
-    
+
     Screen(
         modifier = Modifier,
         title = state.gameState.gameNavigationTitle,

@@ -1,11 +1,14 @@
 package com.alextos.thousand.presentation.menu.statistics
 
+import com.alextos.thousand.application.theme.AppDimens
+import com.alextos.thousand.presentation.components.AppIconBadge
+import com.alextos.thousand.application.theme.AppShapes
+import com.alextos.thousand.application.theme.AppColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -13,8 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -70,39 +71,28 @@ private enum class StatisticsSection(
 
 @Composable
 private fun StatisticsItem(section: StatisticsSection, onClick: () -> Unit) {
-    val shape = RoundedCornerShape(16.dp)
+    val shape = AppShapes.Panel
     Surface(
         onClick = onClick,
         color = Color.Transparent,
         shape = shape,
-        modifier = Modifier.fillMaxWidth().border(1.5.dp, StatisticsOutline, shape),
+        modifier = Modifier.fillMaxWidth().border(AppDimens.Border, AppColors.Outline, shape),
     ) {
         Row(
             Modifier.fillMaxWidth().heightIn(min = 88.dp)
-                .background(Brush.horizontalGradient(listOf(
-                    StatisticsOutline.copy(alpha = .20f), Color(0xE6001A2A), StatisticsOutline.copy(alpha = .12f),
-                )))
-                .padding(14.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
+                .background(AppColors.Surface)
+                .padding(AppDimens.CardPadding),
+            horizontalArrangement = Arrangement.spacedBy(AppDimens.ItemGap),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            val iconShape = RoundedCornerShape(14.dp)
-            Box(
-                Modifier.size(56.dp).clip(iconShape)
-                    .background(Brush.verticalGradient(listOf(StatisticsBlue.copy(alpha = .27f), Color(0xFF03222F))))
-                    .border(1.dp, StatisticsOutline.copy(alpha = .7f), iconShape),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(painterResource(section.icon), contentDescription = null,
-                    modifier = Modifier.size(32.dp), tint = StatisticsBlue)
-            }
+            AppIconBadge(section.icon, large = true)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(section.title, color = Color(0xFFF5F0DF), style = MaterialTheme.typography.titleMedium,
+                Text(section.title, color = AppColors.TextPrimary, style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold)
-                Text(section.description, color = Color(0xFFA6C5DD), style = MaterialTheme.typography.bodyMedium)
+                Text(section.description, color = AppColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
             }
             Icon(painterResource(Res.drawable.rules_chevron_right), contentDescription = null,
-                modifier = Modifier.size(24.dp), tint = Color(0xFFF5F0DF))
+                modifier = Modifier.size(24.dp), tint = AppColors.TextPrimary)
         }
     }
 }

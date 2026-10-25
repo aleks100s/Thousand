@@ -1,3 +1,5 @@
+import './design-tokens.css';
+import { designColors } from './design-tokens';
 import appBackground from '../../../composeApp/src/commonMain/composeResources/drawable/app_background.jpg?inline';
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
@@ -83,7 +85,7 @@ try {
   const ivory = new THREE.MeshStandardMaterial({ color: '#fffdf4', roughness: .28, metalness: .02 });
   // Nested back-face shells create a soft silhouette without a bloom pass or an idle render loop.
   const haloMaterials = [.30, .16, .085, .045, .02].map(opacity => new THREE.MeshBasicMaterial({
-    color: '#55e5dc', transparent: true, opacity, side: THREE.BackSide, depthWrite: false, toneMapped: false,
+    color: designColors.Scoring, transparent: true, opacity, side: THREE.BackSide, depthWrite: false, toneMapped: false,
   }));
   const ink = new THREE.MeshStandardMaterial({ color: '#202625', roughness: .6 });
   const pipGeometry = new THREE.CircleGeometry(.075, 20);

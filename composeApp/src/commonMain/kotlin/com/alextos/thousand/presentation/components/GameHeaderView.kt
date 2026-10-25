@@ -1,5 +1,6 @@
 package com.alextos.thousand.presentation.components
 
+import com.alextos.thousand.application.theme.AppShapes
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -20,7 +21,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -347,7 +347,7 @@ private fun ScoreChangeBubbleView(
             .alpha(alpha.value)
             .background(
                 color = if (isPositive) POSITIVE_SCORE_CHANGE_COLOR else NEGATIVE_SCORE_CHANGE_COLOR,
-                shape = RoundedCornerShape(16.dp)
+                shape = AppShapes.Panel
             )
             .padding(horizontal = 10.dp, vertical = 4.dp),
         color = Color.White,

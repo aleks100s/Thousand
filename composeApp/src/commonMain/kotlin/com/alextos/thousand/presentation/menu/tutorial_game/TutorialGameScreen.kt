@@ -1,14 +1,14 @@
 package com.alextos.thousand.presentation.menu.tutorial_game
 
+import com.alextos.thousand.presentation.components.AppButton
+import com.alextos.thousand.presentation.components.AppBottomSheet as ModalBottomSheet
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -57,7 +57,7 @@ fun TutorialGameScreen(
             ) {
                 Text(text = message)
 
-                Button(
+                AppButton(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
                         viewModel.onAction(TutorialGameAction.CloseMessage)

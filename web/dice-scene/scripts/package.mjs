@@ -6,6 +6,11 @@ const script = html.match(/<script\b[^>]*src="([^"]+)"[^>]*><\/script>/);
 if (!script) throw new Error('Expected a single Vite entry');
 const js = await readFile(resolve('dist', script[1].replace(/^\//, '')), 'utf8');
 html = html.replace(script[0], () => `<script type="module">${js.replace(/<\/script/gi, '<\\/script')}</script>`);
+// Keep generated design tokens offline, just like the bundled JavaScript.
+for (const link of html.matchAll(/<link\b(?=[^>]*rel="stylesheet")[^>]*href="([^"]+)"[^>]*>/g)) {
+  const css = await readFile(resolve('dist', link[1].replace(/^\//, '')), 'utf8');
+  html = html.replace(link[0], () => `<style>${css.replace(/<\/style/gi, '<\\/style')}</style>`);
+}
 if (/<(?:script|link)\b[^>]*(?:src|href)=/.test(html)) throw new Error('Unbundled dependency');
 html = html.replace('<head>', '<head><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src \'unsafe-inline\'; style-src \'unsafe-inline\'; connect-src \'none\'; img-src data:">');
 const output = resolve('../../composeApp/src/commonMain/composeResources/files/dice-scene/index.html');

@@ -1,5 +1,9 @@
 package com.alextos.thousand.presentation.menu.game_rules
 
+import com.alextos.thousand.presentation.components.AppIconBadge
+import com.alextos.thousand.presentation.components.AppPanel
+import com.alextos.thousand.application.theme.AppShapes
+import com.alextos.thousand.application.theme.AppColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,7 +20,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -33,10 +36,10 @@ import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.*
 
-private val RulesCream = Color(0xFFF5F0DF)
-private val RulesBody = Color(0xFFCADBE7)
-private val RulesGold = Color(0xFFFFC56A)
-private val RulesOutline = Color(0xFF087F98)
+private val RulesCream = AppColors.TextPrimary
+private val RulesBody = AppColors.TextSecondary
+private val RulesGold = AppColors.Highlight
+private val RulesOutline = AppColors.Outline
 
 @Composable
 fun GameRulesScreen(onGoBack: () -> Unit) {
@@ -129,34 +132,18 @@ internal fun GameRulesList(modifier: Modifier = Modifier, state: GameRulesState)
 
 @Composable
 private fun RulesPanel(content: @Composable ColumnScope.() -> Unit) {
-    Column(
-        Modifier.widthIn(max = 760.dp).fillMaxWidth().clip(RoundedCornerShape(18.dp))
-            .background(Color(0xB300202A)).border(1.5.dp, RulesOutline, RoundedCornerShape(18.dp))
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        content = content,
-    )
+    AppPanel(Modifier.widthIn(max = 760.dp), content = content)
 }
 
 @Composable
-private fun RulesIcon(icon: DrawableResource, prominent: Boolean = false, compact: Boolean = false) {
-    val shape = RoundedCornerShape(12.dp)
-    Box(
-        Modifier.size(if (compact) 34.dp else 42.dp).clip(shape)
-            .background(if (prominent) Brush.verticalGradient(listOf(Color(0xFFFFD88E), Color(0xFFFFB851)))
-                else Brush.verticalGradient(listOf(Color(0xFF07333F), Color(0xFF01222D))))
-            .border(1.dp, if (prominent) Color(0xFFFFDF9D) else Color(0xFF0B5364), shape),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(painterResource(icon), contentDescription = null, modifier = Modifier.size(if (compact) 24.dp else 26.dp),
-            tint = if (prominent) Color(0xFF08212A) else RulesGold)
-    }
+private fun RulesIcon(icon: DrawableResource, compact: Boolean = false) {
+    AppIconBadge(icon, compact = compact)
 }
 
 @Composable
-private fun RulesHeading(title: String, icon: DrawableResource = title.ruleIcon(), prominent: Boolean = false) {
+private fun RulesHeading(title: String, icon: DrawableResource = title.ruleIcon()) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        RulesIcon(icon, prominent)
+        RulesIcon(icon)
         Text(title, modifier = Modifier.weight(1f), color = RulesCream,
             style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
     }
@@ -170,12 +157,12 @@ private fun RulesText(text: String) {
 @Composable
 private fun GameRulesTableOfContents(items: List<GameRulesTableOfContentsItem>, onItemClick: (GameRulesTableOfContentsItem) -> Unit) {
     RulesPanel {
-        RulesHeading("Оглавление", GameRuleSymbol.Contents.icon, prominent = true)
+        RulesHeading("Оглавление", GameRuleSymbol.Contents.icon)
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             items.forEach { item ->
                 Row(
-                    Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp))
-                        .background(Color(0x66001A24)).border(1.dp, Color(0xFF0A5367), RoundedCornerShape(14.dp))
+                    Modifier.fillMaxWidth().clip(AppShapes.Row)
+                        .background(AppColors.SurfaceInset).border(1.dp, AppColors.Outline, AppShapes.Row)
                         .clickable(role = Role.Button) { onItemClick(item) }.padding(6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -184,7 +171,7 @@ private fun GameRulesTableOfContents(items: List<GameRulesTableOfContentsItem>, 
                     Text(item.title, modifier = Modifier.weight(1f), color = RulesCream,
                         style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     Icon(painterResource(Res.drawable.rules_chevron_right), contentDescription = null,
-                        modifier = Modifier.size(24.dp), tint = Color(0xFF7EA5B8))
+                        modifier = Modifier.size(24.dp), tint = AppColors.TextSecondary)
                 }
             }
         }
@@ -202,7 +189,7 @@ private fun GameRuleItem(rule: GameRulesItem.TextRule) {
 @Composable
 private fun RerollExampleView(example: RerollExample) {
     Column(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0x660A3540)).padding(10.dp),
+        Modifier.fillMaxWidth().clip(AppShapes.Row).background(AppColors.SurfaceInset).padding(10.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Text(example.title, color = RulesCream, style = MaterialTheme.typography.titleSmall)
@@ -224,7 +211,7 @@ private fun RerollExampleView(example: RerollExample) {
 @Composable
 private fun DiceCombinationGroup(group: DiceCombinationGroup) {
     Column(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0x660A3540)).padding(10.dp),
+        Modifier.fillMaxWidth().clip(AppShapes.Row).background(AppColors.SurfaceInset).padding(10.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text("Кубик ${group.dieValue.value}", color = RulesGold,
@@ -236,7 +223,7 @@ private fun DiceCombinationGroup(group: DiceCombinationGroup) {
                 }
                 Text("${row.score} очков", color = RulesCream, style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(Color(0x66001E25)).padding(horizontal = 8.dp, vertical = 4.dp))
+                    modifier = Modifier.clip(AppShapes.Inset).background(AppColors.SurfaceInset).padding(horizontal = 8.dp, vertical = 4.dp))
             }
         }
     }
@@ -257,6 +244,6 @@ private fun String.ruleIcon(): DrawableResource = when (this) {
 
 private val RerollExampleDieState.borderColor: Color
     get() = when (this) {
-        RerollExampleDieState.Scored -> Color(0xFFFF8585)
-        RerollExampleDieState.Reroll -> Color(0xFF78DF98)
+        RerollExampleDieState.Scored -> AppColors.Scoring
+        RerollExampleDieState.Reroll -> AppColors.Danger
     }
