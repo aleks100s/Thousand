@@ -105,6 +105,7 @@ class DiceSceneCoordinatorTest {
     fun staleAndRepeatedCallbacksCannotUnlockAnotherRoll() {
         var completions = 0
         val coordinator = DiceSceneCoordinator { completions++ }
+        coordinator.onEvent(DiceSceneEvent.Ready)
         coordinator.acceptSnapshot(game(), true)
         coordinator.acceptSnapshot(game(listOf(roll)), true)
         val oldId = coordinator.state.value.request!!.presentationId
@@ -120,7 +121,7 @@ class DiceSceneCoordinatorTest {
     }
 
     @Test
-    fun timeoutFallsBackAndFutureRollsCompleteWithoutWebView() {
+    fun timeoutKeepsErrorAndActionsDisabledUntilScreenReopens() {
         var completions = 0
         val coordinator = DiceSceneCoordinator { completions++ }
         coordinator.acceptSnapshot(game(), true)
@@ -128,12 +129,14 @@ class DiceSceneCoordinatorTest {
         coordinator.fail()
         coordinator.fail()
         assertEquals(1, completions)
-        assertEquals(DiceScenePhase.Fallback, coordinator.state.value.phase)
+        assertEquals(DiceScenePhase.Error, coordinator.state.value.phase)
+        assertFalse(coordinator.state.value.actionsEnabled)
         coordinator.onEvent(DiceSceneEvent.Ready)
         coordinator.acceptSnapshot(game(listOf(roll, roll)), true)
         assertEquals(2, completions)
         assertTrue(coordinator.state.value.showResult)
-        assertEquals(DiceScenePhase.Fallback, coordinator.state.value.phase)
+        assertEquals(DiceScenePhase.Error, coordinator.state.value.phase)
+        assertFalse(coordinator.state.value.actionsEnabled)
     }
 
     @Test

@@ -1,6 +1,6 @@
 package com.alextos.thousand.presentation.components
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,12 +37,7 @@ import com.alextos.thousand.presentation.menu.play_game.components.ManualDiceInp
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -57,7 +52,6 @@ import com.alextos.thousand.presentation.components.dice.DiceScenePhase
 import com.alextos.thousand.presentation.components.dice.DiceSceneSurface
 import com.alextos.thousand.presentation.components.dice.DiceSceneHeader
 import com.alextos.thousand.presentation.components.dice.DiceSceneEvent
-import com.alextos.thousand.application.theme.ThousandTheme
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -69,6 +63,8 @@ fun GameView(
     onAction: (GameAction) -> Unit,
     onFinishGame: () -> Unit,
     onPlayerClick: ((Player) -> Unit)? = null,
+    messages: List<GameMessageBubble> = emptyList(),
+    onMessageDismiss: (GameMessageBubble) -> Unit = {},
 ) {
     val isAnimated = isManualInputEnabled.not() || state.currentPlayer?.isBot() == true
     val game = state.game
@@ -78,11 +74,12 @@ fun GameView(
         }
     } else {
         Box(modifier = modifier.fillMaxSize()) {
-            GameField(state, isAnimated, isManualInputEnabled, onAction, onFinishGame, onPlayerClick)
+            GameField(state, isAnimated, isManualInputEnabled, onAction, onFinishGame, onPlayerClick, messages, onMessageDismiss)
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun GameField(
     state: GameState,
@@ -91,13 +88,15 @@ private fun GameField(
     onAction: (GameAction) -> Unit,
     onFinishGame: () -> Unit,
     onPlayerClick: ((Player) -> Unit)?,
+    messages: List<GameMessageBubble>,
+    onMessageDismiss: (GameMessageBubble) -> Unit,
 ) {
     val latestAction = rememberUpdatedState(onAction)
     val coordinator = remember { DiceSceneCoordinator { latestAction.value(GameAction.FinishRoll) } }
     val presentation by coordinator.state.collectAsState()
     var headerAnimating by remember { mutableStateOf(false) }
     LaunchedEffect(headerAnimating, presentation.active, presentation.phase) {
-        if (!presentation.active || presentation.phase == DiceScenePhase.Fallback) headerAnimating = false
+        if (!presentation.active || presentation.phase == DiceScenePhase.Error) headerAnimating = false
         else if (headerAnimating) {
             delay(2_000)
             headerAnimating = false
@@ -110,7 +109,6 @@ private fun GameField(
     var fieldSize by remember { mutableStateOf(IntSize.Zero) }
     var historyHeight by remember { mutableStateOf(0) }
     var buttonsHeight by remember { mutableStateOf(0) }
-    var resultHeight by remember { mutableStateOf(0) }
     val density = LocalDensity.current
     val margin = with(density) { 16.dp.toPx() }
     val headerSize = if (fieldSize.width > fieldSize.height) 82.dp else 104.dp
@@ -118,7 +116,7 @@ private fun GameField(
     val height = fieldSize.height.coerceAtLeast(1).toFloat()
     val width = fieldSize.width.coerceAtLeast(1).toFloat()
     val top = (headerHeight + (if (state.currentTurn.size > 1) historyHeight else 0) + margin) / height
-    val bottom = (height - buttonsHeight - (if (presentation.phase == DiceScenePhase.Fallback) resultHeight else 0) - margin) / height
+    val bottom = (height - buttonsHeight - margin) / height
     val bounds = DiceSceneBounds(
         left = (margin / width).coerceIn(0f, .4f),
         top = top.coerceIn(0f, .85f),
@@ -131,6 +129,9 @@ private fun GameField(
         isOpponentTurn = if (state.isOnlineGame) state.isOpponentTurn else state.currentPlayer?.isMain() == false,
         header = DiceSceneHeader.from(state, onPlayerClick != null),
         isTutorial = state.isTutorial,
+        gameFinished = state.game?.isFinished() == true,
+        messages = messages,
+        advice = state.tutorialAdvice.takeIf { presentation.showResult && !headerAnimating },
     )
     Box(Modifier.fillMaxSize().onSizeChanged { fieldSize = it }, contentAlignment = Alignment.Center) {
         DiceSceneSurface(
@@ -149,77 +150,30 @@ private fun GameField(
                 when (event) {
                     is DiceSceneEvent.PlayerSelected -> state.game?.players?.find { it.user.id == event.playerId }?.let { onPlayerClick?.invoke(it) }
                     is DiceSceneEvent.HeaderAnimation -> headerAnimating = event.running
+                    is DiceSceneEvent.MessageDismissed -> messages.find { it.id.toString() == event.messageId }?.let(onMessageDismiss)
                     else -> Unit
                 }
             },
         )
-        if (presentation.phase == DiceScenePhase.Fallback) {
-            Column(Modifier.align(Alignment.TopCenter)) {
-                state.game?.let { game ->
-                    GameHeaderView(game, state.currentPlayer, !game.isFinished(), state.isOnlineGame, state.onlinePlayerIds, state.reactionsByAuthorId, onPlayerClick)
+        if (!presentation.ready || presentation.phase == DiceScenePhase.Error) {
+            Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface), contentAlignment = Alignment.Center) {
+                if (presentation.phase != DiceScenePhase.Error) {
+                    LoadingIndicator()
+                } else {
+                    Text(
+                        "Не удалось загрузить игровую сцену. Вернитесь назад и откройте игру снова.",
+                        modifier = Modifier.padding(24.dp),
+                        textAlign = TextAlign.Center,
+                    )
                 }
             }
-            state.currentRoll?.let { roll ->
-                Box(
-                    Modifier.fillMaxSize().padding(
-                        start = 16.dp, end = 16.dp,
-                        top = with(density) { (bounds.top * height).toDp() },
-                        bottom = with(density) { ((1f - bounds.bottom) * height).toDp() },
-                    ),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        roll.dice.forEachIndexed { index, die ->
-                            val highlighted = index in presentation.request?.scoringIndices.orEmpty()
-                            SingleDieView(
-                                Modifier.size(48.dp).drawBehind {
-                                    if (highlighted) {
-                                        val turquoise = Color(0xFF55E5DC)
-                                        listOf(8.dp to .08f, 4.dp to .18f, 1.5.dp to .65f).forEach { (spread, alpha) ->
-                                            val inset = spread.toPx()
-                                            drawRoundRect(
-                                                color = turquoise.copy(alpha = alpha),
-                                                topLeft = Offset(-inset / 2, -inset / 2),
-                                                size = Size(size.width + inset, size.height + inset),
-                                                cornerRadius = CornerRadius(5.dp.toPx() + inset / 2),
-                                                style = Stroke(inset),
-                                            )
-                                        }
-                                    }
-                                },
-                                die.value,
-                            )
-                        }
-                    }
-                }
-            }
-        }
-        if (state.currentRoll == null && presentation.phase == DiceScenePhase.Fallback) {
-            Box(Modifier.fillMaxSize().padding(top = headerSize), contentAlignment = Alignment.Center) {
-                Text("Вы в игре!", style = MaterialTheme.typography.headlineMedium)
-            }
+            return@Box
         }
         if (state.currentTurn.size > 1) {
             TurnHistoryView(
                 Modifier.align(Alignment.TopStart).padding(top = headerSize).onSizeChanged { historyHeight = it.height }.padding(16.dp),
                 state.currentTurn,
             )
-        }
-        if (presentation.phase == DiceScenePhase.Fallback && state.currentRoll != null) {
-            Column(
-                modifier = Modifier.align(Alignment.BottomCenter)
-                    .padding(bottom = with(density) { buttonsHeight.toDp() })
-                    .onSizeChanged { resultHeight = it.height }
-                    .alpha(if (presentation.showResult) 1f else 0f)
-                    .then(if (presentation.showResult) Modifier else Modifier.clearAndSetSemantics {})
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(presentation.request?.scoreText.orEmpty(), style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center)
-                if (sceneConfiguration.promptText.isNotBlank()) {
-                    Text(sceneConfiguration.promptText, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center)
-                }
-            }
         }
         val hideActions = headerAnimating || (!sceneConfiguration.isOpponentTurn && !presentation.actionsEnabled)
         ButtonsView(
@@ -252,9 +206,9 @@ private fun TurnHistoryView(
             RollHistoryView(roll)
         }
 
-        HorizontalDivider(Modifier.width(80.dp))
+        HorizontalDivider(Modifier.width(80.dp), color = Color.White)
 
-        Text(rolls.sumOf { it.result }.toString())
+        Text(rolls.sumOf { it.result }.toString(), color = Color.White)
     }
 }
 
@@ -303,18 +257,6 @@ private fun ButtonsView(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        AnimatedVisibility(state.tutorialAdvice != null) {
-            ThousandTheme(darkTheme = true) {
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = state.tutorialAdvice ?: "",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Center,
-                )
-            }
-        }
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),

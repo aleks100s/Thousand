@@ -34,7 +34,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.domain.models.RemoteUserInfo
 import com.alextos.thousand.presentation.components.GameMessageBubble
-import com.alextos.thousand.presentation.components.GameMessagesOverlay
 import com.alextos.thousand.presentation.components.GameView
 import com.alextos.thousand.presentation.menu.play_game.components.GameSettingsSheet
 import com.alextos.thousand.presentation.menu.game_rules.GameRulesContent
@@ -82,7 +81,8 @@ fun MultiplayerGameScreen(
                         GameMessageBubble(
                             id = nextMessageId++,
                             text = event.message,
-                            isReply = false
+                            isReply = false,
+                            isReaction = event.isReaction,
                         )
                     )
                 }
@@ -255,14 +255,11 @@ fun MultiplayerGameScreen(
             onPlayerClick = { player ->
                 selectedUserInfo = state.usersInfo[player.user.id]
             },
+            messages = messages,
+            onMessageDismiss = { messages.remove(it) },
         )
 
-        GameMessagesOverlay(
-            messages = messages,
-            onMessageDismiss = { message ->
-                messages.remove(message)
-            },
-        )
+
     }
 
     if (isDeleteGameSheetVisible) {

@@ -3,10 +3,11 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { faceNormals, orientationFor } from './orientation';
 import { createFeltMaterial, drawWoodenFrame } from './table';
 import { createGameHeader, type HeaderState } from './header';
+import { createNotifications, type SceneMessage } from './notifications';
 
 type Request = { presentationId: string; values: number[]; animate: boolean; scoringIndices?: number[]; scoreText?: string };
 type Bounds = { left: number; top: number; right: number; bottom: number };
-type Configuration = { request: Request | null; bounds: Bounds; background: string; active: boolean; promptText?: string; isOpponentTurn?: boolean; header?: HeaderState | null };
+type Configuration = { request: Request | null; bounds: Bounds; background: string; active: boolean; promptText?: string; isOpponentTurn?: boolean; header?: HeaderState | null; idleText?: string; messages?: SceneMessage[]; advice?: string | null };
 type NativeWindow = Window & {
   DiceNative?: { postMessage(message: string): void };
   webkit?: { messageHandlers?: { diceScene?: { postMessage(message: string): void } } };
@@ -36,6 +37,11 @@ const score = document.querySelector<HTMLElement>('#roll-score')!;
 const prompt = document.querySelector<HTMLElement>('#roll-prompt')!;
 const emptyTable = document.querySelector<HTMLElement>('#table-empty')!;
 const header = createGameHeader(document.querySelector<HTMLElement>('#game-header')!, event => send(event.type, undefined, event));
+const notifications = createNotifications(event => send(event.type, undefined, event));
+let notificationConfig = config;
+function updateNotifications() {
+  notifications.update(notificationConfig.messages ?? [], notificationConfig.advice ?? null, notificationConfig.active && !document.hidden, notificationConfig.bounds.bottom);
+}
 
 try {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
@@ -272,6 +278,7 @@ try {
     else finish();
   }
   function resize() {
+    updateNotifications();
     const width = Math.max(canvas.clientWidth, 1), height = Math.max(canvas.clientHeight, 1);
     renderer.setSize(width, height, false);
     drawWoodenFrame(woodenFrame, width, height, renderer.getPixelRatio());
@@ -301,6 +308,7 @@ try {
       }
       scene.background = new THREE.Color(config.background);
       emptyTable.hidden = !!next.request;
+      emptyTable.textContent = next.idleText ?? 'Вы в игре!';
       if (!next.request) {
         stopFrame();
         currentId = undefined;
@@ -335,6 +343,8 @@ try {
       const next = JSON.parse(message) as Configuration;
       if (next.request && (!next.request.values.length || next.request.values.length > 5 || next.request.values.some(v => !Number.isInteger(v) || v < 1 || v > 6))) throw new Error('Invalid dice');
       document.body.classList.toggle('has-header', !!next.header);
+      notificationConfig = next;
+      updateNotifications();
       header.update(next.header ?? null, next.active, () => applyConfiguration(next));
     } catch (error) { console.error('Dice scene update failed', error); failed = true; stopFrame(); send('error', currentId); }
   } };
@@ -342,7 +352,7 @@ try {
     event.preventDefault(); failed = true; stopFrame(); send('error', currentId);
   });
   window.addEventListener('error', () => { failed = true; stopFrame(); send('error', currentId); });
-  document.addEventListener('visibilitychange', () => { if (document.hidden) { header.stop(); finish(); } });
+  document.addEventListener('visibilitychange', () => { updateNotifications(); if (document.hidden) { header.stop(); finish(); } });
   new ResizeObserver(resize).observe(canvas);
   resize();
   send('ready');

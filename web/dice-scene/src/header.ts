@@ -29,7 +29,7 @@ export function createGameHeader(root: HTMLElement, emit: (event: HeaderEvent) =
     state.players.forEach((player, index) => {
       const card = document.createElement('button'); card.type = 'button'; card.className = 'header-player';
       card.dataset.playerId = player.id; card.dataset.active = String(player.id === state.activePlayerId);
-      card.setAttribute('aria-label', `${player.name}, ${player.score} очков${player.id === state.activePlayerId ? ', ходит' : ''}`);
+      card.setAttribute('aria-label', `${player.name}, ${player.score} очков${player.id === state.activePlayerId ? ', ходит' : ''}${player.bolts ? `, болтов: ${player.bolts}` : ''}`);
       card.disabled = !state.clickable;
       card.addEventListener('click', () => emit({ type: 'playerSelected', playerId: player.id }));
       const avatar = document.createElement('span'); avatar.className = 'player-avatar'; avatar.style.backgroundColor = colors[index % colors.length];
@@ -47,7 +47,13 @@ export function createGameHeader(root: HTMLElement, emit: (event: HeaderEvent) =
       const meta = document.createElement('span'); meta.className = 'player-meta';
       const name = document.createElement('span'); name.className = 'player-name'; name.textContent = player.name + (player.winner ? ' 🏆' : '');
       const score = document.createElement('span'); score.className = 'player-score'; score.textContent = String(player.score); score.dataset.scoreFor = player.id;
-      if (player.bolts) { const bolts = document.createElement('small'); bolts.className = 'player-bolts'; bolts.textContent = ' ⚡'.repeat(player.bolts); name.append(bolts); }
+      if (player.bolts) {
+        const bolts = document.createElement('span'); bolts.className = 'player-bolts'; bolts.setAttribute('aria-hidden', 'true');
+        for (let i = 0; i < player.bolts; i++) {
+          const marker = document.createElement('span'); marker.className = 'bolt-card'; bolts.append(marker);
+        }
+        avatar.append(bolts);
+      }
       meta.append(name, score); card.append(avatar, meta); list.append(card);
     });
     list.scrollLeft = previousScroll;

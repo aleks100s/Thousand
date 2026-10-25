@@ -51,8 +51,8 @@ fun DiceSceneSurface(
             coordinator.fail()
         }
     }
-    LaunchedEffect(state.ready, state.phase == DiceScenePhase.Fallback, state.active) {
-        if (state.active && !state.ready && state.phase != DiceScenePhase.Fallback) {
+    LaunchedEffect(state.ready, state.phase == DiceScenePhase.Error, state.active) {
+        if (state.active && !state.ready && state.phase != DiceScenePhase.Error) {
             delay(5_000)
             coordinator.fail()
         }
@@ -73,7 +73,7 @@ fun DiceSceneSurface(
             haptics.cancel()
         }
     }
-    if (state.phase != DiceScenePhase.Fallback) {
+    if (state.phase != DiceScenePhase.Error) {
         html?.let {
             DiceSceneView(it, configuration, { event ->
                 coordinator.onEvent(event)

@@ -2,6 +2,7 @@ package com.alextos.thousand.presentation.components.dice
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.alextos.thousand.presentation.components.GameMessageBubble
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonPrimitive
@@ -25,7 +26,11 @@ data class DiceSceneConfiguration(
     val isOpponentTurn: Boolean = false,
     val header: DiceSceneHeader? = null,
     val isTutorial: Boolean = false,
+    val gameFinished: Boolean = false,
+    val messages: List<GameMessageBubble> = emptyList(),
+    val advice: String? = null,
 ) {
+    val idleText: String get() = if (gameFinished) "Игра окончена" else "Вы в игре!"
     val promptText: String get() = when {
         isOpponentTurn -> "ход противника"
         isTutorial -> ""
@@ -35,10 +40,13 @@ data class DiceSceneConfiguration(
     fun script(): String {
         val message = buildJsonObject {
             put("active", active)
+            put("idleText", idleText)
             put("promptText", promptText)
             put("isOpponentTurn", isOpponentTurn)
             put("background", background)
             put("header", header?.json() ?: JsonNull)
+            put("messages", messages.sceneMessagesJson())
+            put("advice", advice)
             put("bounds", buildJsonObject {
                 put("left", bounds.left)
                 put("top", bounds.top)
@@ -70,6 +78,7 @@ fun decodeDiceSceneEvent(message: String): DiceSceneEvent? = runCatching {
         "error" -> DiceSceneEvent.Error(id)
         "playerSelected" -> json["playerId"]?.jsonPrimitive?.contentOrNull?.let { DiceSceneEvent.PlayerSelected(it) }
         "headerAnimation" -> json["running"]?.jsonPrimitive?.booleanOrNull?.let { DiceSceneEvent.HeaderAnimation(it) }
+        "messageDismissed" -> json["messageId"]?.jsonPrimitive?.contentOrNull?.let { DiceSceneEvent.MessageDismissed(it) }
         else -> null
     }
 }.getOrNull()

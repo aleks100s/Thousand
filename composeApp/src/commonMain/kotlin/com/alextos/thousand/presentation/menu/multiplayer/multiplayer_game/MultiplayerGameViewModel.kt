@@ -158,7 +158,7 @@ class MultiplayerGameViewModel(
         }
 
         viewModelScope.launch {
-            _events.emit(MultiplayerGameEvent.ShowMessage("${reaction.author}: ${reaction.reaction}"))
+            _events.emit(MultiplayerGameEvent.ShowMessage("${reaction.author}: ${reaction.reaction}", isReaction = true))
         }
     }
 

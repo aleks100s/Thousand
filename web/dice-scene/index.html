@@ -27,10 +27,11 @@
     .player-name{font-size:14px;line-height:19px;font-weight:550;max-width:144px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .player-score{font-size:22px;line-height:26px;font-weight:750;letter-spacing:.2px}
     .header-player[data-active=true] .player-score{color:#87f2d0}
-    .player-bolts{color:#eea7a2;font-size:11px}
+    .player-bolts{position:absolute;left:-4px;bottom:-2px;display:flex;gap:2px;pointer-events:none}
+    .bolt-card{display:block;width:6px;height:10px;border-radius:1.5px;background:#e3474e;border:1px solid #ff929680;box-shadow:0 1px 3px #0008}
     .online-dot{position:absolute;right:-1px;bottom:0;width:8px;height:8px;border:2px solid #102633;background:#788b94;border-radius:50%}
     .online-dot.online{background:#72e5b0}
-    .avatar-reaction{position:absolute;inset:0;display:grid;place-items:center;font-size:29px;border-radius:50%;background:#142534}
+    .avatar-reaction{position:absolute;left:calc(100% - 7px);top:-4px;padding:2px 7px;max-width:120px;font-size:22px;line-height:28px;border-radius:13px 13px 13px 3px;border:1px solid #e8b961;background:linear-gradient(145deg,#44361d,#26231b);box-shadow:0 4px 12px #0007;white-space:nowrap;pointer-events:none;z-index:3}
     .progress-row{display:flex;align-items:center;gap:12px;padding:2px 20px 0}
     .score-track{position:relative;height:8px;flex:1;border-radius:5px;background:#344456;box-shadow:inset 0 1px 3px #0008}
     .score-fill{position:absolute;inset:0 auto 0 0;border-radius:5px;background:linear-gradient(90deg,#70e8de,#94efbc);box-shadow:0 0 7px #68cbb840}
@@ -49,6 +50,25 @@
       #roll-score,#table-empty{font-size:24px}
       #roll-prompt{font-size:12px;margin-top:5px}
     }
+    #game-notifications{position:absolute;inset:0;pointer-events:none;z-index:10;font:14px/1.5 system-ui,-apple-system,sans-serif;color:#edf8f5}
+    .toast-stack{position:absolute;right:16px;top:var(--notifications-top,12px);display:flex;flex-direction:column;align-items:flex-end;gap:9px;width:min(320px,calc(100% - 32px));max-height:calc(100% - var(--notifications-top,12px) - var(--notifications-bottom,90px) - 12px);overflow-y:auto;scrollbar-width:thin;pointer-events:auto;padding:0 0 8px 6px;box-sizing:border-box}
+    .game-bubble{--bubble-accent:#7edbdf;box-sizing:border-box;position:relative;display:flex;align-items:flex-start;gap:10px;background:linear-gradient(145deg,#12343e,#091e28);border:1px solid #487781;border-left:3px solid var(--bubble-accent);border-radius:15px 15px 3px 15px;box-shadow:0 6px 18px #0006,inset 0 1px #ffffff0d;color:#edf8f5}
+    .game-toast{flex-shrink:0;max-width:100%;padding:13px 32px 13px 12px;pointer-events:auto;animation:bubble-arrive .2s ease-out}
+    .game-bubble[data-kind=reply]{--bubble-accent:#ceadff;background:linear-gradient(145deg,#302b47,#192536);border-color:#82719f;border-radius:18px 18px 4px 18px}
+    .game-bubble[data-kind=reaction]{--bubble-accent:#ffca78;background:linear-gradient(145deg,#42351f,#252b29);border-color:#8e7448;border-radius:24px 24px 6px 24px}
+    .bubble-icon{display:block;flex:0 0 24px;width:24px;height:24px;padding:4px;box-sizing:border-box;border-radius:8px;background:#ffffff0c;color:var(--bubble-accent)}
+    .bubble-icon svg{display:block;width:100%;height:100%;overflow:visible}
+    .bubble-copy{min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}
+    .game-toast .bubble-copy{max-height:180px;overflow:auto}
+    .bubble-close{position:absolute;top:4px;right:4px;width:24px;height:24px;border:0;border-radius:50%;background:transparent;color:#c0d6da;font:20px/1 system-ui;cursor:pointer;touch-action:manipulation}
+    .bubble-close:focus-visible{outline:2px solid #ffb65c;outline-offset:1px}
+    .bubble-close:hover{background:#ffffff12}
+    .game-advice{--bubble-accent:#99e6bd;position:absolute;bottom:var(--notifications-bottom,90px);left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:650px;padding:10px 13px;border-color:#497c72;border-radius:12px;background:linear-gradient(135deg,#153a37,#10282e);font-size:12px;line-height:1.5;pointer-events:auto;max-height:30%;overflow:auto}
+    .game-advice[hidden]{display:none}
+    .bubble-leaving{animation:bubble-leave .18s ease-in forwards}
+    @keyframes bubble-arrive{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
+    @keyframes bubble-leave{to{opacity:0;transform:translateY(-10px) scale(.98)}}
+    @media(prefers-reduced-motion:reduce){.game-toast,.bubble-leaving{animation:none}}
   </style>
 </head>
 <body>

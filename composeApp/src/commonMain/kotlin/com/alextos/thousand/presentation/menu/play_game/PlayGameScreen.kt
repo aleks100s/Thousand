@@ -23,7 +23,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.presentation.components.GameMessageBubble
-import com.alextos.thousand.presentation.components.GameMessagesOverlay
 import com.alextos.thousand.presentation.components.GameView
 import com.alextos.thousand.presentation.menu.game_rules.GameRulesContent
 import com.alextos.thousand.presentation.menu.play_game.components.GameSettingsSheet
@@ -138,14 +137,11 @@ fun PlayGameScreen(
                     viewModel.onAction(PlayGameAction.FinishGame)
                 },
                 onPlayerClick = null,
+                messages = messages,
+                onMessageDismiss = { messages.remove(it) },
             )
 
-            GameMessagesOverlay(
-                messages = messages,
-                onMessageDismiss = { message ->
-                    messages.remove(message)
-                },
-            )
+
         }
     }
 

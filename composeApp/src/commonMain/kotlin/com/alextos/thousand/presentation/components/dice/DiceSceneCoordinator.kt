@@ -29,9 +29,10 @@ sealed interface DiceSceneEvent {
     data class Error(val presentationId: String?) : DiceSceneEvent
     data class PlayerSelected(val playerId: String) : DiceSceneEvent
     data class HeaderAnimation(val running: Boolean) : DiceSceneEvent
+    data class MessageDismissed(val messageId: String) : DiceSceneEvent
 }
 
-enum class DiceScenePhase { Loading, Idle, Animating, ShowingResult, Fallback }
+enum class DiceScenePhase { Loading, Idle, Animating, ShowingResult, Error }
 
 data class DicePresentationState(
     val phase: DiceScenePhase = DiceScenePhase.Loading,
@@ -41,7 +42,7 @@ data class DicePresentationState(
     val active: Boolean = true,
 ) {
     val showResult: Boolean get() = request != null && completed
-    val actionsEnabled: Boolean get() = completed
+    val actionsEnabled: Boolean get() = ready && phase != DiceScenePhase.Error && completed
 }
 
 /** Owns only presentation state. Game rules and the roll result stay in Kotlin's game server. */
@@ -74,7 +75,7 @@ class DiceSceneCoordinator(private val onFinished: () -> Unit) {
             request = request,
             completed = request == null,
             phase = when {
-                failed -> DiceScenePhase.Fallback
+                failed -> DiceScenePhase.Error
                 !_state.value.ready -> DiceScenePhase.Loading
                 else -> DiceScenePhase.Idle
             },
@@ -87,7 +88,7 @@ class DiceSceneCoordinator(private val onFinished: () -> Unit) {
         // Keep the snapshot: unrelated updates must not replay the finished turn.
         _state.value = _state.value.copy(
             request = null,
-            phase = if (failed) DiceScenePhase.Fallback else if (_state.value.ready) DiceScenePhase.Idle else DiceScenePhase.Loading,
+            phase = if (failed) DiceScenePhase.Error else if (_state.value.ready) DiceScenePhase.Idle else DiceScenePhase.Loading,
         )
     }
 
@@ -95,7 +96,8 @@ class DiceSceneCoordinator(private val onFinished: () -> Unit) {
         if (failed) return
         val current = _state.value
         when (event) {
-            is DiceSceneEvent.PlayerSelected, is DiceSceneEvent.HeaderAnimation -> Unit
+            is DiceSceneEvent.PlayerSelected, is DiceSceneEvent.HeaderAnimation,
+            is DiceSceneEvent.MessageDismissed -> Unit
             DiceSceneEvent.Ready -> if (!current.ready) _state.value = current.copy(
                 ready = true,
                 phase = if (current.showResult) DiceScenePhase.ShowingResult else DiceScenePhase.Idle,
@@ -112,7 +114,7 @@ class DiceSceneCoordinator(private val onFinished: () -> Unit) {
 
     fun fail() {
         failed = true
-        _state.value = _state.value.copy(phase = DiceScenePhase.Fallback)
+        _state.value = _state.value.copy(phase = DiceScenePhase.Error)
         complete()
     }
 
@@ -130,7 +132,7 @@ class DiceSceneCoordinator(private val onFinished: () -> Unit) {
         if (current.request == null || current.completed) return
         _state.value = current.copy(
             completed = true,
-            phase = if (failed) DiceScenePhase.Fallback else DiceScenePhase.ShowingResult,
+            phase = if (failed) DiceScenePhase.Error else DiceScenePhase.ShowingResult,
         )
         onFinished()
     }
