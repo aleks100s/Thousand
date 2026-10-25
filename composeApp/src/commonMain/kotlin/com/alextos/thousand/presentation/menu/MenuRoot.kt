@@ -16,7 +16,6 @@ import com.alextos.thousand.presentation.menu.game_list.GamesListScreen
 import com.alextos.thousand.presentation.menu.game_rules.GameRulesScreen
 import com.alextos.thousand.presentation.menu.statistics.StatisticsRoot
 import com.alextos.thousand.presentation.menu.tutorial_game.TutorialGameScreen
-import com.alextos.thousand.presentation.menu.users.UsersScreen
 import com.alextos.thousand.presentation.menu.multiplayer.MultiplayerRoot
 
 @Composable
@@ -95,9 +94,6 @@ fun MenuRoot(
         horizontalTransition<MenuRoute.CreateGame> {
             CreateGameScreen(
                 goBack = navController::popBackStack,
-                openUsers = {
-                    navController.navigate(MenuRoute.Users)
-                },
                 openGame = { gameId ->
                     navController.navigate(MenuRoute.GamesList) {
                         popUpTo(MenuRoute.Menu)
@@ -109,11 +105,6 @@ fun MenuRoot(
         horizontalTransition<MenuRoute.Statistics> {
             StatisticsRoot(
                 goBack = navController::popBackStack,
-            )
-        }
-        horizontalTransition<MenuRoute.Users> {
-            UsersScreen(
-                onGoBack = navController::popBackStack,
             )
         }
         horizontalTransition<MenuRoute.Multiplayer> { entry ->

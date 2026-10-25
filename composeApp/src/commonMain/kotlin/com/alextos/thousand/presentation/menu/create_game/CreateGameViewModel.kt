@@ -8,6 +8,9 @@ import com.alextos.thousand.domain.service.StorageService
 import com.alextos.thousand.domain.usecase.game.crud.CreateGameUseCase
 import com.alextos.thousand.domain.usecase.user.GenerateBotNameUseCase
 import com.alextos.thousand.domain.usecase.user.GetAllUsersUseCase
+import com.alextos.thousand.domain.usecase.user.UpdateUserUseCase
+import com.alextos.thousand.domain.usecase.user.DeleteUserUseCase
+import kotlinx.coroutines.CancellationException
 import com.alextos.thousand.domain.usecase.user.SaveUserUseCase
 import com.alextos.thousand.domain.models.GameSettings
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -25,6 +28,8 @@ class CreateGameViewModel(
     private val createGameUseCase: CreateGameUseCase,
     private val generateBotNameUseCase: GenerateBotNameUseCase,
     private val storageService: StorageService,
+    private val updateUserUseCase: UpdateUserUseCase,
+    private val deleteUserUseCase: DeleteUserUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(CreateGameState())
     val state: StateFlow<CreateGameState> = _state.asStateFlow()
@@ -37,13 +42,19 @@ class CreateGameViewModel(
     fun onAction(action: CreateGameAction) {
         when (action) {
             CreateGameAction.Initialize -> initialize()
-            CreateGameAction.HideAddUserSheet -> hideAddUserSheet()
-            CreateGameAction.SaveNewUser -> saveNewUser()
-            CreateGameAction.ShowAddUserSheet -> showAddUserSheet()
-            CreateGameAction.ShowAddBotSheet -> showAddBotSheet()
+            CreateGameAction.HidePlayerEditor -> if (!state.value.isPlayerOperationRunning) closePlayerEditor()
+            CreateGameAction.SavePlayer -> savePlayer()
+            CreateGameAction.ShowAddUserSheet -> showPlayerEditor(UserKind.LocalUser)
+            CreateGameAction.ShowAddBotSheet -> showPlayerEditor(UserKind.Bot)
             CreateGameAction.OpenPlayersStep -> openPlayersStep()
             CreateGameAction.OpenSettingsStep -> openSettingsStep()
-            is CreateGameAction.UpdateNewUserName -> updateNewUserName(action.value)
+            CreateGameAction.TogglePlayersEditing -> setEditingPlayers(!state.value.isEditingPlayers)
+            CreateGameAction.FinishPlayersEditing -> setEditingPlayers(false)
+            is CreateGameAction.EditPlayer -> editPlayer(action.user)
+            is CreateGameAction.UpdatePlayerName -> _state.update { it.copy(playerName = action.value, playerError = null) }
+            is CreateGameAction.RequestDeletePlayer -> requestDeletePlayer(action.user)
+            CreateGameAction.CancelDeletePlayer -> _state.update { it.copy(pendingDeleteUser = null) }
+            CreateGameAction.ConfirmDeletePlayer -> deletePlayer()
             is CreateGameAction.ToggleUserSelection -> toggleUserSelection(action.user)
             is CreateGameAction.UpdateGameSettings -> updateGameSettings(action.settings)
             CreateGameAction.CreateGame -> createGame()
@@ -57,7 +68,8 @@ class CreateGameViewModel(
         viewModelScope.launch {
             getAllUsersUseCase().collect { users ->
                 _state.update {
-                    it.copy(users = users)
+                    val selectedIds = it.selectedUsers.map { user -> user.id }.toSet()
+                    it.copy(isLoadingUsers = false, users = users, selectedUsers = users.filter { user -> user.id in selectedIds }.toSet())
                 }
             }
         }
@@ -78,93 +90,107 @@ class CreateGameViewModel(
         }
     }
 
-    private fun showAddUserSheet() {
-        _state.update {
-            it.copy(
-                isAddUserSheetVisible = true,
-                newUserName = "",
-                newUserKind = UserKind.LocalUser,
-            )
-        }
+    private fun setEditingPlayers(editing: Boolean) {
+        if (state.value.step != CreateGameStep.Players || state.value.isPlayerOperationRunning || state.value.isLoadingUsers) return
+        _state.update { it.copy(isEditingPlayers = editing, playerError = null) }
     }
 
-    private fun showAddBotSheet() {
-        _state.update {
-            it.copy(
-                isAddUserSheetVisible = true,
-                newUserName = generateBotNameUseCase(),
-                newUserKind = UserKind.Bot,
-            )
-        }
+    private fun showPlayerEditor(kind: UserKind) {
+        if (state.value.isPlayerOperationRunning || state.value.step != CreateGameStep.Players) return
+        _state.update { it.copy(isPlayerEditorVisible = true, editingUser = null, playerKind = kind,
+            playerName = if (kind == UserKind.Bot) generateBotNameUseCase() else "", playerError = null) }
+    }
+
+    private fun editPlayer(user: User) {
+        val current = state.value
+        val actual = current.users.firstOrNull { it.id == user.id } ?: return
+        if (!current.isEditingPlayers || current.isPlayerOperationRunning || actual.kind == UserKind.MainUser) return
+        _state.update { it.copy(isPlayerEditorVisible = true, editingUser = actual, playerKind = actual.kind,
+            playerName = actual.name, playerError = null) }
     }
 
     private fun openPlayersStep() {
-        _state.update {
-            it.copy(step = CreateGameStep.Players)
-        }
+        _state.update { it.copy(step = CreateGameStep.Players) }
     }
 
     private fun openSettingsStep() {
-        _state.update {
-            if (it.selectedUsers.isEmpty()) {
-                it
-            } else {
-                it.copy(step = CreateGameStep.Settings)
-            }
-        }
+        val current = state.value
+        if (current.isEditingPlayers || current.isPlayerOperationRunning || current.selectedUsers.size < 2) return
+        _state.update { it.copy(step = CreateGameStep.Settings) }
     }
 
-    private fun hideAddUserSheet() {
-        _state.update {
-            it.copy(
-                isAddUserSheetVisible = false,
-                newUserName = "",
-                newUserKind = UserKind.LocalUser,
-            )
-        }
-    }
-
-    private fun updateNewUserName(value: String) {
-        _state.update {
-            it.copy(newUserName = value)
-        }
+    private fun closePlayerEditor() {
+        _state.update { it.copy(isPlayerEditorVisible = false, editingUser = null, playerName = "",
+            playerKind = UserKind.LocalUser, playerError = null) }
     }
 
     private fun toggleUserSelection(user: User) {
-        _state.update { state ->
-            val set = state.selectedUsers.toMutableSet()
-            if (set.contains(user)) {
-                set.remove(user)
-            } else {
-                set.add(user)
-            }
-            state.copy(selectedUsers = set)
+        val current = state.value
+        if (current.isEditingPlayers || current.isPlayerOperationRunning) return
+        val actual = current.users.firstOrNull { it.id == user.id } ?: return
+        _state.update { value ->
+            val selected = value.selectedUsers.toMutableSet()
+            val previous = selected.firstOrNull { it.id == actual.id }
+            if (previous != null) selected.remove(previous) else selected.add(actual)
+            value.copy(selectedUsers = selected)
         }
     }
 
-    private fun saveNewUser() {
-        val state = state.value
-        if (state.canSaveNewUser.not()) return
-        val userName = state.newUserName.trim()
-        val userKind = state.newUserKind
-
+    private fun savePlayer() {
+        val current = state.value
+        if (!current.canSavePlayer || current.editingUser?.kind == UserKind.MainUser) return
+        _state.update { it.copy(isPlayerOperationRunning = true, playerError = null) }
         viewModelScope.launch {
-            saveUserUseCase(
-                name = userName,
-                kind = userKind,
-            )
+            try {
+                val name = current.playerName.trim()
+                val edited = current.editingUser?.copy(name = name)
+                if (edited == null) saveUserUseCase(name = name, kind = current.playerKind)
+                else {
+                    updateUserUseCase(edited)
+                    _state.update { value -> value.copy(selectedUsers = value.selectedUsers.map {
+                        if (it.id == edited.id) edited else it
+                    }.toSet()) }
+                }
+                closePlayerEditor()
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                _state.update { it.copy(playerError = "Не удалось сохранить игрока. Попробуйте ещё раз.") }
+            } finally {
+                _state.update { it.copy(isPlayerOperationRunning = false) }
+            }
+        }
+    }
 
-            _state.update {
-                it.copy(
-                    newUserName = "",
-                    newUserKind = UserKind.LocalUser,
-                    isAddUserSheetVisible = false,
-                )
+    private fun requestDeletePlayer(user: User) {
+        val current = state.value
+        val actual = current.users.firstOrNull { it.id == user.id } ?: return
+        if (!current.isEditingPlayers || current.isPlayerOperationRunning || actual.kind == UserKind.MainUser) return
+        _state.update { it.copy(pendingDeleteUser = actual, playerError = null) }
+    }
+
+    private fun deletePlayer() {
+        val current = state.value
+        val user = current.pendingDeleteUser ?: return
+        if (!current.isEditingPlayers || current.isPlayerOperationRunning || user.kind == UserKind.MainUser) return
+        _state.update { it.copy(isPlayerOperationRunning = true, pendingDeleteUser = null, playerError = null) }
+        viewModelScope.launch {
+            try {
+                deleteUserUseCase(user.id)
+                _state.update { value -> value.copy(selectedUsers = value.selectedUsers.filterNot { it.id == user.id }.toSet()) }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                _state.update { it.copy(playerError = "Не удалось удалить игрока. Попробуйте ещё раз.") }
+            } finally {
+                _state.update { it.copy(isPlayerOperationRunning = false) }
             }
         }
     }
 
     private fun createGame() {
+        val current = state.value
+        if (current.isEditingPlayers || current.isPlayerOperationRunning || current.selectedUsers.size < 2) return
         viewModelScope.launch {
             val state = state.value
             val game = createGameUseCase(

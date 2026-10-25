@@ -1,168 +1,105 @@
 package com.alextos.thousand.presentation.menu.create_game
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
-import com.alextos.thousand.domain.models.UserKind
 import com.alextos.thousand.presentation.components.GameSettingsView
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
-import thousand.composeapp.generated.resources.settings_24px
+import thousand.composeapp.generated.resources.close_24px
+import thousand.composeapp.generated.resources.edit_24px
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateGameScreen(
-    openGame: (Long) -> Unit,
-    goBack: () -> Unit,
-    openUsers: () -> Unit,
-) {
+fun CreateGameScreen(openGame: (Long) -> Unit, goBack: () -> Unit) {
     val viewModel: CreateGameViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
-
-    LaunchedEffect(Unit) {
-        viewModel.onAction(CreateGameAction.Initialize)
-    }
-
+    LaunchedEffect(Unit) { viewModel.onAction(CreateGameAction.Initialize) }
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
-            when (event) {
-                is CreateGameEvent.OpenGame -> openGame(event.gameId)
-            }
+            when (event) { is CreateGameEvent.OpenGame -> openGame(event.gameId) }
         }
     }
+    CreateGameContent(state, viewModel::onAction, goBack)
+}
 
+@Composable
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+internal fun CreateGameContent(state: CreateGameState, onAction: (CreateGameAction) -> Unit, goBack: () -> Unit) {
     Screen(
         modifier = Modifier,
         title = state.title,
         goBack = {
-            when (state.step) {
-                CreateGameStep.Players -> goBack()
-                CreateGameStep.Settings -> viewModel.onAction(
-                    CreateGameAction.OpenPlayersStep)
+            when {
+                state.step == CreateGameStep.Settings -> onAction(CreateGameAction.OpenPlayersStep)
+                state.isEditingPlayers -> onAction(CreateGameAction.FinishPlayersEditing)
+                else -> goBack()
             }
         },
-        actions = {
+        actions = { actionColor ->
             {
                 if (state.step == CreateGameStep.Players) {
-                    IconButton(
-                        onClick = openUsers,
-                    ) {
-                        Icon(
-                            painter = painterResource(Res.drawable.settings_24px),
-                            contentDescription = "Настройки игроков"
-                        )
+                    IconButton(enabled = !state.isPlayerOperationRunning && !state.isLoadingUsers,
+                        onClick = { onAction(CreateGameAction.TogglePlayersEditing) }) {
+                        Icon(painterResource(if (state.isEditingPlayers) Res.drawable.close_24px else Res.drawable.edit_24px),
+                            contentDescription = if (state.isEditingPlayers) "Завершить редактирование" else "Редактировать игроков",
+                            tint = actionColor)
                     }
                 }
             }
         },
     ) { modifier ->
-        Column(
-            modifier = modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
+        if (state.isLoadingUsers) {
+            Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) { LoadingIndicator() }
+        } else {
             when (state.step) {
-                CreateGameStep.Players -> {
-                    PlayersSelectionView(
-                        modifier = Modifier.fillMaxSize(),
-                        users = state.users,
-                        selectedUsers = state.selectedUsers,
-                        onAddUser = {
-                            viewModel.onAction(CreateGameAction.ShowAddUserSheet)
-                        },
-                        onAddBot = {
-                            viewModel.onAction(CreateGameAction.ShowAddBotSheet)
-                        },
-                        onToggleUser = { user ->
-                            viewModel.onAction(
-                                CreateGameAction.ToggleUserSelection(
-                                    user
-                                )
-                            )
-                        },
-                        onContinue = { viewModel.onAction(CreateGameAction.OpenSettingsStep) },
-                    )
-                }
-                CreateGameStep.Settings -> {
-                    GameSettingsView(
-                        settings = state.gameSettings,
-                        onSettingsChange = { viewModel.onAction(CreateGameAction.UpdateGameSettings(it)) },
-                        continueText = "Начать игру",
-                        onContinue = { viewModel.onAction(CreateGameAction.CreateGame) },
-                    )
-                }
+                CreateGameStep.Players -> PlayersSelectionView(
+                    modifier = modifier,
+                    users = state.users,
+                    selectedUsers = state.selectedUsers,
+                    isEditing = state.isEditingPlayers,
+                    isBusy = state.isPlayerOperationRunning,
+                    error = state.playerError.takeIf { !state.isPlayerEditorVisible },
+                    onAddUser = { onAction(CreateGameAction.ShowAddUserSheet) },
+                    onAddBot = { onAction(CreateGameAction.ShowAddBotSheet) },
+                    onToggleUser = { onAction(CreateGameAction.ToggleUserSelection(it)) },
+                    onEdit = { onAction(CreateGameAction.EditPlayer(it)) },
+                    onDelete = { onAction(CreateGameAction.RequestDeletePlayer(it)) },
+                    onContinue = { onAction(if (state.isEditingPlayers) CreateGameAction.FinishPlayersEditing else CreateGameAction.OpenSettingsStep) },
+                )
+                CreateGameStep.Settings -> GameSettingsView(
+                    modifier = modifier,
+                    settings = state.gameSettings,
+                    onSettingsChange = { onAction(CreateGameAction.UpdateGameSettings(it)) },
+                    continueText = "Начать игру",
+                    onContinue = { onAction(CreateGameAction.CreateGame) },
+                )
             }
         }
     }
-
-    if (state.isAddUserSheetVisible) {
-        ModalBottomSheet(
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-            onDismissRequest = {
-                viewModel.onAction(CreateGameAction.HideAddUserSheet)
-            }
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                Text(
-                    text = if (state.newUserKind == UserKind.Bot) {
-                        "Новый бот"
-                    } else {
-                        "Новый пользователь"
-                    },
-                    style = MaterialTheme.typography.titleMedium,
-                )
-
-                OutlinedTextField(
-                    value = state.newUserName,
-                    onValueChange = { value ->
-                        viewModel.onAction(CreateGameAction.UpdateNewUserName(value))
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = {
-                        Text("Имя пользователя")
-                    },
-                    isError = state.newUserNameError != null,
-                    supportingText = state.newUserNameError?.let { error ->
-                        {
-                            Text(error)
-                        }
-                    },
-                    singleLine = true,
-                )
-
-                Button(
-                    onClick = {
-                        viewModel.onAction(CreateGameAction.SaveNewUser)
-                    },
-                    enabled = state.canSaveNewUser,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text("Сохранить")
-                }
-            }
-        }
+    if (state.isPlayerEditorVisible) PlayerEditorSheet(state, onAction)
+    state.pendingDeleteUser?.let { user ->
+        AlertDialog(
+            onDismissRequest = { onAction(CreateGameAction.CancelDeletePlayer) },
+            containerColor = Color(0xFF062431), titleContentColor = Color(0xFFF5F0DF), textContentColor = Color(0xFFAACBDD),
+            title = { Text("Удалить игрока?") },
+            text = { Text("Игрок «${user.name}» будет удалён из списка локальных игроков.") },
+            confirmButton = { TextButton(onClick = { onAction(CreateGameAction.ConfirmDeletePlayer) }) { Text("Удалить", color = Color(0xFFFF7778)) } },
+            dismissButton = { TextButton(onClick = { onAction(CreateGameAction.CancelDeletePlayer) }) { Text("Отмена", color = Color(0xFFAACBDD)) } },
+        )
     }
 }
