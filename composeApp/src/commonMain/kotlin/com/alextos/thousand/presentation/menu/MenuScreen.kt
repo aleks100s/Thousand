@@ -235,10 +235,10 @@ private fun MenuTileView(
 private fun MenuTileAction.gradient(): Brush =
     Brush.linearGradient(
         colors = when (this) {
-            MenuTileAction.LocalGame -> listOf(Color(0x77FFE3E0), Color(0x77E57373))
-            MenuTileAction.Multiplayer -> listOf(Color(0x77DCEBFF), Color(0x7764A6F7))
-            MenuTileAction.Rules -> listOf(Color(0x77FFF2BF), Color(0x77FFB74D))
-            MenuTileAction.Tutorial -> listOf(Color(0x77DFF7E8), Color(0x7766BB6A))
+            MenuTileAction.LocalGame -> listOf(Color(0x33FFE3E0), Color(0x33E57373))
+            MenuTileAction.Multiplayer -> listOf(Color(0x33DCEBFF), Color(0x3364A6F7))
+            MenuTileAction.Rules -> listOf(Color(0x33FFF2BF), Color(0x33FFB74D))
+            MenuTileAction.Tutorial -> listOf(Color(0x33DFF7E8), Color(0x3366BB6A))
         },
         start = Offset.Zero,
         end = Offset.Infinite,

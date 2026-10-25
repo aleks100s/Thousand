@@ -1,3 +1,4 @@
+import appBackground from '../../../composeApp/src/commonMain/composeResources/drawable/app_background.jpg?inline';
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { faceNormals, orientationFor } from './orientation';
@@ -13,6 +14,7 @@ type NativeWindow = Window & {
   webkit?: { messageHandlers?: { diceScene?: { postMessage(message: string): void } } };
   DiceScene?: { receive(message: string): void };
 };
+document.body.style.backgroundImage = `url(${appBackground})`;
 const native = window as NativeWindow;
 const send = (type: string, presentationId?: string, extra: object = {}) => {
   const message = JSON.stringify({ type, presentationId, ...extra });
@@ -44,7 +46,7 @@ function updateNotifications() {
 }
 
 try {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -281,7 +283,7 @@ try {
     updateNotifications();
     const width = Math.max(canvas.clientWidth, 1), height = Math.max(canvas.clientHeight, 1);
     renderer.setSize(width, height, false);
-    drawWoodenFrame(woodenFrame, width, height, renderer.getPixelRatio());
+    canvas.style.clipPath = drawWoodenFrame(woodenFrame, width, height, renderer.getPixelRatio());
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     layout();
@@ -304,9 +306,9 @@ try {
         renderer.setSize(Math.max(canvas.clientWidth, 1), Math.max(canvas.clientHeight, 1), false);
         camera.aspect = canvas.clientWidth / Math.max(canvas.clientHeight, 1);
         camera.updateProjectionMatrix();
-        drawWoodenFrame(woodenFrame, canvas.clientWidth, canvas.clientHeight, renderer.getPixelRatio());
+        canvas.style.clipPath = drawWoodenFrame(woodenFrame, canvas.clientWidth, canvas.clientHeight, renderer.getPixelRatio());
       }
-      scene.background = new THREE.Color(config.background);
+      scene.background = null;
       emptyTable.hidden = !!next.request;
       emptyTable.textContent = next.idleText ?? 'Вы в игре!';
       if (!next.request) {

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Thousand" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#021723</item>
+        <item name="android:colorAccent">#B4C5FF</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+</resources>

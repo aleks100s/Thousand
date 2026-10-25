@@ -1,6 +1,5 @@
 package com.alextos.thousand.presentation.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -156,7 +155,7 @@ private fun GameField(
             },
         )
         if (!presentation.ready || presentation.phase == DiceScenePhase.Error) {
-            Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 if (presentation.phase != DiceScenePhase.Error) {
                     LoadingIndicator()
                 } else {

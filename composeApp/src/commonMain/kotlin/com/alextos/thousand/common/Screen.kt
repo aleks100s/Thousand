@@ -1,6 +1,7 @@
 package com.alextos.thousand.common
 
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
@@ -27,6 +28,8 @@ fun Screen(
 ) {
     Scaffold(
         modifier = modifier,
+        containerColor = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.onBackground,
         topBar = {
             AppNavigationBar(title, titleView, goBack, backButtonIcon, actions)
         },

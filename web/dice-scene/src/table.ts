@@ -75,8 +75,6 @@ export function drawWoodenFrame(canvas: HTMLCanvasElement, width: number, height
     return path;
   };
   const outer = contour(0), inner = contour(rail);
-  context.fillStyle = '#18201b';
-  context.fillRect(0, 0, width, height);
   // The table's drop shadow falls to the right, away from the light on the left.
   context.shadowColor = 'rgba(0,0,0,.85)';
   context.shadowBlur = 18;
@@ -128,4 +126,5 @@ export function drawWoodenFrame(canvas: HTMLCanvasElement, width: number, height
   context.lineWidth = 4;
   context.stroke(inner);
   context.restore();
+  return `inset(${margin}px round ${radius}px)`;
 }

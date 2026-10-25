@@ -1,6 +1,5 @@
 package com.alextos.thousand.presentation.onboarding
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,7 +43,7 @@ fun OnboardingScreen() {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     if (state.isFinalizingInProgress) {
-        Box(Modifier.background(MaterialTheme.colorScheme.background).fillMaxSize(), Alignment.Center) {
+        Box(Modifier.fillMaxSize(), Alignment.Center) {
             LoadingIndicator()
         }
     } else {
@@ -56,7 +55,6 @@ fun OnboardingScreen() {
         ) {
             Box(
                 modifier = it
-                    .background(MaterialTheme.colorScheme.background)
                     .fillMaxSize()
                     .padding(24.dp),
                 contentAlignment = Alignment.Center,

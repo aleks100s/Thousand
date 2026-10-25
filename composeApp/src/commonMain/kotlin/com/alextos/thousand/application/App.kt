@@ -7,9 +7,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.application.navigation.AppNavHost
+import com.alextos.thousand.application.theme.AppBackground
 import com.alextos.thousand.application.theme.ThousandTheme
 import com.alextos.thousand.presentation.onboarding.OnboardingScreen
 import kotlinx.coroutines.delay
@@ -27,19 +29,22 @@ fun App() {
             viewModel.onAction(AppAction.LaunchFinished)
         }
 
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background,
-        ) {
-            when {
-                state.isLoading || !state.isLaunchFinished -> {
-                    LaunchScreen()
-                }
-                state.isOnboardingRequired -> {
-                    OnboardingScreen()
-                }
-                else -> {
-                    AppNavHost(hideMultiplayer = state.hideMultiplayer)
+        AppBackground {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = Color.Transparent,
+                contentColor = MaterialTheme.colorScheme.onBackground,
+            ) {
+                when {
+                    state.isLoading || !state.isLaunchFinished -> {
+                        LaunchScreen()
+                    }
+                    state.isOnboardingRequired -> {
+                        OnboardingScreen()
+                    }
+                    else -> {
+                        AppNavHost(hideMultiplayer = state.hideMultiplayer)
+                    }
                 }
             }
         }
