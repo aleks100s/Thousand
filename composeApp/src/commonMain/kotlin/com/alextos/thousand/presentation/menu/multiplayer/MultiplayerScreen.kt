@@ -51,6 +51,8 @@ import thousand.composeapp.generated.resources.language_24px
 @Composable
 fun MultiplayerScreen(
     goBack: () -> Unit,
+    invitationCode: String? = null,
+    invitationId: Long = 0,
     openCreateLobby: () -> Unit,
     openLobby: (String) -> Unit,
     openGame: (String) -> Unit,
@@ -66,6 +68,10 @@ fun MultiplayerScreen(
                 is MultiplayerEvent.OpenLobby -> openLobby(event.lobbyId)
             }
         }
+    }
+
+    LaunchedEffect(viewModel, invitationId) {
+        invitationCode?.let { viewModel.onAction(MultiplayerAction.OpenInvitation(it, invitationId)) }
     }
 
     Screen(

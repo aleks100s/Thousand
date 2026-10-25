@@ -25,7 +25,7 @@ sealed interface MenuRoute {
     data object Users : MenuRoute
 
     @Serializable
-    data object Multiplayer : MenuRoute
+    data class Multiplayer(val invitationCode: String? = null, val invitationId: Long = 0) : MenuRoute
 
     @Serializable
     data class PlayGame(val gameId: Long) : MenuRoute

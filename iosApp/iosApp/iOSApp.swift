@@ -23,6 +23,9 @@ struct iOSApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView(observer: observer)
+                .onOpenURL { url in
+                    MainViewControllerKt.openLobbyInvitation(url: url.absoluteString)
+                }
         }
     }
 }

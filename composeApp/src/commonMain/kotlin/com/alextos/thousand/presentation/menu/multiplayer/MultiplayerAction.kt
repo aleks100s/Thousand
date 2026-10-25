@@ -1,6 +1,7 @@
 package com.alextos.thousand.presentation.menu.multiplayer
 
 sealed interface MultiplayerAction {
+    data class OpenInvitation(val code: String, val id: Long) : MultiplayerAction
     data object ShowLoginSheet :
         MultiplayerAction
     data object HideLoginSheet :

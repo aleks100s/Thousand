@@ -12,6 +12,8 @@ import com.alextos.thousand.presentation.menu.multiplayer.player_profile.PlayerP
 @Composable
 fun MultiplayerRoot(
     goBack: () -> Unit,
+    invitationCode: String? = null,
+    invitationId: Long = 0,
 ) {
     val navController = rememberNavController()
 
@@ -21,6 +23,8 @@ fun MultiplayerRoot(
     ) {
         horizontalTransition<MultiplayerRoute.Multiplayer> {
             MultiplayerScreen(
+                invitationCode = invitationCode,
+                invitationId = invitationId,
                 goBack = goBack,
                 openCreateLobby = {
                     navController.navigate(MultiplayerRoute.CreateLobby)

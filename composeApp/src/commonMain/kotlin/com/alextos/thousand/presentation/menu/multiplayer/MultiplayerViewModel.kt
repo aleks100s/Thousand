@@ -1,15 +1,18 @@
 package com.alextos.thousand.presentation.menu.multiplayer
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 import androidx.lifecycle.viewModelScope
 import com.alextos.thousand.domain.repository.MultiplayerRepository
 import com.alextos.thousand.domain.service.NativeAccountService
 import com.alextos.thousand.domain.usecase.LogInUseCase
 import com.alextos.thousand.domain.usecase.SignUpUseCase
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
@@ -22,13 +25,15 @@ class MultiplayerViewModel(
     private val nativeAccountService: NativeAccountService,
     private val logInUseCase: LogInUseCase,
     private val signUpUseCase: SignUpUseCase,
-    private val multiplayerRepository: MultiplayerRepository
+    private val multiplayerRepository: MultiplayerRepository,
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _state = MutableStateFlow(MultiplayerState())
     val state: StateFlow<MultiplayerState> = _state.asStateFlow()
 
-    private val _events = MutableSharedFlow<MultiplayerEvent>()
-    val events: SharedFlow<MultiplayerEvent> = _events.asSharedFlow()
+    private val _events = Channel<MultiplayerEvent>(Channel.BUFFERED)
+    val events = _events.receiveAsFlow()
+    private var joinJob: Job? = null
 
     init {
         observeUserProfile()
@@ -36,6 +41,7 @@ class MultiplayerViewModel(
 
     fun onAction(action: MultiplayerAction) {
         when (action) {
+            is MultiplayerAction.OpenInvitation -> openInvitation(action.code, action.id)
             MultiplayerAction.ShowLoginSheet -> showLoginSheet()
             MultiplayerAction.HideLoginSheet -> hideLoginSheet()
             MultiplayerAction.ShowJoinLobbySheet -> showJoinLobbySheet()
@@ -66,12 +72,13 @@ class MultiplayerViewModel(
                         isAuthorized = isAuthorized,
                         currentUserId = userProfile?.id,
                         username = userProfile?.name,
-                        isLoginSheetVisible = if (isAuthorized) false else it.isLoginSheetVisible,
+                        isLoginSheetVisible = if (isAuthorized) false else (savedStateHandle.get<String>("pendingLobby") != null || it.isLoginSheetVisible),
                         isLoginInProgress = if (isAuthorized) false else it.isLoginInProgress,
                     )
                 }
 
                 if (isAuthorized.not()) {
+                    joinJob?.cancel()
                     _state.update {
                         it.copy(
                             lobbies = emptyList(),
@@ -82,6 +89,7 @@ class MultiplayerViewModel(
                     return@collectLatest
                 }
 
+                joinPendingInvitation()
                 observeLobbies()
             }
         }
@@ -155,21 +163,34 @@ class MultiplayerViewModel(
         }
     }
 
+    private fun openInvitation(code: String, id: Long) {
+        if (savedStateHandle.get<Long>("handledInvitation") == id) return
+        savedStateHandle["handledInvitation"] = id
+        savedStateHandle["pendingLobby"] = code
+        updateLobbyId(code)
+        if (state.value.isAuthorized) joinPendingInvitation() else showLoginSheet()
+    }
+
+    private fun joinPendingInvitation() {
+        val code = savedStateHandle.get<String>("pendingLobby") ?: return
+        updateLobbyId(code)
+        joinLobby()
+    }
+
     private fun joinLobby() {
         val lobbyId = state.value.lobbyId.trim()
-        if (lobbyId.isBlank()) return
-
-        viewModelScope.launch {
+        if (lobbyId.isBlank() || !state.value.isAuthorized || joinJob?.isActive == true) return
+        joinJob = viewModelScope.launch {
             try {
                 val key = multiplayerRepository.joinLobby(lobbyId)
-                _state.update {
-                    it.copy(isJoinLobbySheetVisible = false, lobbyId = "")
-                }
-                _events.emit(MultiplayerEvent.OpenLobby(key))
+                check(key.isNotBlank()) { "Не удалось подключиться к лобби" }
+                _state.update { it.copy(isJoinLobbySheetVisible = false, lobbyId = "") }
+                savedStateHandle.remove<String>("pendingLobby")
+                _events.send(MultiplayerEvent.OpenLobby(key))
             } catch (e: Exception) {
-                _state.update {
-                    it.copy(lobbyError = e.message)
-                }
+                currentCoroutineContext().ensureActive()
+                savedStateHandle.remove<String>("pendingLobby")
+                _state.update { it.copy(lobbyError = e.message, isJoinLobbySheetVisible = true) }
             }
         }
     }

@@ -37,6 +37,10 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
+import com.alextos.thousand.application.invites.LobbyLinks
+import com.alextos.thousand.presentation.components.rememberTextShare
+import com.alextos.thousand.presentation.components.AppButton
+import com.alextos.thousand.presentation.components.AppButtonStyle
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
@@ -52,7 +56,6 @@ fun LobbyScreen(
 ) {
     val viewModel: LobbyViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val clipboardManager = LocalClipboardManager.current
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -62,6 +65,16 @@ fun LobbyScreen(
             }
         }
     }
+
+    LobbyContent(state, goBack, viewModel::onAction)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+@Suppress("DEPRECATION")
+internal fun LobbyContent(state: LobbyState, goBack: () -> Unit, onAction: (LobbyAction) -> Unit) {
+    val clipboardManager = LocalClipboardManager.current
+    val shareText = rememberTextShare()
 
     if (state.error != null) {
         ModalBottomSheet(
@@ -74,7 +87,7 @@ fun LobbyScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(state.error ?: "")
+                Text(state.error)
 
                 Button(onClick = goBack) {
                     Text("Выйти в меню")
@@ -92,7 +105,7 @@ fun LobbyScreen(
                 TextButton(
                     enabled = state.lobbyId.isNotBlank(),
                     onClick = {
-                        viewModel.onAction(LobbyAction.LeaveGame)
+                        onAction(LobbyAction.LeaveGame)
                     },
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = MaterialTheme.colorScheme.error,
@@ -114,16 +127,10 @@ fun LobbyScreen(
 
             TextButton(
                 enabled = state.lobbyId.isNotBlank(),
-                onClick = {
-                    clipboardManager.setText(AnnotatedString(state.lobbyId))
-                },
+                onClick = { clipboardManager.setText(AnnotatedString(state.lobbyId)) },
             ) {
                 Text("Код лобби")
-
-                Icon(
-                    painter = painterResource(Res.drawable.content_copy_24px),
-                    contentDescription = "Скопировать код лобби",
-                )
+                Icon(painterResource(Res.drawable.content_copy_24px), "Скопировать код лобби")
             }
 
             Column(
@@ -158,18 +165,22 @@ fun LobbyScreen(
                 }
             }
 
-            if (state.isHost) {
-                Button(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth(),
-                    enabled = state.isStartButtonEnabled,
-                    onClick = {
-                       viewModel.onAction(LobbyAction.StartGame)
-                    },
-                ) {
-                    Text("Начать игру")
+            Column(
+                modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp).fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                AppButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    style = AppButtonStyle.Secondary,
+                    enabled = state.lobbyId.isNotBlank(),
+                    onClick = { shareText("Присоединяйся к игре «Тысяча»!\n${LobbyLinks.create(state.lobbyId)}") },
+                ) { Text("Поделиться ссылкой") }
+                if (state.isHost) {
+                    Button(
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = state.isStartButtonEnabled,
+                        onClick = { onAction(LobbyAction.StartGame) },
+                    ) { Text("Начать игру") }
                 }
             }
         }
@@ -208,4 +219,18 @@ private fun LoadingView(modifier: Modifier) {
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.primary),
     )
+}
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+internal fun LobbyPreview() {
+    com.alextos.thousand.application.theme.ThousandTheme {
+        com.alextos.thousand.application.theme.AppBackground {
+            LobbyContent(
+                LobbyState(lobbyId = "1234", isHost = true, players = listOf(
+                    com.alextos.thousand.domain.models.User(id = "preview-a", name = "Маша"),
+                    com.alextos.thousand.domain.models.User(id = "preview-b", name = "Саша"),
+                )), {}, {},
+            )
+        }
+    }
 }

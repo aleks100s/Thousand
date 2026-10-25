@@ -1,6 +1,11 @@
 package com.alextos.thousand.presentation.menu
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.toRoute
+import com.alextos.thousand.application.invites.LobbyInvitations
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.alextos.thousand.common.horizontalTransition
@@ -19,6 +24,16 @@ fun MenuRoot(
     hideMultiplayer: Boolean,
 ) {
     val navController = rememberNavController()
+    val invitation by LobbyInvitations.pending.collectAsStateWithLifecycle()
+    LaunchedEffect(invitation?.id) {
+        invitation?.let { request ->
+            navController.navigate(MenuRoute.Multiplayer(request.code, request.id)) {
+                popUpTo(MenuRoute.Menu)
+                launchSingleTop = true
+            }
+            LobbyInvitations.consume(request.id)
+        }
+    }
 
     NavHost(
         navController = navController,
@@ -35,7 +50,7 @@ fun MenuRoot(
                     }
                 },
                 openMultiplayer = {
-                    navController.navigate(MenuRoute.Multiplayer)
+                    navController.navigate(MenuRoute.Multiplayer())
                 },
                 openRules = {
                     navController.navigate(MenuRoute.Rules)
@@ -101,8 +116,11 @@ fun MenuRoot(
                 onGoBack = navController::popBackStack,
             )
         }
-        horizontalTransition<MenuRoute.Multiplayer> {
+        horizontalTransition<MenuRoute.Multiplayer> { entry ->
+            val route = entry.toRoute<MenuRoute.Multiplayer>()
             MultiplayerRoot(
+                invitationCode = route.invitationCode,
+                invitationId = route.invitationId,
                 goBack = {
                     navController.popBackStack()
                 },
