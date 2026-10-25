@@ -15,7 +15,7 @@ data class CreateGameState(
 ) {
     val title: String
         get() = when (step) {
-            CreateGameStep.Players -> "Выбор игроков"
+            CreateGameStep.Players -> if (selectedUsers.isEmpty()) "Выбор игроков" else selectedPlayersLabel(selectedUsers.size)
             CreateGameStep.Settings -> "Настройки игры"
         }
 
@@ -40,4 +40,11 @@ data class CreateGameState(
 enum class CreateGameStep {
     Players,
     Settings,
+}
+
+internal fun selectedPlayersLabel(count: Int): String = when {
+    count % 100 in 11..14 -> "Выбрано $count игроков"
+    count % 10 == 1 -> "Выбран $count игрок"
+    count % 10 in 2..4 -> "Выбрано $count игрока"
+    else -> "Выбрано $count игроков"
 }
