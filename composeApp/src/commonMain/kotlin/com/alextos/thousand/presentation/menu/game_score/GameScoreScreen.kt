@@ -10,7 +10,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -19,14 +18,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
-import com.alextos.thousand.domain.models.Game
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun GameScoreScreen(
     onGoBack: () -> Unit,
-    onResultsClick: (Game) -> Unit,
 ) {
     val viewModel: GameScoreViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -35,23 +32,16 @@ fun GameScoreScreen(
         viewModel.onAction(GameScoreAction.LoadGame)
     }
 
+    GameScoreContent(state, onGoBack)
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+internal fun GameScoreContent(state: GameScoreState, onGoBack: () -> Unit) {
     Screen(
         modifier = Modifier,
         title = state.title,
         goBack = onGoBack,
-        actions = { actionColor ->
-            {
-                state.game?.takeIf { it.isFinished() }?.let { game ->
-                    TextButton(
-                        onClick = {
-                            onResultsClick(game)
-                        }
-                    ) {
-                        Text("Итоги", color = actionColor)
-                    }
-                }
-            }
-        }
     ) { modifier ->
         val game = state.game
         if (game == null) {
@@ -65,6 +55,16 @@ fun GameScoreScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+                if (state.showSummary) {
+                    item(key = "chart") { ScoreChartCard(series = state.scoreSeries) }
+                    items(state.playerStatistics, key = { "statistics-${it.userId}" }) { player ->
+                        PlayerStatisticsCard(statistics = player)
+                    }
+                    item(key = "history-title") {
+                        Text("История бросков", modifier = Modifier.padding(top = 8.dp),
+                            style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
+                    }
+                }
                 if (state.turns.isEmpty()) {
                     item { Text("Бросков пока нет", modifier = Modifier.padding(24.dp)) }
                 }

@@ -5,8 +5,12 @@ import com.alextos.thousand.domain.models.Game
 data class GameScoreState(
     val isLoading: Boolean = true,
     val game: Game? = null,
-    val turns: List<TurnHistoryUi> = emptyList()
+    val turns: List<TurnHistoryUi> = emptyList(),
+    val scoreSeries: List<PlayerScoreSeries> = emptyList(),
+    val playerStatistics: List<GameResultsPlayerStatistics> = emptyList(),
 ) {
+    val showSummary: Boolean get() = game?.isFinished() == true
+
     val title: String
         get() = game?.let { "Результаты игры №${it.id}" } ?: ""
 }

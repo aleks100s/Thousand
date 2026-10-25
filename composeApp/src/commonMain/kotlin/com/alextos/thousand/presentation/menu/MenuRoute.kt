@@ -33,6 +33,4 @@ sealed interface MenuRoute {
     @Serializable
     data class GameScore(val gameId: Long) : MenuRoute
 
-    @Serializable
-    data class GameResults(val gameId: Long) : MenuRoute
 }

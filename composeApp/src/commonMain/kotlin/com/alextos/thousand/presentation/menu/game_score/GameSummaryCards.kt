@@ -1,108 +1,44 @@
-package com.alextos.thousand.presentation.menu.game_results
+package com.alextos.thousand.presentation.menu.game_score
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.alextos.thousand.common.Screen
+import androidx.compose.ui.unit.sp
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
-import org.koin.compose.viewmodel.koinViewModel
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-fun GameResultsScreen(
-    onGoBack: () -> Unit,
-) {
-    val viewModel: GameResultsViewModel = koinViewModel()
-    val state by viewModel.state.collectAsStateWithLifecycle()
-
-    LaunchedEffect(Unit) {
-        viewModel.onAction(GameResultsAction.LoadResults)
-    }
-
-    Screen(
-        modifier = Modifier,
-        title = state.title,
-        goBack = onGoBack,
-    ) { modifier ->
-        if (state.isLoading) {
-            Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                LoadingIndicator()
-            }
-        } else {
-            LazyColumn(
-                modifier = modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                item {
-                    ScoreChartCard(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                        series = state.scoreSeries,
-                    )
-                }
-
-                item {
-                    Text(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        text = "Статистика игроков",
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                }
-
-                items(state.playerStatistics) { player ->
-                    PlayerStatisticsCard(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        statistics = player,
-                    )
-                }
-            }
-        }
-    }
-}
 
 @Composable
-private fun ScoreChartCard(
+internal fun ScoreChartCard(
     modifier: Modifier = Modifier,
     series: List<PlayerScoreSeries>,
 ) {
-    Card(modifier = modifier.fillMaxWidth()) {
+    HistoryPanel(modifier) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(4.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                text = "Динамика счета",
+                text = "Динамика счёта",
+                color = SummaryCream,
+                fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.titleMedium,
             )
 
@@ -113,8 +49,7 @@ private fun ScoreChartCard(
                     style = MaterialTheme.typography.bodyMedium,
                 )
             } else {
-                val colors =
-                    chartColors()
+                val colors = chartColors()
                 ScoreChart(
                     modifier = Modifier.fillMaxWidth().height(240.dp),
                     series = series,
@@ -136,15 +71,16 @@ private fun ScoreChart(
     series: List<PlayerScoreSeries>,
     colors: List<Color>,
 ) {
-    val axisColor = MaterialTheme.colorScheme.outlineVariant
+    val axisColor = Color(0xFF24505C)
+    val textMeasurer = rememberTextMeasurer()
     val maxScore = series.flatMap { it.points }.maxOrNull()?.coerceAtLeast(100) ?: 100
     val maxIndex = series.maxOfOrNull { it.points.lastIndex }?.coerceAtLeast(1) ?: 1
 
     Canvas(modifier = modifier) {
-        val leftPadding = 12.dp.toPx()
+        val leftPadding = 36.dp.toPx()
         val rightPadding = 12.dp.toPx()
         val topPadding = 12.dp.toPx()
-        val bottomPadding = 20.dp.toPx()
+        val bottomPadding = 26.dp.toPx()
         val chartWidth = size.width - leftPadding - rightPadding
         val chartHeight = size.height - topPadding - bottomPadding
 
@@ -155,9 +91,22 @@ private fun ScoreChart(
                 start = Offset(leftPadding, y),
                 end = Offset(size.width - rightPadding, y),
                 strokeWidth = 1.dp.toPx(),
+                pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 4.dp.toPx())),
             )
         }
 
+        val axisStyle = TextStyle(color = SummaryMuted, fontSize = 10.sp)
+        repeat(5) { index ->
+            val label = textMeasurer.measure((maxScore * (4 - index) / 4).toString(), axisStyle)
+            drawText(label, topLeft = Offset(0f, topPadding + chartHeight * index / 4f - label.size.height / 2))
+        }
+        val steps = minOf(4, maxIndex)
+        for (index in 0..steps) {
+            val turn = (maxIndex * index.toFloat() / steps).roundToInt()
+            val label = textMeasurer.measure(turn.toString(), axisStyle)
+            drawText(label, topLeft = Offset(leftPadding + chartWidth * turn / maxIndex - label.size.width / 2,
+                topPadding + chartHeight + 6.dp.toPx()))
+        }
         series.forEachIndexed { seriesIndex, playerSeries ->
             val path = Path()
             playerSeries.points.forEachIndexed { pointIndex, score ->
@@ -174,7 +123,7 @@ private fun ScoreChart(
             drawPath(
                 path = path,
                 color = color,
-                style = Stroke(width = 3.dp.toPx()),
+                style = Stroke(width = 2.5.dp.toPx(), cap = StrokeCap.Round),
             )
 
             playerSeries.points.forEachIndexed { pointIndex, score ->
@@ -182,7 +131,7 @@ private fun ScoreChart(
                 val y = topPadding + chartHeight * (1f - score.toFloat() / maxScore)
                 drawCircle(
                     color = color,
-                    radius = 4.dp.toPx(),
+                    radius = if (playerSeries.points.size < 40) 3.dp.toPx() else 1.5.dp.toPx(),
                     center = Offset(x, y),
                 )
             }
@@ -195,8 +144,9 @@ private fun ChartLegend(
     series: List<PlayerScoreSeries>,
     colors: List<Color>,
 ) {
-    Row(
-        modifier = Modifier.horizontalScroll(rememberScrollState()),
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         series.forEachIndexed { index, playerSeries ->
@@ -214,6 +164,7 @@ private fun ChartLegend(
                 )
                 Text(
                     text = playerSeries.playerName,
+                    color = SummaryMuted,
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
@@ -222,22 +173,24 @@ private fun ChartLegend(
 }
 
 @Composable
-private fun PlayerStatisticsCard(
+internal fun PlayerStatisticsCard(
     modifier: Modifier = Modifier,
     statistics: GameResultsPlayerStatistics,
 ) {
-    Card(modifier = modifier.fillMaxWidth()) {
+    HistoryPanel(modifier) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(4.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
                 text = statistics.playerName,
+                color = SummaryCream,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )
 
-            HorizontalDivider()
+            Text("Статистика игрока · сравнение со всеми играми", color = SummaryMuted, style = MaterialTheme.typography.labelSmall)
+            HorizontalDivider(color = Color(0xFF24505C))
 
             StatisticComparisonRow(
                 title = "Средний ход",
@@ -268,47 +221,37 @@ private fun StatisticComparisonRow(
     }
     val shouldShowDelta = delta.toRoundedTenths() != 0
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            modifier = Modifier.weight(1f),
-            text = title,
-            style = MaterialTheme.typography.bodyMedium,
-        )
-
+    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = gameValue.toScoreText(),
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
-
-            if (shouldShowDelta) {
-                Text(
-                    text = "(${delta.toSignedScoreText()})",
-                    color = deltaColor,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
+            Text(title, modifier = Modifier.weight(1f), color = SummaryMuted,
+                style = MaterialTheme.typography.bodyMedium)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(gameValue.toScoreText(), color = PositiveDeltaColor,
+                    style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                if (shouldShowDelta) {
+                    Text("(${delta.toSignedScoreText()})", color = deltaColor,
+                        style = MaterialTheme.typography.bodyMedium)
+                }
             }
         }
+        Text("Обычно: ${globalValue.toScoreText()}", color = SummaryMuted,
+            style = MaterialTheme.typography.labelSmall)
     }
 }
 
 @Composable
 private fun chartColors(): List<Color> {
     return listOf(
-        MaterialTheme.colorScheme.primary,
-        MaterialTheme.colorScheme.tertiary,
-        Color(0xFF2E7D32),
-        Color(0xFFC62828),
-        Color(0xFFEF6C00),
-        Color(0xFF6A1B9A),
+        Color(0xFF89F1D1),
+        Color(0xFFFFC35F),
+        Color(0xFF89BDFF),
+        Color(0xFFFF9292),
+        Color(0xFFD4ACFF),
+        Color(0xFF8AE2EE),
     )
 }
 
@@ -331,5 +274,7 @@ private fun Double.toRoundedTenths(): Int {
     return (this * 10).roundToInt()
 }
 
-private val PositiveDeltaColor = Color(0xFF2E7D32)
-private val NegativeDeltaColor = Color(0xFFC62828)
+private val SummaryCream = Color(0xFFF5EBD9)
+private val SummaryMuted = Color(0xFFB9CCE4)
+private val PositiveDeltaColor = Color(0xFF89F1D1)
+private val NegativeDeltaColor = Color(0xFFFF9292)

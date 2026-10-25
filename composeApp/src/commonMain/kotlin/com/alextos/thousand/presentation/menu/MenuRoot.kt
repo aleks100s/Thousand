@@ -5,7 +5,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.alextos.thousand.common.horizontalTransition
 import com.alextos.thousand.presentation.menu.create_game.CreateGameScreen
-import com.alextos.thousand.presentation.menu.game_results.GameResultsScreen
 import com.alextos.thousand.presentation.menu.game_score.GameScoreScreen
 import com.alextos.thousand.presentation.menu.play_game.PlayGameScreen
 import com.alextos.thousand.presentation.menu.game_list.GamesListScreen
@@ -125,15 +124,8 @@ fun MenuRoot(
         horizontalTransition<MenuRoute.GameScore> { _ ->
             GameScoreScreen(
                 onGoBack = navController::popBackStack,
-                onResultsClick = { game ->
-                    navController.navigate(MenuRoute.GameResults(game.id))
-                },
             )
         }
-        horizontalTransition<MenuRoute.GameResults> { _ ->
-            GameResultsScreen(
-                onGoBack = navController::popBackStack,
-            )
-        }
+
     }
 }

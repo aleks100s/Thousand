@@ -56,7 +56,6 @@ import com.alextos.thousand.domain.usecase.user.SaveUserUseCase
 import com.alextos.thousand.domain.usecase.user.UpdateUserUseCase
 import com.alextos.thousand.presentation.menu.create_game.CreateGameViewModel
 import com.alextos.thousand.presentation.menu.game_list.GamesListViewModel
-import com.alextos.thousand.presentation.menu.game_results.GameResultsViewModel
 import com.alextos.thousand.presentation.menu.game_rules.GameRulesViewModel
 import com.alextos.thousand.presentation.menu.game_score.GameScoreViewModel
 import com.alextos.thousand.presentation.menu.play_game.PlayGameViewModel
@@ -119,7 +118,6 @@ fun appModule(
     viewModelOf(::TutorialGameViewModel)
     viewModelOf(::PlayGameViewModel)
     viewModelOf(::GameScoreViewModel)
-    viewModelOf(::GameResultsViewModel)
     viewModelOf(::MenuViewModel)
     viewModelOf(::MultiplayerViewModel)
     viewModelOf(::CreateLobbyViewModel)

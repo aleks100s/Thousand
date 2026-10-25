@@ -27,14 +27,7 @@ private val HistoryLine = Color(0xFF24505C)
 
 @Composable
 internal fun TurnHistoryCard(turn: TurnHistoryUi) {
-    Column(
-        Modifier.widthIn(max = 760.dp).fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp))
-            .background(Color(0xB300202A))
-            .border(1.5.dp, Color(0xFF087C96), RoundedCornerShape(18.dp))
-            .padding(10.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
+    HistoryPanel {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(
                 text = "ХОД ${turn.number}",
