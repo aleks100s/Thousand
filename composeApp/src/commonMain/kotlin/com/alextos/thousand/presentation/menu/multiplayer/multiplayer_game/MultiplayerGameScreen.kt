@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
+import com.alextos.thousand.presentation.components.gameNavigationTitle
 import com.alextos.thousand.domain.models.RemoteUserInfo
 import com.alextos.thousand.presentation.components.GameMessageBubble
 import com.alextos.thousand.presentation.components.GameView
@@ -145,7 +146,7 @@ fun MultiplayerGameScreen(
 
     Screen(
         modifier = Modifier,
-        title = "Игра ${state.gameCode}",
+        title = state.gameState.gameNavigationTitle,
         goBack = ::leaveGame,
         actions = { actionColor ->
             {

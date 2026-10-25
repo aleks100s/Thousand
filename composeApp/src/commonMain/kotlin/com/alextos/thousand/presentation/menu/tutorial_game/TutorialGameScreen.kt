@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
+import com.alextos.thousand.presentation.components.gameNavigationTitle
 import com.alextos.thousand.presentation.components.GameView
 import com.alextos.thousand.presentation.menu.game_rules.GameRulesContent
 import org.koin.compose.viewmodel.koinViewModel
@@ -70,16 +71,16 @@ fun TutorialGameScreen(
 
     Screen(
         modifier = Modifier,
-        title = state.title,
+        title = state.gameState.gameNavigationTitle,
         goBack = onGoBack,
-        actions = {
+        actions = { actionColor ->
             {
                 TextButton(
                     onClick = {
                         isRulesSheetVisible = true
                     },
                 ) {
-                    Text("Правила")
+                    Text("Правила", color = actionColor)
                 }
             }
         },

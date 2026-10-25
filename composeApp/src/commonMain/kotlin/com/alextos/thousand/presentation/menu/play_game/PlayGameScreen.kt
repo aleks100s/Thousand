@@ -21,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
+import com.alextos.thousand.presentation.components.gameNavigationTitle
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.presentation.components.GameMessageBubble
 import com.alextos.thousand.presentation.components.GameView
@@ -67,7 +68,7 @@ fun PlayGameScreen(
     
     Screen(
         modifier = Modifier,
-        title = state.title,
+        title = state.gameState.gameNavigationTitle,
         goBack = onGoBack,
         actions = { actionColor ->
             {

@@ -72,13 +72,13 @@ fun MultiplayerScreen(
         modifier = Modifier,
         title = "Мультиплеер",
         goBack = goBack,
-        actions = {
+        actions = { actionColor ->
             {
                 state.username?.let {
                     TextButton(onClick = {
                         openPlayerProfile()
                     }) {
-                        Text(it)
+                        Text(it, color = actionColor)
                     }
                 }
             }
