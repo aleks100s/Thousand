@@ -116,22 +116,7 @@ fun CreateGameScreen(
                         }
                     }
                 }
-                CreateGameStep.Settings -> {
-                    ExtendedFloatingActionButton(
-                        onClick = {
-                            viewModel.onAction(CreateGameAction.CreateGame)
-                        },
-                        text = {
-                            Text("Начать игру")
-                        },
-                        icon = {
-                            Icon(
-                                painter = painterResource(Res.drawable.casino_24px),
-                                contentDescription = "Начать игру"
-                            )
-                        }
-                    )
-                }
+                CreateGameStep.Settings -> Unit
             }
         }
     ) { modifier ->
@@ -172,22 +157,12 @@ fun CreateGameScreen(
                     )
                 }
                 CreateGameStep.Settings -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        item {
-                            GameSettingsView(
-                                settings = state.gameSettings,
-                                onSettingsChange = { settings ->
-                                    viewModel.onAction(CreateGameAction.UpdateGameSettings(settings))
-                                },
-                            )
-                        }
-                        item {
-                            Spacer(Modifier.height(100.dp))
-                        }
-                    }
+                    GameSettingsView(
+                        settings = state.gameSettings,
+                        onSettingsChange = { viewModel.onAction(CreateGameAction.UpdateGameSettings(it)) },
+                        continueText = "Начать игру",
+                        onContinue = { viewModel.onAction(CreateGameAction.CreateGame) },
+                    )
                 }
             }
         }

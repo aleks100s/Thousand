@@ -26,6 +26,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.presentation.components.SingleDieView
 import com.alextos.thousand.presentation.components.PanelSegment
+import com.alextos.thousand.presentation.components.GameRuleSymbol
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
@@ -169,7 +170,7 @@ private fun RulesText(text: String) {
 @Composable
 private fun GameRulesTableOfContents(items: List<GameRulesTableOfContentsItem>, onItemClick: (GameRulesTableOfContentsItem) -> Unit) {
     RulesPanel {
-        RulesHeading("Оглавление", Res.drawable.rules_description, prominent = true)
+        RulesHeading("Оглавление", GameRuleSymbol.Contents.icon, prominent = true)
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             items.forEach { item ->
                 Row(
@@ -242,16 +243,16 @@ private fun DiceCombinationGroup(group: DiceCombinationGroup) {
 }
 
 private fun String.ruleIcon(): DrawableResource = when (this) {
-    "Цель игры" -> Res.drawable.rules_target
-    "Ход игрока" -> Res.drawable.rules_play_arrow
-    "Комбинации кубиков" -> Res.drawable.rules_casino
-    "Правила переброса" -> Res.drawable.rules_refresh
-    "Стартовый лимит" -> Res.drawable.rules_flag
-    "Бочки" -> Res.drawable.rules_database
-    "Обгоны" -> Res.drawable.rules_trending_up
-    "Болты и штрафы" -> Res.drawable.rules_gavel
-    "Яма" -> Res.drawable.rules_trip_origin
-    else -> Res.drawable.rules_description
+    "Цель игры" -> GameRuleSymbol.Goal.icon
+    "Ход игрока" -> GameRuleSymbol.PlayerTurn.icon
+    "Комбинации кубиков" -> GameRuleSymbol.Combinations.icon
+    "Правила переброса" -> GameRuleSymbol.Reroll.icon
+    "Стартовый лимит" -> GameRuleSymbol.StartingLimit.icon
+    "Бочки" -> GameRuleSymbol.Barrels.icon
+    "Обгоны" -> GameRuleSymbol.Overtake.icon
+    "Болты и штрафы" -> GameRuleSymbol.Bolts.icon
+    "Яма" -> GameRuleSymbol.Pit.icon
+    else -> GameRuleSymbol.Contents.icon
 }
 
 private val RerollExampleDieState.borderColor: Color

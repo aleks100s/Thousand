@@ -1,296 +1,160 @@
 package com.alextos.thousand.presentation.components
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.alextos.thousand.domain.GameConstants.BARREL_1
-import com.alextos.thousand.domain.GameConstants.BARREL_2
-import com.alextos.thousand.domain.GameConstants.BARREL_3
-import com.alextos.thousand.domain.GameConstants.BOLT_FINE
-import com.alextos.thousand.domain.GameConstants.OVERTAKE_FINE
-import com.alextos.thousand.domain.GameConstants.STARTING_LIMIT
 import com.alextos.thousand.domain.models.GameSettings
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
-import thousand.composeapp.generated.resources.Res
-import thousand.composeapp.generated.resources.casino_24px
-import thousand.composeapp.generated.resources.info_24px
-import thousand.composeapp.generated.resources.mobile_hand_24px
-import thousand.composeapp.generated.resources.mobile_vibrate_24px
-import thousand.composeapp.generated.resources.notifications_24px
-import thousand.composeapp.generated.resources.notifications_off_24px
-import thousand.composeapp.generated.resources.sports_esports_24px
+import thousand.composeapp.generated.resources.*
 
-@OptIn(ExperimentalMaterial3Api::class)
+private val SettingsCream = Color(0xFFF5F0DF)
+private val SettingsBody = Color(0xFFB9CCE4)
+private val SettingsShape = RoundedCornerShape(16.dp)
+
 @Composable
 fun GameSettingsView(
     singlePlayer: Boolean = true,
     settings: GameSettings,
     onSettingsChange: (GameSettings) -> Unit,
+    modifier: Modifier = Modifier,
+    continueText: String = "",
+    isContinuing: Boolean = false,
+    onContinue: (() -> Unit)? = null,
 ) {
-    var settingInfo by remember { mutableStateOf<GameSettingInfo?>(null) }
-
-    fun update(block: GameSettings.() -> Unit) {
-        onSettingsChange(settings.copy().apply(block))
+    val options = GameSettingOption.entries.filter { option ->
+        when (option) {
+            GameSettingOption.Shake -> singlePlayer && settings.isVirtualDiceEnabled
+            GameSettingOption.Notifications -> singlePlayer
+            else -> true
+        }
     }
-
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+    LazyColumn(
+        modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         if (singlePlayer) {
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Icon(
-                    painter = painterResource(
-                        if (settings.isVirtualDiceEnabled) {
-                            Res.drawable.sports_esports_24px
-                        } else {
-                            Res.drawable.casino_24px
-                        },
-                    ),
-                    contentDescription = null,
-                )
-
-                val text = if (settings.isVirtualDiceEnabled) {
-                    "В игровом режиме вам не понадобятся настоящие кубики - вы сможете играть прямо на телефоне."
-                } else {
-                    "Режим ассистента позволяет вести счет реальной игры в приложении"
-                }
-                Text(
-                    text = text,
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
-
-            SingleChoiceSegmentedButtonRow(Modifier.padding(horizontal = 16.dp).fillMaxWidth()) {
-                listOf(true, false).forEachIndexed { index, isEnabled ->
-                    SegmentedButton(
-                        selected = settings.isVirtualDiceEnabled == isEnabled,
-                        onClick = {
-                            update { isVirtualDiceEnabled = isEnabled }
-                        },
-                        label = {
-                            Text(if (isEnabled) "Игровой режим" else "Режим ассистента")
-                        },
-                        shape = SegmentedButtonDefaults.itemShape(
-                            index = index,
-                            count = 2,
-                        ),
-                    )
-                }
-            }
-
-            AnimatedVisibility(settings.isVirtualDiceEnabled) {
-                GameSettingsItemView(
-                    text = "Бросать кубики по тряске устройства",
-                    resource = if (settings.isShakeEnabled) Res.drawable.mobile_vibrate_24px else Res.drawable.mobile_hand_24px,
-                    checked = settings.isShakeEnabled,
-                    onCheckedChange = {
-                        update { isShakeEnabled = it }
-                    },
-                )
-            }
-
-            GameSettingsItemView(
-                text = "Уведомления во время игры",
-                resource = if (settings.isNotificationEnabled) Res.drawable.notifications_24px else Res.drawable.notifications_off_24px,
-                checked = settings.isNotificationEnabled,
-                onCheckedChange = {
-                    update { isNotificationEnabled = it }
-                },
+            item(key = "mode", contentType = "mode") { GameModeCard(settings, onSettingsChange) }
+        }
+        items(options, key = { it.name }, contentType = { "setting" }) { option ->
+            GameSettingsCard(
+                title = option.title, description = option.description, icon = option.icon,
+                checked = option.checked(settings),
+                onCheckedChange = { onSettingsChange(option.update(settings, it)) },
             )
         }
-
-        GameSettingsItemView(
-            text = "Открытие игры с $STARTING_LIMIT очков",
-            resource = Res.drawable.info_24px,
-            checked = settings.hasStartLimit,
-            onCheckedChange = {
-                update { hasStartLimit = it }
-            },
-            onInfoClick = {
-                settingInfo = GameSettingInfo(
-                    title = "Открытие игры",
-                    description = "Игрок начинает набирать очки только после хода на $STARTING_LIMIT очков или больше.",
-                )
-            },
-        )
-
-        GameSettingsItemView(
-            text = "Первая бочка $BARREL_1",
-            resource = Res.drawable.info_24px,
-            checked = settings.isBarrel1Active,
-            onCheckedChange = {
-                update { isBarrel1Active = it }
-            },
-            onInfoClick = {
-                settingInfo = GameSettingInfo(
-                    title = "Первая бочка",
-                    description = "Если счет игрока остается в диапазоне $BARREL_1, ход не засчитывается и игрок получает болт.",
-                )
-            },
-        )
-
-        GameSettingsItemView(
-            text = "Вторая бочка $BARREL_2",
-            resource = Res.drawable.info_24px,
-            checked = settings.isBarrel2Active,
-            onCheckedChange = {
-                update { isBarrel2Active = it }
-            },
-            onInfoClick = {
-                settingInfo = GameSettingInfo(
-                    title = "Вторая бочка",
-                    description = "Если счет игрока остается в диапазоне $BARREL_2, ход не засчитывается и игрок получает болт.",
-                )
-            },
-        )
-
-        GameSettingsItemView(
-            text = "Третья бочка $BARREL_3",
-            resource = Res.drawable.info_24px,
-            checked = settings.isBarrel3Active,
-            onCheckedChange = {
-                update { isBarrel3Active = it }
-            },
-            onInfoClick = {
-                settingInfo = GameSettingInfo(
-                    title = "Третья бочка",
-                    description = "Если счет игрока остается в диапазоне $BARREL_3, ход не засчитывается и игрок получает болт.",
-                )
-            },
-        )
-
-        GameSettingsItemView(
-            text = "Штраф $BOLT_FINE очков за 3 болта",
-            resource = Res.drawable.info_24px,
-            checked = settings.isTripleBoltFineActive,
-            onCheckedChange = {
-                update { isTripleBoltFineActive = it }
-            },
-            onInfoClick = {
-                settingInfo = GameSettingInfo(
-                    title = "Штраф за 3 болта",
-                    description = "Если игрок получает третий болт подряд, его счет уменьшается на $BOLT_FINE очков.",
-                )
-            },
-        )
-
-        GameSettingsItemView(
-            text = "Штраф за обгон $OVERTAKE_FINE очков",
-            resource = Res.drawable.info_24px,
-            checked = settings.isOvertakeFineActive,
-            onCheckedChange = {
-                update { isOvertakeFineActive = it }
-            },
-            onInfoClick = {
-                settingInfo = GameSettingInfo(
-                    title = "Штраф за обгон",
-                    description = "Когда игрок обгоняет соперника по счету, соперник теряет $OVERTAKE_FINE очков.",
-                )
-            },
-        )
-    }
-
-    settingInfo?.let { info ->
-        ModalBottomSheet(
-            onDismissRequest = {
-                settingInfo = null
-            },
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Text(
-                    text = info.title,
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Text(
-                    text = info.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(Modifier.height(16.dp))
+        if (onContinue != null) {
+            item(key = "continue", contentType = "action") {
+                AppButton(
+                    Modifier.widthIn(max = 760.dp).fillMaxWidth().padding(top = 10.dp),
+                    enabled = !isContinuing, onClick = onContinue,
+                ) {
+                    if (isContinuing) CircularProgressIndicator(Modifier.size(20.dp), color = Color.Black, strokeWidth = 2.dp)
+                    else Text(continueText)
+                }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun GameSettingsItemView(
-    text: String,
-    resource: DrawableResource,
+internal fun GameSettingsCard(
+    title: String,
+    description: String,
+    icon: DrawableResource,
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    onInfoClick: (() -> Unit)? = null,
+    onCheckedChange: ((Boolean) -> Unit)? = null,
+    value: String? = null,
 ) {
-    ListItem(
-        headlineContent = {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.bodyLarge,
-            )
-        },
-        leadingContent = {
-            if (onInfoClick == null) {
-                Icon(
-                    painter = painterResource(resource),
-                    contentDescription = text,
-                )
-            } else {
-                Icon(
-                    painter = painterResource(resource),
-                    contentDescription = "Подробнее: $text",
-                    modifier = Modifier.clickable(onClick = onInfoClick),
-                )
-            }
-        },
-        trailingContent = {
+    val action = if (onCheckedChange != null) Modifier.toggleable(checked, role = Role.Switch, onValueChange = onCheckedChange) else Modifier
+    Row(
+        Modifier.widthIn(max = 760.dp).fillMaxWidth().clip(SettingsShape)
+            .background(Color(0xC000202A)).border(1.5.dp, Color(0xFF087F98), SettingsShape)
+            .then(action).padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Box(
+            Modifier.size(42.dp).clip(RoundedCornerShape(12.dp))
+                .background(Brush.verticalGradient(listOf(Color(0xFF07333F), Color(0xFF01222D))))
+                .border(1.dp, Color(0xFF0B5364), RoundedCornerShape(12.dp)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(painterResource(icon), contentDescription = null, tint = Color(0xFFFFC56A), modifier = Modifier.size(26.dp))
+        }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+            Text(title, color = SettingsCream, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+            Text(description, color = SettingsBody, style = MaterialTheme.typography.bodySmall)
+        }
+        if (onCheckedChange != null) {
             Switch(
-                checked = checked,
-                onCheckedChange = onCheckedChange,
+                checked = checked, onCheckedChange = null,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = Color.White, checkedTrackColor = Color(0xFF809FFF),
+                    checkedBorderColor = Color(0xFF809FFF), uncheckedThumbColor = Color(0xFFA5BBC6),
+                    uncheckedTrackColor = Color(0xFF183B47), uncheckedBorderColor = Color(0xFF496572),
+                ),
             )
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable {
-                onCheckedChange(checked.not())
-            },
-    )
+        } else {
+            Text(value.orEmpty(), color = if (checked) Color(0xFF89F1D1) else SettingsBody,
+                style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+        }
+    }
 }
 
-private data class GameSettingInfo(
-    val title: String,
-    val description: String,
-)
+@Composable
+private fun GameModeCard(settings: GameSettings, onSettingsChange: (GameSettings) -> Unit) {
+    Column(
+        Modifier.widthIn(max = 760.dp).fillMaxWidth().clip(SettingsShape)
+            .background(Color(0xC000202A)).border(1.5.dp, Color(0xFF087F98), SettingsShape).padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Icon(painterResource(if (settings.isVirtualDiceEnabled) Res.drawable.sports_esports_24px else GameRuleSymbol.Combinations.icon),
+                contentDescription = null, tint = Color(0xFFFFC56A))
+            Text(if (settings.isVirtualDiceEnabled) "В игровом режиме вам не понадобятся настоящие кубики - вы сможете играть прямо на телефоне."
+                else "Режим ассистента позволяет вести счет реальной игры в приложении",
+                color = SettingsBody, style = MaterialTheme.typography.bodySmall)
+        }
+        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+            listOf(true, false).forEachIndexed { index, virtual ->
+                SegmentedButton(
+                    selected = settings.isVirtualDiceEnabled == virtual,
+                    onClick = { onSettingsChange(settings.copy(isVirtualDiceEnabled = virtual)) },
+                    shape = SegmentedButtonDefaults.itemShape(index, 2),
+                    colors = SegmentedButtonDefaults.colors(activeContainerColor = Color(0xFFFFC56A), activeContentColor = Color(0xFF08212A),
+                        inactiveContainerColor = Color.Transparent, inactiveContentColor = SettingsCream),
+                    label = { Text(if (virtual) "Игровой режим" else "Режим ассистента") },
+                )
+            }
+        }
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+internal fun GameSettingsPreview() {
+    com.alextos.thousand.application.theme.ThousandTheme {
+        com.alextos.thousand.application.theme.AppBackground {
+            com.alextos.thousand.common.Screen(Modifier, title = "Настройки игры", goBack = {}) { modifier ->
+                GameSettingsView(singlePlayer = false, settings = GameSettings(), onSettingsChange = {}, modifier = modifier,
+                    continueText = "Перейти в лобби", onContinue = {})
+            }
+        }
+    }
+}
