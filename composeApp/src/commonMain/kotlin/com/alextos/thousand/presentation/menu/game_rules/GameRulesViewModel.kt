@@ -16,19 +16,10 @@ class GameRulesViewModel(
     private val _state = MutableStateFlow(
         GameRulesState(
             items = items,
-            tableOfContents = createTableOfContents(items),
+            tableOfContents = rulesTableOfContents(items),
         )
     )
     val state: StateFlow<GameRulesState> = _state.asStateFlow()
-
-    private fun createTableOfContents(items: List<GameRulesItem>): List<GameRulesTableOfContentsItem> {
-        return items.mapIndexed { index, item ->
-            GameRulesTableOfContentsItem(
-                title = item.title,
-                itemIndex = index,
-            )
-        }
-    }
 
     private fun createRulesItems(): List<GameRulesItem> {
         return listOf(
@@ -136,10 +127,4 @@ class GameRulesViewModel(
         )
     }
 
-    private val GameRulesItem.title: String
-        get() = when (this) {
-            is GameRulesItem.TextRule -> title
-            is GameRulesItem.DiceCombinations -> title
-            is GameRulesItem.RerollRules -> title
-        }
 }

@@ -70,24 +70,25 @@ private fun GamesStatisticsContent(
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item {
+        item(key = "summary", contentType = "summary") {
             FinishedGamesCard(
                 state.finishedGamesCount
             )
         }
 
-        item {
+        item(key = "players-header", contentType = "players-header") {
             PlayersStatisticsTableHeader()
         }
 
         if (state.players.isEmpty()) {
-            item {
+            item(key = "empty", contentType = "empty") {
                 EmptyStatistics()
             }
         } else {
             items(
                 items = state.players,
                 key = { player -> player.userId },
+                contentType = { "player-statistics" },
             ) { player ->
                 PlayerStatisticsRow(
                     player
@@ -95,7 +96,7 @@ private fun GamesStatisticsContent(
             }
         }
 
-        item {
+        item(key = "bottom-space", contentType = "bottom-space") {
             Spacer(Modifier.height(16.dp))
         }
     }

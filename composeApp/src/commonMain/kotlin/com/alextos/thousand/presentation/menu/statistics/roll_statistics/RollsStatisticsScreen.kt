@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Card
@@ -67,31 +68,23 @@ private fun RollsStatisticsContent(
     modifier: Modifier,
     state: RollsStatisticsState,
 ) {
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        item {
-            CommonRollsStatisticsCard(
-                state
-            )
+    val tableScroll = rememberScrollState()
+    LazyColumn(modifier = modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+        item(key = "summary", contentType = "summary") {
+            CommonRollsStatisticsCard(state)
+            Spacer(Modifier.height(12.dp))
         }
-
-        item {
-            if (state.players.isEmpty()) {
-                EmptyRollsStatistics()
-            } else {
-                PlayersRollsStatisticsTable(
-                    state.players
-                )
+        if (state.players.isEmpty()) {
+            item(key = "empty", contentType = "empty") { EmptyRollsStatistics() }
+        } else {
+            item(key = "players-header", contentType = "players-header") {
+                Column(Modifier.fillMaxWidth().horizontalScroll(tableScroll)) { PlayersRollsStatisticsTableHeader() }
+            }
+            items(state.players, key = { "player-${it.userId}" }, contentType = { "player-statistics" }) { player ->
+                Box(Modifier.fillMaxWidth().horizontalScroll(tableScroll)) { PlayerRollsStatisticsRow(player) }
             }
         }
-
-        item {
-            Spacer(Modifier.height(16.dp))
-        }
+        item(key = "bottom-space", contentType = "spacer") { Spacer(Modifier.height(16.dp)) }
     }
 }
 
@@ -161,27 +154,6 @@ private fun CommonRollsStatisticsItem(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-    }
-}
-
-@Composable
-private fun PlayersRollsStatisticsTable(
-    players: List<PlayerWithRollStatistics>,
-) {
-    val horizontalScrollState = rememberScrollState()
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(horizontalScrollState),
-    ) {
-        PlayersRollsStatisticsTableHeader()
-
-        players.forEach { player ->
-            PlayerRollsStatisticsRow(
-                player
-            )
-        }
     }
 }
 

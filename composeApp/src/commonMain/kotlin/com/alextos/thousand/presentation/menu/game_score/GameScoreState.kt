@@ -9,6 +9,8 @@ data class GameScoreState(
     val scoreSeries: List<PlayerScoreSeries> = emptyList(),
     val playerStatistics: List<GameResultsPlayerStatistics> = emptyList(),
 ) {
+    val turnRows: List<TurnHistoryRow> = turns.toHistoryRows()
+
     val showSummary: Boolean get() = game?.isFinished() == true
 
     val title: String

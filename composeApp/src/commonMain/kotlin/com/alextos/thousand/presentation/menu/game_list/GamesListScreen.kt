@@ -92,14 +92,14 @@ fun GamesListScreen(
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                item {
+                item(key = "intro", contentType = "intro") {
                     LocalGamesInfoCard(
                         openStatistics = openStatistics,
                         onCreateGame = onCreateGame,
                     )
                 }
 
-                item {
+                item(key = "history-title", contentType = "section-title") {
                     Text(
                         text = "История игр",
                         style = MaterialTheme.typography.titleMedium,
@@ -109,6 +109,7 @@ fun GamesListScreen(
                 items(
                     items = state.games,
                     key = { game -> game.id },
+                    contentType = { "game" },
                 ) { game ->
                     GameItem(
                         game = game,
@@ -122,7 +123,7 @@ fun GamesListScreen(
                     )
                 }
 
-                item {
+                item(key = "bottom-space", contentType = "spacer") {
                     Spacer(Modifier.height(100.dp))
                 }
             }

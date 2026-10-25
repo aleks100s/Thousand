@@ -1,5 +1,8 @@
 package com.alextos.thousand.presentation.menu.game_score
 
+import com.alextos.thousand.presentation.components.PanelSegment
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -26,42 +29,58 @@ private val HistoryMuted = Color(0xFFB9CCE4)
 private val HistoryLine = Color(0xFF24505C)
 
 @Composable
-internal fun TurnHistoryCard(turn: TurnHistoryUi) {
-    HistoryPanel {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(
-                text = "ХОД ${turn.number}",
-                color = Color(0xFF08212A),
-                fontWeight = FontWeight.ExtraBold,
-                style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier.clip(CircleShape)
-                    .background(Brush.verticalGradient(listOf(Color(0xFFFFD48B), Color(0xFFFFB950))))
-                    .border(1.dp, Color(0xFFFFDB94), CircleShape)
-                    .padding(horizontal = 12.dp, vertical = 7.dp),
-            )
-            Text(turn.playerName, color = HistoryCream, style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+internal fun TurnHistoryLazyRow(row: TurnHistoryRow) {
+    when (row) {
+        is TurnHistoryRow.Header -> PanelSegment(first = true, last = false) { TurnHistoryHeader(row.turn) }
+        is TurnHistoryRow.Roll -> PanelSegment(first = false, last = false) { HistoryRollRow(row.number, row.roll) }
+        is TurnHistoryRow.Effect -> PanelSegment(first = false, last = false) { TurnHistoryEffect(row.message) }
+        is TurnHistoryRow.Footer -> Column {
+            PanelSegment(first = false, last = true) { TurnHistoryFooter(row.turn) }
+            Spacer(Modifier.height(12.dp))
         }
-        turn.rolls.forEachIndexed { index, roll -> HistoryRollRow(index + 1, roll) }
-        turn.effects.forEach { message ->
-            Row(
-                Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
-                    .background(Brush.horizontalGradient(listOf(Color(0xFF382A12), Color(0xCC201B12))))
-                    .border(1.dp, Color(0xFFFFA51F), RoundedCornerShape(12.dp)).padding(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text("!", color = Color(0xFF25200F), fontWeight = FontWeight.Black, textAlign = TextAlign.Center,
-                    modifier = Modifier.size(22.dp).background(Color(0xFFFFC35F), CircleShape))
-                Text(message, color = Color(0xFFFFC35F), style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
-            }
-        }
-        HorizontalDivider(color = HistoryLine)
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            HistoryTotal("Итог хода", turn.total.toString(), turn.total > 0, Modifier.weight(1f))
-            Box(Modifier.padding(horizontal = 8.dp).width(1.dp).height(28.dp).background(HistoryLine))
-            HistoryTotal("Общий счёт", turn.playerScore?.toString() ?: "—", (turn.playerScore ?: 0) > 0, Modifier.weight(1f))
-        }
+    }
+}
+
+@Composable
+private fun TurnHistoryHeader(turn: TurnHistoryUi) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(
+            text = "ХОД ${turn.number}",
+            color = Color(0xFF08212A),
+            fontWeight = FontWeight.ExtraBold,
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.clip(CircleShape)
+                .background(Brush.verticalGradient(listOf(Color(0xFFFFD48B), Color(0xFFFFB950))))
+                .border(1.dp, Color(0xFFFFDB94), CircleShape)
+                .padding(horizontal = 12.dp, vertical = 7.dp),
+        )
+        Text(turn.playerName, color = HistoryCream, style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun TurnHistoryEffect(message: String) {
+    Row(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+            .background(Brush.horizontalGradient(listOf(Color(0xFF382A12), Color(0xCC201B12))))
+            .border(1.dp, Color(0xFFFFA51F), RoundedCornerShape(12.dp)).padding(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text("!", color = Color(0xFF25200F), fontWeight = FontWeight.Black, textAlign = TextAlign.Center,
+            modifier = Modifier.size(22.dp).background(Color(0xFFFFC35F), CircleShape))
+        Text(message, color = Color(0xFFFFC35F), style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun TurnHistoryFooter(turn: TurnHistoryUi) {
+    HorizontalDivider(color = HistoryLine)
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        HistoryTotal("Итог хода", turn.total.toString(), turn.total > 0, Modifier.weight(1f))
+        Box(Modifier.padding(horizontal = 8.dp).width(1.dp).height(28.dp).background(HistoryLine))
+        HistoryTotal("Общий счёт", turn.playerScore?.toString() ?: "—", (turn.playerScore ?: 0) > 0, Modifier.weight(1f))
     }
 }
 
@@ -105,18 +124,19 @@ private fun HistoryTotal(label: String, value: String, positive: Boolean, modifi
 private fun TurnHistoryCardPreview() {
     com.alextos.thousand.application.theme.ThousandTheme {
         com.alextos.thousand.application.theme.AppBackground {
-            TurnHistoryCard(
-                TurnHistoryUi(
-                    id = 1, number = 1, playerName = "Легендарный Хомяк",
-                    rolls = listOf(
-                        HistoryRollUi(listOf(6, 6, 5, 3, 2).map {
-                            HistoryDieUi(com.alextos.thousand.domain.models.DieValue.entries[it - 1], it == 5)
-                        }, 5),
-                    ),
-                    effects = listOf("Легендарный Хомяк не выбил стартовые 50 очков"),
-                    total = 0, playerScore = 0, otherChanges = emptyList(),
+            val turn = TurnHistoryUi(
+                id = 1, number = 1, playerName = "Легендарный Хомяк",
+                rolls = listOf(
+                    HistoryRollUi(listOf(6, 6, 5, 3, 2).map {
+                        HistoryDieUi(com.alextos.thousand.domain.models.DieValue.entries[it - 1], it == 5)
+                    }, 5),
                 ),
+                effects = listOf("Легендарный Хомяк не выбил стартовые 50 очков"),
+                total = 0, playerScore = 0, otherChanges = emptyList(),
             )
+            LazyColumn {
+                items(listOf(turn).toHistoryRows(), key = { it.key }, contentType = { it::class }) { TurnHistoryLazyRow(it) }
+            }
         }
     }
 }

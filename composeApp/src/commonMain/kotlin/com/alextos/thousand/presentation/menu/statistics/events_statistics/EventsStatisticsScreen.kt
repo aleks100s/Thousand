@@ -70,24 +70,25 @@ private fun EventsStatisticsContent(
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item {
+        item(key = "summary", contentType = "summary") {
             CommonEventsStatisticsCard(
                 state
             )
         }
 
-        item {
+        item(key = "players-header", contentType = "players-header") {
             PlayersEventsStatisticsTableHeader()
         }
 
         if (state.players.isEmpty()) {
-            item {
+            item(key = "empty", contentType = "empty") {
                 EmptyEventsStatistics()
             }
         } else {
             items(
                 items = state.players,
                 key = { player -> player.userId },
+                contentType = { "player-statistics" },
             ) { player ->
                 PlayerEventsStatisticsRow(
                     player
@@ -95,7 +96,7 @@ private fun EventsStatisticsContent(
             }
         }
 
-        item {
+        item(key = "bottom-space", contentType = "bottom-space") {
             Spacer(Modifier.height(16.dp))
         }
     }

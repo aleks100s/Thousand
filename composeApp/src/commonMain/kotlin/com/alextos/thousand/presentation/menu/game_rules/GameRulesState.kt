@@ -13,19 +13,20 @@ data class GameRulesTableOfContentsItem(
 )
 
 sealed interface GameRulesItem {
+    val title: String
     data class TextRule(
-        val title: String,
+        override val title: String,
         val description: String,
     ) : GameRulesItem
 
     data class DiceCombinations(
-        val title: String,
+        override val title: String,
         val description: String,
         val groups: List<DiceCombinationGroup>,
     ) : GameRulesItem
 
     data class RerollRules(
-        val title: String,
+        override val title: String,
         val intro: String,
         val example: RerollExample,
         val paragraphs: List<String>,
@@ -56,4 +57,19 @@ data class RerollExampleDie(
 enum class RerollExampleDieState {
     Scored,
     Reroll,
+}
+
+/** Number of independently composed rows contributed by this rules section. */
+internal val GameRulesItem.lazyItemCount: Int
+    get() = when (this) {
+        is GameRulesItem.TextRule -> 1
+        is GameRulesItem.DiceCombinations -> 1 + groups.size
+        is GameRulesItem.RerollRules -> 2 + paragraphs.size
+    }
+
+internal fun rulesTableOfContents(items: List<GameRulesItem>): List<GameRulesTableOfContentsItem> {
+    var offset = 0
+    return items.map { item ->
+        GameRulesTableOfContentsItem(item.title, offset).also { offset += item.lazyItemCount }
+    }
 }

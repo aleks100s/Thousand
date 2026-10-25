@@ -71,24 +71,25 @@ private fun TurnsStatisticsContent(
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item {
+        item(key = "summary", contentType = "summary") {
             CommonTurnsStatisticsCard(
                 state
             )
         }
 
-        item {
+        item(key = "players-header", contentType = "players-header") {
             PlayersTurnsStatisticsTableHeader()
         }
 
         if (state.players.isEmpty()) {
-            item {
+            item(key = "empty", contentType = "empty") {
                 EmptyTurnsStatistics()
             }
         } else {
             items(
                 items = state.players,
                 key = { player -> player.userId },
+                contentType = { "player-statistics" },
             ) { player ->
                 PlayerTurnsStatisticsRow(
                     player
@@ -96,7 +97,7 @@ private fun TurnsStatisticsContent(
             }
         }
 
-        item {
+        item(key = "bottom-space", contentType = "bottom-space") {
             Spacer(Modifier.height(16.dp))
         }
     }

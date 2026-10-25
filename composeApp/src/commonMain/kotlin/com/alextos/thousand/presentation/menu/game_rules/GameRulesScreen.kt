@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -26,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.presentation.components.SingleDieView
+import com.alextos.thousand.presentation.components.PanelSegment
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
@@ -59,19 +59,68 @@ internal fun GameRulesList(modifier: Modifier = Modifier, state: GameRulesState)
         modifier = modifier,
         state = lazyListState,
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        item(key = "contents") {
-            GameRulesTableOfContents(state.tableOfContents) { item ->
-                coroutineScope.launch { lazyListState.animateScrollToItem(item.itemIndex + 1) }
+        item(key = "contents", contentType = "contents") {
+            Column {
+                GameRulesTableOfContents(state.tableOfContents) { item ->
+                    coroutineScope.launch { lazyListState.animateScrollToItem(item.itemIndex + 1) }
+                }
+                Spacer(Modifier.height(12.dp))
             }
         }
-        items(state.items) { item ->
-            when (item) {
-                is GameRulesItem.TextRule -> GameRuleItem(item)
-                is GameRulesItem.DiceCombinations -> DiceCombinationsRulesBlock(item)
-                is GameRulesItem.RerollRules -> RerollRulesBlock(item)
+        state.items.forEach { section ->
+            when (section) {
+                is GameRulesItem.TextRule -> item(key = "rule-${section.title}", contentType = "text-rule") {
+                    Column { GameRuleItem(section); Spacer(Modifier.height(12.dp)) }
+                }
+                is GameRulesItem.DiceCombinations -> {
+                    item(key = "rule-${section.title}", contentType = "rule-intro") {
+                        PanelSegment(first = true, last = section.groups.isEmpty(), padding = 12.dp, gap = 12.dp) {
+                            RulesHeading(section.title)
+                            RulesText(section.description)
+                        }
+                        if (section.groups.isEmpty()) Spacer(Modifier.height(12.dp))
+                    }
+                    items(count = section.groups.size,
+                        key = { "rule-${section.title}-group-${section.groups[it].dieValue}" },
+                        contentType = { "combination-group" },
+                    ) { index ->
+                        val last = index == section.groups.lastIndex
+                        Column {
+                            PanelSegment(first = false, last = last, padding = 12.dp, gap = 12.dp) {
+                                DiceCombinationGroup(section.groups[index])
+                            }
+                            if (last) Spacer(Modifier.height(12.dp))
+                        }
+                    }
+                }
+                is GameRulesItem.RerollRules -> {
+                    item(key = "rule-${section.title}", contentType = "rule-intro") {
+                        PanelSegment(first = true, last = false, padding = 12.dp, gap = 12.dp) {
+                            RulesHeading(section.title)
+                            RulesText(section.intro)
+                        }
+                    }
+                    item(key = "rule-${section.title}-example", contentType = "reroll-example") {
+                        Column {
+                            PanelSegment(first = false, last = section.paragraphs.isEmpty(), padding = 12.dp, gap = 12.dp) {
+                                RerollExampleView(section.example)
+                            }
+                            if (section.paragraphs.isEmpty()) Spacer(Modifier.height(12.dp))
+                        }
+                    }
+                    items(count = section.paragraphs.size,
+                        key = { "rule-${section.title}-paragraph-$it" }, contentType = { "rule-paragraph" },
+                    ) { index ->
+                        val last = index == section.paragraphs.lastIndex
+                        Column {
+                            PanelSegment(first = false, last = last, padding = 12.dp, gap = 12.dp) { RulesText(section.paragraphs[index]) }
+                            if (last) Spacer(Modifier.height(12.dp))
+                        }
+                    }
+                }
             }
         }
     }
@@ -146,25 +195,6 @@ private fun GameRuleItem(rule: GameRulesItem.TextRule) {
     RulesPanel {
         RulesHeading(rule.title)
         RulesText(rule.description)
-    }
-}
-
-@Composable
-private fun DiceCombinationsRulesBlock(item: GameRulesItem.DiceCombinations) {
-    RulesPanel {
-        RulesHeading(item.title)
-        RulesText(item.description)
-        item.groups.forEach { DiceCombinationGroup(it) }
-    }
-}
-
-@Composable
-private fun RerollRulesBlock(item: GameRulesItem.RerollRules) {
-    RulesPanel {
-        RulesHeading(item.title)
-        RulesText(item.intro)
-        RerollExampleView(item.example)
-        item.paragraphs.forEach { RulesText(it) }
     }
 }
 

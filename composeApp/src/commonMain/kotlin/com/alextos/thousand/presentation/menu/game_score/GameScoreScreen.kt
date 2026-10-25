@@ -1,6 +1,9 @@
 package com.alextos.thousand.presentation.menu.game_score
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -52,24 +55,26 @@ internal fun GameScoreContent(state: GameScoreState, onGoBack: () -> Unit) {
             LazyColumn(
                 modifier = modifier.fillMaxSize(),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 if (state.showSummary) {
-                    item(key = "chart") { ScoreChartCard(series = state.scoreSeries) }
-                    items(state.playerStatistics, key = { "statistics-${it.userId}" }) { player ->
-                        PlayerStatisticsCard(statistics = player)
+                    item(key = "chart", contentType = "chart") {
+                        Column { ScoreChartCard(series = state.scoreSeries); Spacer(Modifier.height(12.dp)) }
                     }
-                    item(key = "history-title") {
-                        Text("История бросков", modifier = Modifier.padding(top = 8.dp),
+                    items(state.playerStatistics, key = { "statistics-${it.userId}" }, contentType = { "player-statistics" }) { player ->
+                        Column { PlayerStatisticsCard(statistics = player); Spacer(Modifier.height(12.dp)) }
+                    }
+                    item(key = "history-title", contentType = "section-title") {
+                        Text("История бросков", modifier = Modifier.padding(top = 8.dp, bottom = 12.dp),
                             style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
                     }
                 }
                 if (state.turns.isEmpty()) {
-                    item { Text("Бросков пока нет", modifier = Modifier.padding(24.dp)) }
+                    item(key = "empty", contentType = "empty") { Text("Бросков пока нет", modifier = Modifier.padding(24.dp)) }
                 }
-                items(state.turns, key = { it.id }) { turn ->
-                    TurnHistoryCard(turn)
+                items(state.turnRows, key = { it.key }, contentType = { it::class }) { row ->
+                    TurnHistoryLazyRow(row)
                 }
             }
         }

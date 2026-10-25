@@ -96,7 +96,7 @@ fun MultiplayerScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            item {
+            item(key = "hero", contentType = "hero") {
                 MultiplayerHero(
                     state = state,
                     onAction = viewModel::onAction,
@@ -111,7 +111,7 @@ fun MultiplayerScreen(
             }
 
             if (state.activeGames.isNotEmpty()) {
-                item {
+                item(key = "active-games-title", contentType = "section-title") {
                     Text(
                         "Активные игры",
                         style = MaterialTheme.typography.titleMedium
@@ -119,7 +119,7 @@ fun MultiplayerScreen(
                 }
             }
 
-            items(state.activeGames) { game ->
+            items(state.activeGames, key = { "game-${it.key}" }, contentType = { "remote-game" }) { game ->
                 LobbyOrGameCard(
                     players = game.players.map { it.user },
                     host = game.host,
@@ -140,7 +140,7 @@ fun MultiplayerScreen(
             }
 
             if (state.lobbies.isNotEmpty()) {
-                item {
+                item(key = "lobbies-title", contentType = "section-title") {
                     Text(
                         "Активные лобби",
                         style = MaterialTheme.typography.titleMedium
@@ -148,7 +148,7 @@ fun MultiplayerScreen(
                 }
             }
 
-            items(state.lobbies) { lobby ->
+            items(state.lobbies, key = { "lobby-${it.key}" }, contentType = { "lobby" }) { lobby ->
                 LobbyOrGameCard(
                     players = lobby.players,
                     host = lobby.host,
@@ -168,7 +168,7 @@ fun MultiplayerScreen(
             }
 
             if (state.finishedGames.isNotEmpty()) {
-                item {
+                item(key = "finished-games-title", contentType = "section-title") {
                     Text(
                         "Завершенные игры",
                         style = MaterialTheme.typography.titleMedium
@@ -176,7 +176,7 @@ fun MultiplayerScreen(
                 }
             }
 
-            items(state.finishedGames) { game ->
+            items(state.finishedGames, key = { "game-${it.key}" }, contentType = { "remote-game" }) { game ->
                 LobbyOrGameCard(
                     players = game.players.map { it.user },
                     host = game.host,
