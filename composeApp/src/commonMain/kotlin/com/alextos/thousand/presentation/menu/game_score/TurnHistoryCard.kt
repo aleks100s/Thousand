@@ -85,7 +85,7 @@ private fun HistoryRollRow(number: Int, roll: HistoryRollUi) {
                 modifier = Modifier.size(24.dp).background(Color(0xFF234B58), CircleShape).wrapContentHeight(Alignment.CenterVertically))
             Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                 roll.dice.forEach { die ->
-                    Box(Modifier.size(dieSize).then(if (die.scoring) Modifier.border(1.5.dp, HistoryMint, RoundedCornerShape(6.dp)) else Modifier).padding(3.dp)) {
+                    Box(Modifier.size(dieSize).then(if (die.scoring) Modifier.border(1.5.dp, HistoryMint, RoundedCornerShape(25)) else Modifier).padding(3.dp)) {
                         SingleDieView(Modifier.fillMaxSize(), die.value)
                     }
                 }

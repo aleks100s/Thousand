@@ -9,12 +9,12 @@ import androidx.compose.ui.unit.dp
 import com.alextos.thousand.domain.models.DieValue
 import org.jetbrains.compose.resources.painterResource
 import thousand.composeapp.generated.resources.Res
-import thousand.composeapp.generated.resources.dice_five
-import thousand.composeapp.generated.resources.dice_four
-import thousand.composeapp.generated.resources.dice_one
-import thousand.composeapp.generated.resources.dice_six
-import thousand.composeapp.generated.resources.dice_three
-import thousand.composeapp.generated.resources.dice_two
+import thousand.composeapp.generated.resources.die_5
+import thousand.composeapp.generated.resources.die_4
+import thousand.composeapp.generated.resources.die_1
+import thousand.composeapp.generated.resources.die_6
+import thousand.composeapp.generated.resources.die_3
+import thousand.composeapp.generated.resources.die_2
 
 @Composable
 fun SingleDieView(
@@ -26,12 +26,12 @@ fun SingleDieView(
         tint = Color.Unspecified,
         painter = painterResource(
             when(dieValue) {
-                DieValue.ONE -> Res.drawable.dice_one
-                DieValue.TWO -> Res.drawable.dice_two
-                DieValue.THREE -> Res.drawable.dice_three
-                DieValue.FOUR -> Res.drawable.dice_four
-                DieValue.FIVE -> Res.drawable.dice_five
-                DieValue.SIX -> Res.drawable.dice_six
+                DieValue.ONE -> Res.drawable.die_1
+                DieValue.TWO -> Res.drawable.die_2
+                DieValue.THREE -> Res.drawable.die_3
+                DieValue.FOUR -> Res.drawable.die_4
+                DieValue.FIVE -> Res.drawable.die_5
+                DieValue.SIX -> Res.drawable.die_6
             }
         ),
         contentDescription = dieValue.value.toString()
