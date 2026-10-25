@@ -14,16 +14,11 @@ struct ContentView: View {
     let observer: ShakeDeviceObserver
     
     var body: some View {
-        GeometryReader { proxy in
-            let isLandscapePhone = UIDevice.current.userInterfaceIdiom == .phone
-                && proxy.size.width > proxy.size.height
-
-            ComposeView()
-                .ignoresSafeArea(.all, edges: isLandscapePhone ? .all.subtracting(.leading) : .all)
-                .background()
-                .onShake {
-                    observer.shake()
-                }
-        }
+        ComposeView()
+            .ignoresSafeArea(.all)
+            .background()
+            .onShake {
+                observer.shake()
+            }
     }
 }

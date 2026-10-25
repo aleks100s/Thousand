@@ -29,6 +29,7 @@ data class DiceSceneConfiguration(
     val gameFinished: Boolean = false,
     val messages: List<GameMessageBubble> = emptyList(),
     val advice: String? = null,
+    val turnScore: Int = 0,
 ) {
     val idleText: String get() = if (gameFinished) "Игра окончена" else "Вы в игре!"
     val promptText: String get() = when {
@@ -40,6 +41,7 @@ data class DiceSceneConfiguration(
     fun script(): String {
         val message = buildJsonObject {
             put("active", active)
+            put("turnScore", turnScore)
             put("idleText", idleText)
             put("promptText", promptText)
             put("isOpponentTurn", isOpponentTurn)

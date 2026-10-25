@@ -5,10 +5,11 @@ import { faceNormals, orientationFor } from './orientation';
 import { createFeltMaterial, drawWoodenFrame } from './table';
 import { createGameHeader, type HeaderState } from './header';
 import { createNotifications, type SceneMessage } from './notifications';
+import { createScoreTransfer } from './score-transfer';
 
 type Request = { presentationId: string; values: number[]; animate: boolean; scoringIndices?: number[]; scoreText?: string };
 type Bounds = { left: number; top: number; right: number; bottom: number };
-type Configuration = { request: Request | null; bounds: Bounds; background: string; active: boolean; promptText?: string; isOpponentTurn?: boolean; header?: HeaderState | null; idleText?: string; messages?: SceneMessage[]; advice?: string | null };
+type Configuration = { request: Request | null; bounds: Bounds; background: string; active: boolean; promptText?: string; isOpponentTurn?: boolean; header?: HeaderState | null; idleText?: string; messages?: SceneMessage[]; advice?: string | null; turnScore?: number };
 type NativeWindow = Window & {
   DiceNative?: { postMessage(message: string): void };
   webkit?: { messageHandlers?: { diceScene?: { postMessage(message: string): void } } };
@@ -38,7 +39,8 @@ const result = document.querySelector<HTMLElement>('#roll-result')!;
 const score = document.querySelector<HTMLElement>('#roll-score')!;
 const prompt = document.querySelector<HTMLElement>('#roll-prompt')!;
 const emptyTable = document.querySelector<HTMLElement>('#table-empty')!;
-const header = createGameHeader(document.querySelector<HTMLElement>('#game-header')!, event => send(event.type, undefined, event));
+const scoreTransfer = createScoreTransfer(score, result);
+const header = createGameHeader(document.querySelector<HTMLElement>('#game-header')!, event => send(event.type, undefined, event), scoreTransfer.start);
 const notifications = createNotifications(event => send(event.type, undefined, event));
 let notificationConfig = config;
 function updateNotifications() {
@@ -257,6 +259,7 @@ try {
     result.style.top = `${lowest + 12}px`;
     result.style.left = `${(config.bounds.left + config.bounds.right) / 2 * 100}%`;
     result.hidden = false;
+    scoreTransfer.capture(config.header?.gameId, config.header?.activePlayerId, config.turnScore);
   }
   function stopFrame() { cancelAnimationFrame(frame); frame = 0; }
   function finish() {

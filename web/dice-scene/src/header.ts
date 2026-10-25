@@ -11,7 +11,9 @@ const robot = `<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 11V5m-4 
 const face = `<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 64c0-18 44-18 44 0" fill="#f2b68b"/><path d="M24 48h16v12H24" fill="#d99062"/><ellipse cx="32" cy="31" rx="19" ry="23" fill="#f6c999"/><path d="M12 31C4 9 26 1 36 9 55 4 58 24 49 34l-3-15c-8 7-16 5-22 0l-8 16z" fill="#292c43"/><ellipse cx="24" cy="32" rx="2.3" ry="3" fill="#292c43"/><ellipse cx="40" cy="32" rx="2.3" ry="3" fill="#292c43"/><path d="M27 42q5 5 10 0" fill="none" stroke="#9d514c" stroke-width="2.4" stroke-linecap="round"/><path d="M11 64l13-8 8 8 8-8 13 8" fill="#87b7d0"/></svg>`;
 const colors = ['#345c8a', '#634880', '#356b67', '#806044'];
 
-export function createGameHeader(root: HTMLElement, emit: (event: HeaderEvent) => void) {
+export function createGameHeader(root: HTMLElement, emit: (event: HeaderEvent) => void,
+  startScoreTransfer: (playerId: string, gameId: string) => ((progress: number) => void) | undefined = () => undefined,
+) {
   const list = document.createElement('div'); list.className = 'players-list';
   const progressRow = document.createElement('div'); progressRow.className = 'progress-row';
   const track = document.createElement('div'); track.className = 'score-track'; track.setAttribute('role', 'progressbar');
@@ -21,6 +23,7 @@ export function createGameHeader(root: HTMLElement, emit: (event: HeaderEvent) =
   const goal = document.createElement('span'); goal.className = 'score-goal'; progressRow.append(track, goal); root.append(list, progressRow);
   let shown: HeaderState | null = null, latest: HeaderState | null = null;
   let pending: (() => void) | null = null, animation = 0, animating = false;
+  let scoreTransfer: ((progress: number) => void) | undefined;
   const expired = new Set<string>(), reactionTimers = new Map<string, ReturnType<typeof setTimeout>>();
   function render(state: HeaderState) {
     const previousScroll = list.scrollLeft;
@@ -87,6 +90,7 @@ export function createGameHeader(root: HTMLElement, emit: (event: HeaderEvent) =
   }
   function finish() {
     cancelAnimationFrame(animation); animation = 0;
+    scoreTransfer?.(1); scoreTransfer = undefined;
     if (latest) { render(latest); shown = latest; }
     else { root.hidden = true; shown = null; }
     const callback = pending; pending = null;
@@ -104,10 +108,12 @@ export function createGameHeader(root: HTMLElement, emit: (event: HeaderEvent) =
         animating = true;
         const outgoing = { ...next, activePlayerId: previousPlayer.id };
         render({ ...outgoing, players: outgoing.players.map(p => p.id === previousPlayer.id ? { ...p, score: previousPlayer.score } : p) });
+        scoreTransfer = startScoreTransfer(previousPlayer.id, next.gameId);
         emit({ type: 'headerAnimation', running: true });
         const started = performance.now();
         const step = (now: number) => {
           const progress = Math.min(1, (now - started) / 850), eased = 1 - (1 - progress) ** 3;
+          scoreTransfer?.(progress);
           const value = previousPlayer.score + (updatedPlayer.score - previousPlayer.score) * eased;
           setScore(value, next.goal, previousPlayer.name);
           const label = Array.from(list.querySelectorAll<HTMLElement>('[data-score-for]')).find(el => el.dataset.scoreFor === previousPlayer.id);

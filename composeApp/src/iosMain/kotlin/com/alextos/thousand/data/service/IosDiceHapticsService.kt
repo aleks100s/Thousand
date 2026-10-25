@@ -48,13 +48,14 @@ class IosDiceHapticsService : DiceHapticsService {
         phase: DiceHapticPhase,
         hasNextPhase: Boolean,
     ) {
-        val generator = UIImpactFeedbackGenerator(style = phase.intensity.toImpactStyle())
+        val intensity = (phase.intensity * IOS_INTENSITY_MULTIPLIER).coerceIn(0f, 1f)
+        val generator = UIImpactFeedbackGenerator(style = intensity.toImpactStyle())
 
         repeat(phase.pulses) { index ->
             currentCoroutineContext().ensureActive()
 
             generator.prepare()
-            generator.impactOccurredWithIntensity(phase.intensity.coerceIn(0f, 1f).toDouble())
+            generator.impactOccurredWithIntensity(intensity.toDouble())
             delay(phase.activeMs)
             if (index < phase.pulses - 1 || hasNextPhase) {
                 delay(phase.pauseMs)
@@ -70,3 +71,5 @@ class IosDiceHapticsService : DiceHapticsService {
         }
     }
 }
+
+private const val IOS_INTENSITY_MULTIPLIER = 1.2f

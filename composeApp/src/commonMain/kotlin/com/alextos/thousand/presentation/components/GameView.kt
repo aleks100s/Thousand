@@ -130,6 +130,7 @@ private fun GameField(
         isTutorial = state.isTutorial,
         gameFinished = state.game?.isFinished() == true,
         messages = messages,
+        turnScore = state.currentTurn.sumOf { it.result },
         advice = state.tutorialAdvice.takeIf { presentation.showResult && !headerAnimating },
     )
     Box(Modifier.fillMaxSize().onSizeChanged { fieldSize = it }, contentAlignment = Alignment.Center) {
