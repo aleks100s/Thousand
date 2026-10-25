@@ -43,6 +43,7 @@ fun GamesStatisticsScreen(
 
     Screen(
         modifier = Modifier,
+        constrainListWidth = true,
         title = "Статистика игр",
         goBack = goBack,
     ) { modifier ->

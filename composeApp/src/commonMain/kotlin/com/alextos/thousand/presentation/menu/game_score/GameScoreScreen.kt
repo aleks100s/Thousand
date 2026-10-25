@@ -43,6 +43,7 @@ fun GameScoreScreen(
 internal fun GameScoreContent(state: GameScoreState, onGoBack: () -> Unit) {
     Screen(
         modifier = Modifier,
+        constrainListWidth = true,
         title = state.title,
         goBack = onGoBack,
     ) { modifier ->

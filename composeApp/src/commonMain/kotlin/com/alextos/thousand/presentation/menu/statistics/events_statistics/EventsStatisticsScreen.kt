@@ -43,6 +43,7 @@ fun EventsStatisticsScreen(
 
     Screen(
         modifier = Modifier,
+        constrainListWidth = true,
         title = "Статистика событий",
         goBack = goBack,
     ) { modifier ->

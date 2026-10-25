@@ -27,6 +27,7 @@ fun StatisticsScreen(
 ) {
     Screen(
         modifier = Modifier,
+        constrainListWidth = true,
         title = "Статистика",
         goBack = goBack,
     ) { modifier ->

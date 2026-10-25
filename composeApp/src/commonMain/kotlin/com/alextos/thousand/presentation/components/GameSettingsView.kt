@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.alextos.thousand.common.ListScreenContent
 import com.alextos.thousand.domain.models.GameSettings
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
@@ -43,29 +44,31 @@ fun GameSettingsView(
             else -> true
         }
     }
-    LazyColumn(
-        modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        if (singlePlayer) {
-            item(key = "mode", contentType = "mode") { GameModeCard(settings, onSettingsChange) }
-        }
-        items(options, key = { it.name }, contentType = { "setting" }) { option ->
-            GameSettingsCard(
-                title = option.title, description = option.description, icon = option.icon,
-                checked = option.checked(settings),
-                onCheckedChange = { onSettingsChange(option.update(settings, it)) },
-            )
-        }
-        if (onContinue != null) {
-            item(key = "continue", contentType = "action") {
-                AppButton(
-                    Modifier.widthIn(max = 760.dp).fillMaxWidth().padding(top = 10.dp),
-                    enabled = !isContinuing, onClick = onContinue,
-                ) {
-                    if (isContinuing) CircularProgressIndicator(Modifier.size(20.dp), color = Color.Black, strokeWidth = 2.dp)
-                    else Text(continueText)
+    ListScreenContent(modifier) {
+        LazyColumn(
+            Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            if (singlePlayer) {
+                item(key = "mode", contentType = "mode") { GameModeCard(settings, onSettingsChange) }
+            }
+            items(options, key = { it.name }, contentType = { "setting" }) { option ->
+                GameSettingsCard(
+                    title = option.title, description = option.description, icon = option.icon,
+                    checked = option.checked(settings),
+                    onCheckedChange = { onSettingsChange(option.update(settings, it)) },
+                )
+            }
+            if (onContinue != null) {
+                item(key = "continue", contentType = "action") {
+                    AppButton(
+                        Modifier.widthIn(max = 760.dp).fillMaxWidth().padding(top = 10.dp),
+                        enabled = !isContinuing, onClick = onContinue,
+                    ) {
+                        if (isContinuing) CircularProgressIndicator(Modifier.size(20.dp), color = Color.Black, strokeWidth = 2.dp)
+                        else Text(continueText)
+                    }
                 }
             }
         }

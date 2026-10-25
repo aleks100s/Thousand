@@ -40,7 +40,7 @@ private val RulesOutline = Color(0xFF087F98)
 
 @Composable
 fun GameRulesScreen(onGoBack: () -> Unit) {
-    Screen(modifier = Modifier, title = "Правила игры", goBack = onGoBack) { modifier ->
+    Screen(modifier = Modifier, constrainListWidth = true, title = "Правила игры", goBack = onGoBack) { modifier ->
         GameRulesContent(modifier.fillMaxSize())
     }
 }

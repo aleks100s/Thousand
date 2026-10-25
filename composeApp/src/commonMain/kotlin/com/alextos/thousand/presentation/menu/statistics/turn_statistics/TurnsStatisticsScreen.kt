@@ -44,6 +44,7 @@ fun TurnsStatisticsScreen(
 
     Screen(
         modifier = Modifier,
+        constrainListWidth = true,
         title = "Статистика ходов",
         goBack = goBack,
     ) { modifier ->

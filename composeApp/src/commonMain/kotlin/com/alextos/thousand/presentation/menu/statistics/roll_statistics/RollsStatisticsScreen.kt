@@ -47,6 +47,7 @@ fun RollsStatisticsScreen(
 
     Screen(
         modifier = Modifier,
+        constrainListWidth = true,
         title = "Статистика бросков",
         goBack = goBack,
     ) { modifier ->

@@ -54,6 +54,7 @@ fun UsersScreen(
 
     Screen(
         modifier = Modifier,
+        constrainListWidth = true,
         title = "Пользователи",
         goBack = onGoBack,
     ) { modifier ->

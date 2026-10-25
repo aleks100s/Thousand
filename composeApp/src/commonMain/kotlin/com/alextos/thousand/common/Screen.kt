@@ -24,6 +24,7 @@ fun Screen(
     snackbarHost: @Composable () -> Unit = {},
     actions: @Composable (Color) -> @Composable RowScope.() -> Unit = { {} },
     bannerView: @Composable (() -> Unit)? = null,
+    constrainListWidth: Boolean = false,
     content: @Composable (Modifier) -> Unit,
 ) {
     Scaffold(
@@ -37,11 +38,14 @@ fun Screen(
         snackbarHost = snackbarHost,
         bottomBar = { bannerView?.invoke() },
     ) { innerPaddings ->
-        content(
-            Modifier.padding(
-                top = innerPaddings.calculateTopPadding(),
-                bottom = if (bannerView != null) innerPaddings.calculateBottomPadding() else 0.dp,
-            )
+        val contentModifier = Modifier.padding(
+            top = innerPaddings.calculateTopPadding(),
+            bottom = if (bannerView != null) innerPaddings.calculateBottomPadding() else 0.dp,
         )
+        if (constrainListWidth) {
+            ListScreenContent { content(contentModifier) }
+        } else {
+            content(contentModifier)
+        }
     }
 }

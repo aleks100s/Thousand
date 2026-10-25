@@ -76,6 +76,7 @@ fun MultiplayerScreen(
 
     Screen(
         modifier = Modifier,
+        constrainListWidth = true,
         title = "Мультиплеер",
         goBack = goBack,
         actions = { actionColor ->

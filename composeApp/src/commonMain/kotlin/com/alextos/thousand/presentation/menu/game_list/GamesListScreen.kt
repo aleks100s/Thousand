@@ -66,6 +66,7 @@ fun GamesListScreen(
 
     Screen(
         modifier = Modifier,
+        constrainListWidth = true,
         title = "Локальная игра",
         goBack = goBack,
     ) { modifier ->

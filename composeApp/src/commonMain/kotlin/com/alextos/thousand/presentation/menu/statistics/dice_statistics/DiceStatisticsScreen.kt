@@ -59,6 +59,7 @@ fun DiceStatisticsScreen(
 
     Screen(
         modifier = Modifier,
+        constrainListWidth = true,
         title = "Статистика кубиков",
         goBack = goBack,
     ) { modifier ->
