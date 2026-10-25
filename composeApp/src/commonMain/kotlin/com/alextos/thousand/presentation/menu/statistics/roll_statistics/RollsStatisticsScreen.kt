@@ -1,289 +1,79 @@
 package com.alextos.thousand.presentation.menu.statistics.roll_statistics
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LoadingIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
-import com.alextos.thousand.domain.usecase.statistics.PlayerWithRollStatistics
+import com.alextos.thousand.presentation.menu.statistics.*
 import org.koin.compose.viewmodel.koinViewModel
-import kotlin.math.roundToInt
+import thousand.composeapp.generated.resources.*
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun RollsStatisticsScreen(
-    goBack: () -> Unit,
-) {
+fun RollsStatisticsScreen(goBack: () -> Unit) {
     val viewModel: RollsStatisticsViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
-
-    LaunchedEffect(Unit) {
-        viewModel.onAction(RollsStatisticsAction.LoadStatistics)
-    }
-
-    Screen(
-        modifier = Modifier,
-        constrainListWidth = true,
-        title = "Статистика бросков",
-        goBack = goBack,
-    ) { modifier ->
+    LaunchedEffect(Unit) { viewModel.onAction(RollsStatisticsAction.LoadStatistics) }
+    Screen(modifier = Modifier, constrainListWidth = true, title = "Статистика бросков", goBack = goBack) { modifier ->
         if (state.isLoading) {
-            Box(modifier.fillMaxSize(), Alignment.Center) {
-                LoadingIndicator()
-            }
+            Box(modifier.fillMaxSize(), Alignment.Center) { LoadingIndicator() }
         } else {
-            RollsStatisticsContent(
-                modifier = modifier,
-                state = state,
-            )
+            RollsStatisticsContent(modifier, state)
         }
     }
 }
 
 @Composable
-private fun RollsStatisticsContent(
-    modifier: Modifier,
-    state: RollsStatisticsState,
-) {
+internal fun RollsStatisticsContent(modifier: Modifier, state: RollsStatisticsState) {
     val tableScroll = rememberScrollState()
-    LazyColumn(modifier = modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+    LazyColumn(
+        modifier.fillMaxSize().navigationBarsPadding(), contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         item(key = "summary", contentType = "summary") {
-            CommonRollsStatisticsCard(state)
-            Spacer(Modifier.height(12.dp))
+            Column {
+                StatisticsSummary(metrics = listOf(
+                    StatisticsMetricUi("Броски", state.totalRolls.toString(), Res.drawable.rules_casino),
+                    StatisticsMetricUi("Средний", state.averageRoll.toStatisticsText(), Res.drawable.statistics_functions, StatisticsPurple),
+                    StatisticsMetricUi("Лучший", state.bestRoll.toString(), Res.drawable.statistics_emoji_events, StatisticsGold),
+                    StatisticsMetricUi("Средняя цепь", state.averageRollChain.toStatisticsText(), Res.drawable.statistics_link),
+                    StatisticsMetricUi("Лучшая цепь", state.bestRollChain.toString(), Res.drawable.rules_trending_up, StatisticsGold),
+                ))
+                Spacer(Modifier.height(8.dp))
+            }
+        }
+        item(key = "players-header", contentType = "players-header") {
+            StatisticsTableRow("Игрок", listOf("Броски", "Средний", "Лучший", "Средняя цепь", "Лучшая цепь"), header = true, scrollState = tableScroll)
         }
         if (state.players.isEmpty()) {
-            item(key = "empty", contentType = "empty") { EmptyRollsStatistics() }
+            item(key = "empty", contentType = "empty") { EmptyStatisticsCard("Пока нет данных по броскам") }
         } else {
-            item(key = "players-header", contentType = "players-header") {
-                Column(Modifier.fillMaxWidth().horizontalScroll(tableScroll)) { PlayersRollsStatisticsTableHeader() }
-            }
-            items(state.players, key = { "player-${it.userId}" }, contentType = { "player-statistics" }) { player ->
-                Box(Modifier.fillMaxWidth().horizontalScroll(tableScroll)) { PlayerRollsStatisticsRow(player) }
-            }
-        }
-        item(key = "bottom-space", contentType = "spacer") { Spacer(Modifier.height(16.dp)) }
-    }
-}
-
-@Composable
-private fun CommonRollsStatisticsCard(
-    state: RollsStatisticsState,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(
-                text = "Все игры",
-                style = MaterialTheme.typography.titleMedium,
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                CommonRollsStatisticsItem(
-                    title = "Броски",
-                    value = state.totalRolls.toString(),
-                )
-                CommonRollsStatisticsItem(
-                    title = "Средний",
-                    value = state.averageRoll.toScoreText(),
-                )
-                CommonRollsStatisticsItem(
-                    title = "Лучший",
-                    value = state.bestRoll.toString(),
-                )
-                CommonRollsStatisticsItem(
-                    title = "Средняя цепь",
-                    value = state.averageRollChain.toScoreText(),
-                )
-                CommonRollsStatisticsItem(
-                    title = "Лучшая цепь",
-                    value = state.bestRollChain.toString(),
-                )
+            items(state.players, key = { it.userId }, contentType = { "player-statistics" }) { player ->
+                StatisticsTableRow(player.userName, listOf(player.rolls.toString(), player.averageRoll.toStatisticsText(), player.bestRoll.toString(),
+                    player.averageRollChain.toStatisticsText(), player.bestRollChain.toString()), scrollState = tableScroll)
             }
         }
     }
 }
 
+@androidx.compose.ui.tooling.preview.Preview
 @Composable
-private fun CommonRollsStatisticsItem(
-    title: String,
-    value: String,
-) {
-    Column(
-        modifier = Modifier.width(132.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.primary,
-        )
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun PlayersRollsStatisticsTableHeader() {
-    RollsStatisticsTableRow(
-        userName = "Игрок",
-        rolls = "Броски",
-        averageRoll = "Средний",
-        bestRoll = "Лучший",
-        averageRollChain = "Средняя цепь",
-        bestRollChain = "Лучшая цепь",
-        isHeader = true,
-    )
-    HorizontalDivider(modifier = Modifier.width(
-        TABLE_WIDTH
-    ))
-}
-
-@Composable
-private fun PlayerRollsStatisticsRow(
-    player: PlayerWithRollStatistics,
-) {
-    RollsStatisticsTableRow(
-        userName = player.userName,
-        rolls = player.rolls.toString(),
-        averageRoll = player.averageRoll.toScoreText(),
-        bestRoll = player.bestRoll.toString(),
-        averageRollChain = player.averageRollChain.toScoreText(),
-        bestRollChain = player.bestRollChain.toString(),
-        isHeader = false,
-    )
-}
-
-@Composable
-private fun RollsStatisticsTableRow(
-    userName: String,
-    rolls: String,
-    averageRoll: String,
-    bestRoll: String,
-    averageRollChain: String,
-    bestRollChain: String,
-    isHeader: Boolean,
-) {
-    val textStyle = if (isHeader) {
-        MaterialTheme.typography.labelLarge
-    } else {
-        MaterialTheme.typography.bodyMedium
-    }
-    val fontWeight = if (isHeader) FontWeight.Bold else FontWeight.Normal
-
-    Row(
-        modifier = androidx.compose.ui.Modifier.Companion
-            .width(TABLE_WIDTH)
-            .padding(vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            modifier = Modifier.width(
-                USER_COLUMN_WIDTH
-            ),
-            text = userName,
-            style = textStyle,
-            fontWeight = fontWeight,
-        )
-        Text(
-            modifier = Modifier.width(
-                METRIC_COLUMN_WIDTH
-            ),
-            text = rolls,
-            style = textStyle,
-            fontWeight = fontWeight,
-        )
-        Text(
-            modifier = Modifier.width(
-                METRIC_COLUMN_WIDTH
-            ),
-            text = averageRoll,
-            style = textStyle,
-            fontWeight = fontWeight,
-        )
-        Text(
-            modifier = Modifier.width(
-                METRIC_COLUMN_WIDTH
-            ),
-            text = bestRoll,
-            style = textStyle,
-            fontWeight = fontWeight,
-        )
-        Text(
-            modifier = Modifier.width(
-                CHAIN_COLUMN_WIDTH
-            ),
-            text = averageRollChain,
-            style = textStyle,
-            fontWeight = fontWeight,
-        )
-        Text(
-            modifier = Modifier.width(
-                CHAIN_COLUMN_WIDTH
-            ),
-            text = bestRollChain,
-            style = textStyle,
-            fontWeight = fontWeight,
-        )
-    }
-}
-
-@Composable
-private fun EmptyRollsStatistics() {
-    Text(
-        modifier = Modifier.padding(vertical = 24.dp),
-        text = "Пока нет данных по броскам",
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-}
-
-private val USER_COLUMN_WIDTH = 128.dp
-private val METRIC_COLUMN_WIDTH = 92.dp
-private val CHAIN_COLUMN_WIDTH = 120.dp
-private val TABLE_WIDTH = 644.dp
-
-private fun Double.toScoreText(): String {
-    val rounded = (this * 10).roundToInt() / 10.0
-    val text = rounded.toString()
-    return if (text.endsWith(".0")) {
-        text.dropLast(2)
-    } else {
-        text
+private fun RollsStatisticsPreview() {
+    com.alextos.thousand.application.theme.ThousandTheme {
+        com.alextos.thousand.application.theme.AppBackground {
+            Screen(Modifier, title = "Статистика бросков", goBack = {}) { modifier ->
+                RollsStatisticsContent(modifier, RollsStatisticsState(isLoading = false, totalRolls = 165, averageRoll = 16.1, bestRoll = 205, averageRollChain = 2.2, bestRollChain = 7, players = listOf(com.alextos.thousand.domain.usecase.statistics.PlayerWithRollStatistics("1", "Легендарный Хомяк", 78, 19.1, 205, 2.0, 7))))
+            }
+        }
     }
 }

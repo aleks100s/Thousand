@@ -13,3 +13,11 @@ Source: https://github.com/google/material-design-icons (Apache-2.0).
 - `rules_gavel.xml`: https://raw.githubusercontent.com/google/material-design-icons/master/symbols/web/gavel/materialsymbolsrounded/gavel_24px.svg
 - `rules_trip_origin.xml`: https://raw.githubusercontent.com/google/material-design-icons/master/symbols/web/trip_origin/materialsymbolsrounded/trip_origin_24px.svg
 - `rules_chevron_right.xml`: https://raw.githubusercontent.com/google/material-design-icons/master/symbols/web/chevron_right/materialsymbolsrounded/chevron_right_24px.svg
+
+- `statistics_bar_chart.xml`: https://raw.githubusercontent.com/google/material-design-icons/master/symbols/web/bar_chart/materialsymbolsrounded/bar_chart_24px.svg
+- `statistics_format_list_bulleted.xml`: https://raw.githubusercontent.com/google/material-design-icons/master/symbols/web/format_list_bulleted/materialsymbolsrounded/format_list_bulleted_24px.svg
+- `statistics_emoji_events.xml`: https://raw.githubusercontent.com/google/material-design-icons/master/symbols/web/emoji_events/materialsymbolsrounded/emoji_events_24px.svg
+- `statistics_calendar_month.xml`: https://raw.githubusercontent.com/google/material-design-icons/master/symbols/web/calendar_month/materialsymbolsrounded/calendar_month_24px.svg
+
+- `statistics_functions.xml`: https://raw.githubusercontent.com/google/material-design-icons/master/symbols/web/functions/materialsymbolsrounded/functions_24px.svg
+- `statistics_link.xml`: https://raw.githubusercontent.com/google/material-design-icons/master/symbols/web/link/materialsymbolsrounded/link_24px.svg
