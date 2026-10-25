@@ -7,14 +7,20 @@ data class UsersState(
     val users: List<User> = emptyList(),
     val editingUser: User? = null,
     val editingUserName: String = "",
+    val isAddingUser: Boolean = false,
+    val isSaving: Boolean = false,
+    val saveError: String? = null,
+    val pendingDeleteUser: User? = null,
+    val statistics: Map<String, UserStatisticsUi> = emptyMap(),
 ) {
+    val isEditorVisible: Boolean get() = isAddingUser || editingUser != null
+
     val editingUserNameError: String?
         get() {
-            val user = editingUser ?: return null
             val normalizedName = editingUserName.trim()
             if (normalizedName.isBlank()) return null
             val isNameAlreadyUsed = users.any {
-                it.id != user.id && it.name.trim().equals(normalizedName, ignoreCase = true)
+                it.id != editingUser?.id && it.name.trim().equals(normalizedName, ignoreCase = true)
             }
             return if (isNameAlreadyUsed) {
                 "Пользователь с таким именем уже существует"
@@ -24,7 +30,9 @@ data class UsersState(
         }
 
     val canSaveEditingUser: Boolean
-        get() = editingUser != null &&
+        get() = isEditorVisible && !isSaving &&
             editingUserName.trim().isNotBlank() &&
             editingUserNameError == null
 }
+
+data class UserStatisticsUi(val wins: Int = 0, val games: Int = 0)
