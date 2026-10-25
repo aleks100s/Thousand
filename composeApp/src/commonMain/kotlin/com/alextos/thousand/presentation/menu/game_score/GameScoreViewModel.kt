@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import com.alextos.thousand.domain.usecase.game.FormatTurnEffectUseCase
 import com.alextos.thousand.domain.usecase.game.LoadGameUseCase
 import com.alextos.thousand.domain.usecase.game.LoadGameTurnsUseCase
 import com.alextos.thousand.presentation.menu.MenuRoute
@@ -17,6 +18,7 @@ class GameScoreViewModel(
     savedStateHandle: SavedStateHandle,
     private val loadGameUseCase: LoadGameUseCase,
     private val loadGameTurnsUseCase: LoadGameTurnsUseCase,
+    private val formatTurnEffect: FormatTurnEffectUseCase,
 ) : ViewModel() {
     private val route = savedStateHandle.toRoute<MenuRoute.GameScore>()
 
@@ -37,7 +39,7 @@ class GameScoreViewModel(
                 it.copy(
                     isLoading = false,
                     game = game,
-                    turns = turns,
+                    turns = turns.mapIndexed { index, turn -> turn.toHistoryUi(index + 1, formatTurnEffect) },
                 )
             }
         }
