@@ -1,5 +1,6 @@
 package com.alextos.thousand.presentation.menu.multiplayer
 
+import com.alextos.thousand.domain.models.LobbyCode
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.currentCoroutineContext
@@ -178,7 +179,7 @@ class MultiplayerViewModel(
     }
 
     private fun joinLobby() {
-        val lobbyId = state.value.lobbyId.trim()
+        val lobbyId = LobbyCode.normalize(state.value.lobbyId)
         if (lobbyId.isBlank() || !state.value.isAuthorized || joinJob?.isActive == true) return
         joinJob = viewModelScope.launch {
             try {

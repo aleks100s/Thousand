@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlin.coroutines.resume
-import kotlin.random.Random
+import com.alextos.thousand.domain.models.LobbyCode
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.collections.plus
 import kotlin.uuid.ExperimentalUuidApi
@@ -42,7 +42,7 @@ class AndroidMultiplayerRepository(private val accountService: com.alextos.thous
 
     @OptIn(ExperimentalUuidApi::class)
     override suspend fun createLobby(gameSettings: GameSettings): String {
-        val lobbyID = Random.nextInt(1000, 10000).toString()
+        val lobbyID = LobbyCode.generate()
         val currentUser = Firebase.auth.currentUser
         val host = currentUser?.uid ?: ""
         val players = listOf(

@@ -36,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -404,7 +405,7 @@ private fun JoinLobbySheet(
                 style = MaterialTheme.typography.titleMedium,
             )
 
-            Text(text = "Введите четырехзначный код для подключения")
+            Text(text = "Введите код из 5 латинских букв и цифр")
 
             OutlinedTextField(
                 colors = appTextFieldColors(),
@@ -418,8 +419,13 @@ private fun JoinLobbySheet(
                     Text("Код лобби")
                 },
                 placeholder = {
-                    Text("1234")
+                    Text("A7K2M")
                 },
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Characters,
+                    autoCorrectEnabled = false,
+                    keyboardType = KeyboardType.Ascii,
+                ),
                 singleLine = true,
             )
 

@@ -18,6 +18,22 @@ import kotlin.test.*
 @OptIn(ExperimentalCoroutinesApi::class)
 class MultiplayerInvitationTest {
     @Test
+    fun fiveCharacterInvitationJoinsUsingCanonicalUppercaseCode() = runTest {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        val account = MutableNativeAccountService()
+        val repository = FakeMultiplayerRepository()
+        val vm = viewModel(account, repository)
+        try {
+            account.updateUserProfile("user", "Игрок")
+            runCurrent()
+            vm.onAction(MultiplayerAction.OpenInvitation("a7k2m", 123))
+            runCurrent()
+            assertEquals(listOf("A7K2M"), repository.joined)
+            assertEquals(MultiplayerEvent.OpenLobby("resolved-key"), vm.events.first())
+        } finally { vm.viewModelScope.cancel(); Dispatchers.resetMain() }
+    }
+
+    @Test
     fun invitationWaitsForLoginThenOpensResolvedLobbyOnlyOnce() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
         val account = MutableNativeAccountService()

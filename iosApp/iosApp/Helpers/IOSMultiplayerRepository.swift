@@ -18,7 +18,7 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
     }
 
     func createLobby(gameSettings: GameSettings) async throws -> String {
-        let gameID = String(Int.random(in: 1000...10000))
+        let gameID = LobbyCode.shared.generate()
         let currentUser = Auth.auth().currentUser
         let host = currentUser?.uid ?? ""
         let hostPlayer = currentPlayer()
