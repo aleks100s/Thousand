@@ -5,28 +5,28 @@ data class MenuState(
     val hasLocalGames: Boolean = false,
     val tiles: List<MenuTile> = listOf(
         MenuTile(
-            title = "Локальная игра",
+            title = "Играть на одном устройстве",
             description = "Играть на одном устройстве",
             size = MenuTileSize.Large,
             action = MenuTileAction.LocalGame,
         ),
         MenuTile(
-            title = "Мультиплеер",
+            title = "Играть онлайн",
             description = "Игры с другими игроками",
             size = MenuTileSize.Large,
             action = MenuTileAction.Multiplayer,
         ),
         MenuTile(
-            title = "Правила",
-            description = "Комбинации, бочки и болты",
-            size = MenuTileSize.Default,
-            action = MenuTileAction.Rules,
-        ),
-        MenuTile(
             title = "Обучение",
-            description = "Тестовая партия с подсказками",
+            description = "Быстро и просто",
             size = MenuTileSize.Default,
             action = MenuTileAction.Tutorial,
+        ),
+        MenuTile(
+            title = "Правила",
+            description = "Все комбинации",
+            size = MenuTileSize.Default,
+            action = MenuTileAction.Rules,
         ),
     ),
 )

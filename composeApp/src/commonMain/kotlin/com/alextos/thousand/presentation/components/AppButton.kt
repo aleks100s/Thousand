@@ -28,6 +28,7 @@ fun AppButton(
     style: AppButtonStyle = AppButtonStyle.Primary,
     enabled: Boolean = true,
     onClick: () -> Unit,
+    secondaryColor: Color = AppColors.White,
     content: @Composable RowScope.() -> Unit,
 ) {
     val primary = style == AppButtonStyle.Primary
@@ -44,13 +45,13 @@ fun AppButton(
         enabled = enabled,
         onClick = onClick,
         shape = CircleShape,
-        border = if (primary) null else BorderStroke(AppDimens.BorderSubtle, AppColors.White),
+        border = if (primary) null else BorderStroke(AppDimens.BorderSubtle, secondaryColor),
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.Transparent,
-            contentColor = if (primary) Color.Black else Color.White,
+            contentColor = if (primary) Color.Black else secondaryColor,
             disabledContainerColor = Color.Transparent,
-            disabledContentColor = if (primary) Color.Black else Color.White,
+            disabledContentColor = if (primary) Color.Black else secondaryColor,
         ),
     ) {
         ProvideTextStyle(

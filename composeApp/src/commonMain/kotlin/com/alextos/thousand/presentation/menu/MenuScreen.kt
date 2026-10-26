@@ -1,52 +1,31 @@
 package com.alextos.thousand.presentation.menu
 
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.Row
-import com.alextos.thousand.presentation.components.AppIconBadge
-import com.alextos.thousand.presentation.components.appPanel
-import com.alextos.thousand.application.theme.AppColors
-import com.alextos.thousand.application.theme.AppShapes
-import com.alextos.thousand.application.theme.AppDimens
-import com.alextos.thousand.presentation.components.AppButtonStyle
-import com.alextos.thousand.presentation.components.AppButton
-import com.alextos.thousand.presentation.components.AppBottomSheet as ModalBottomSheet
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.presentation.components.LogoView
+import com.alextos.thousand.application.theme.AppColors
+import com.alextos.thousand.application.theme.AppShapes
+import com.alextos.thousand.presentation.components.AppButton
+import com.alextos.thousand.presentation.components.AppButtonStyle
+import com.alextos.thousand.presentation.components.AppBottomSheet as ModalBottomSheet
+import com.alextos.thousand.presentation.components.appPanel
 import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
-import thousand.composeapp.generated.resources.Res
-import thousand.composeapp.generated.resources.book_2_24px
-import thousand.composeapp.generated.resources.language_24px
-import thousand.composeapp.generated.resources.mobile_24px
-import thousand.composeapp.generated.resources.school_24px
+import thousand.composeapp.generated.resources.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,7 +38,6 @@ fun MenuScreen(
 ) {
     val viewModel: MenuViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val gridState = rememberLazyGridState()
     var pendingFirstLaunchDestination by remember {
         mutableStateOf<MenuTileAction?>(null)
     }
@@ -81,55 +59,21 @@ fun MenuScreen(
         }
     }
 
-    Screen(
-        modifier = Modifier,
-        titleView = {
-            LogoView()
-        }
-    ) { modifier ->
-        BoxWithConstraints(modifier = modifier.fillMaxSize()) {
-            val isLandscape = maxWidth > maxHeight
-            val columns = if (isLandscape) 6 else 2
-            val largeTileCount = tiles.count { tile -> tile.size == MenuTileSize.Large }
-
-            LazyVerticalGrid(
-                modifier = Modifier.fillMaxSize(),
-                state = gridState,
-                columns = GridCells.Fixed(columns),
-                contentPadding = PaddingValues(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                items(
-                    items = tiles,
-                    span = { tile ->
-                        GridItemSpan(
-                            when {
-                                tile.size == MenuTileSize.Large && isLandscape && largeTileCount > 1 -> 3
-                                tile.size == MenuTileSize.Large -> maxLineSpan
-                                isLandscape -> 2
-                                else -> 1
-                            }
-                        )
-                    },
-                ) { tile ->
-                    MenuTileView(
-                        tile = tile,
-                        onClick = {
-                            when (tile.action) {
-                                MenuTileAction.Tutorial -> openTutorial()
-                                MenuTileAction.Rules -> openRules()
-                                MenuTileAction.Multiplayer,
-                                MenuTileAction.LocalGame -> {
-                                    if (state.isFirstLaunch) {
-                                        pendingFirstLaunchDestination = tile.action
-                                    } else {
-                                        openTile(tile.action)
-                                    }
-                                }
-                            }
-                        },
-                    )
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val landscape = maxWidth > maxHeight
+        Screen(Modifier, titleView = { LogoView() }, hideNavigationInLandscape = true) { modifier ->
+            MenuContent(
+                modifier = modifier.consumeWindowInsets(WindowInsets.statusBars),
+                tiles = tiles,
+                isLandscape = landscape,
+            ) { action ->
+                when (action) {
+                    MenuTileAction.Tutorial -> openTutorial()
+                    MenuTileAction.Rules -> openRules()
+                    MenuTileAction.Multiplayer, MenuTileAction.LocalGame -> {
+                        if (state.isFirstLaunch) pendingFirstLaunchDestination = action
+                        else openTile(action)
+                    }
                 }
             }
         }
@@ -180,44 +124,96 @@ fun MenuScreen(
     }
 }
 
+/** Measures the menu first so the illustration uses only the remaining space. */
 @Composable
-private fun MenuTileView(
-    tile: MenuTile,
-    onClick: () -> Unit,
+internal fun MenuContent(
+    modifier: Modifier = Modifier,
+    tiles: List<MenuTile> = MenuState().tiles,
+    isLandscape: Boolean? = null,
+    onClick: (MenuTileAction) -> Unit = {},
 ) {
-    androidx.compose.material3.Surface(
-        onClick = onClick,
-        shape = AppShapes.Panel,
-        color = Color.Transparent,
-        modifier = Modifier.fillMaxWidth().appPanel(),
-    ) {
-        if (tile.size == MenuTileSize.Large) {
-            Row(Modifier.fillMaxWidth().heightIn(min = 144.dp).padding(AppDimens.CardPadding),
-                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(AppDimens.ItemGap)) {
-                AppIconBadge(tile.action.icon(), large = true)
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(tile.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = AppColors.TextPrimary)
-                    Text(tile.description, style = MaterialTheme.typography.bodyMedium, color = AppColors.TextSecondary)
+    BoxWithConstraints(modifier.fillMaxSize().safeDrawingPadding()) {
+        val landscape = isLandscape ?: (maxWidth > maxHeight)
+        Layout(
+            modifier = Modifier.fillMaxSize(),
+            content = {
+                MenuHero(Modifier.fillMaxSize())
+                Column(
+                    Modifier.fillMaxWidth().padding(16.dp).verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    tiles.filter { it.size == MenuTileSize.Large }.forEach { tile ->
+                        MenuPlayButton(tile) { onClick(tile.action) }
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        tiles.filter { it.size == MenuTileSize.Default }.forEach { tile ->
+                            MenuSectionCard(Modifier.weight(1f), tile) { onClick(tile.action) }
+                        }
+                    }
                 }
-            }
-        } else {
-            Column(Modifier.fillMaxWidth().heightIn(min = 132.dp).padding(AppDimens.CardPadding),
-                verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    AppIconBadge(tile.action.icon(), compact = true)
-                    Text(tile.title, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold, color = AppColors.TextPrimary)
-                }
-                Text(tile.description, style = MaterialTheme.typography.bodyMedium, color = AppColors.TextSecondary)
+            },
+        ) { children, constraints ->
+            val menuWidth = if (landscape) constraints.maxWidth / 2 else constraints.maxWidth
+            val menu = children[1].measure(Constraints(
+                minWidth = menuWidth, maxWidth = menuWidth, maxHeight = constraints.maxHeight,
+            ))
+            val heroWidth = if (landscape) constraints.maxWidth - menuWidth else constraints.maxWidth
+            val heroHeight = if (landscape) constraints.maxHeight else (constraints.maxHeight - menu.height).coerceAtLeast(0)
+            val hero = children[0].measure(Constraints.fixed(heroWidth, heroHeight))
+            layout(constraints.maxWidth, constraints.maxHeight) {
+                hero.placeRelative(0, 0)
+                menu.placeRelative(if (landscape) heroWidth else 0, constraints.maxHeight - menu.height)
             }
         }
     }
 }
 
-private fun MenuTileAction.icon(): DrawableResource =
-    when (this) {
-        MenuTileAction.LocalGame -> Res.drawable.mobile_24px
-        MenuTileAction.Multiplayer -> Res.drawable.language_24px
-        MenuTileAction.Rules -> Res.drawable.book_2_24px
-        MenuTileAction.Tutorial -> Res.drawable.school_24px
+@Composable
+private fun MenuPlayButton(tile: MenuTile, onClick: () -> Unit) {
+    AppButton(
+        Modifier.fillMaxWidth().heightIn(min = 56.dp),
+        style = if (tile.action == MenuTileAction.LocalGame) AppButtonStyle.Primary else AppButtonStyle.Secondary,
+        secondaryColor = AppColors.Positive,
+        onClick = onClick,
+    ) {
+        Icon(painterResource(tile.action.icon()), null, Modifier.size(24.dp))
+        Spacer(Modifier.width(10.dp))
+        Text(tile.title, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.titleMedium)
     }
+}
+
+@Composable
+private fun MenuSectionCard(modifier: Modifier, tile: MenuTile, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier.appPanel(outline = AppColors.OutlineSubtle),
+        shape = AppShapes.Panel,
+        color = Color.Transparent,
+    ) {
+        Column(
+            Modifier.fillMaxWidth().heightIn(min = 128.dp).padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically),
+        ) {
+            Icon(painterResource(tile.action.icon()), null, Modifier.size(44.dp), tint = AppColors.Highlight)
+            Text(tile.title, color = AppColors.TextPrimary, textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+private fun MenuTileAction.icon(): DrawableResource = when (this) {
+    MenuTileAction.LocalGame -> Res.drawable.mobile_24px
+    MenuTileAction.Multiplayer -> Res.drawable.language_24px
+    MenuTileAction.Rules -> Res.drawable.rules_description
+    MenuTileAction.Tutorial -> Res.drawable.book_2_24px
+}
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+private fun MenuPreview() {
+    com.alextos.thousand.application.theme.ThousandTheme {
+        com.alextos.thousand.application.theme.AppBackground { MenuContent() }
+    }
+}
