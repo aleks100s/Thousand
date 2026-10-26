@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -50,6 +51,7 @@ fun PlayerProfileScreen(
     Screen(
         modifier = Modifier,
         title = "Профиль игрока",
+        constrainListWidth = true,
         goBack = goBack,
         actions = {
             {
@@ -60,6 +62,7 @@ fun PlayerProfileScreen(
                 ) {
                     Icon(
                         painter = painterResource(Res.drawable.more_horiz_24px),
+                        modifier = Modifier.rotate(90f),
                         contentDescription = "Меню",
                     )
                 }
@@ -99,11 +102,11 @@ fun PlayerProfileScreen(
     ) { modifier ->
         Box(
             modifier = modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
+                .fillMaxSize(),
         ) {
             PlayerProfileView(
                 username = state.username,
+                user = state.user,
                 gameCount = state.userInfo?.gameCount ?: 0,
                 winCount = state.userInfo?.winCount ?: 0,
                 rating = state.userInfo?.rating ?: 0,

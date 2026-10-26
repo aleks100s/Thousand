@@ -4,6 +4,7 @@ import com.alextos.thousand.presentation.components.AppButtonStyle
 import com.alextos.thousand.presentation.components.AppButton
 import androidx.compose.material3.Button as DangerButton
 import com.alextos.thousand.presentation.components.AppBottomSheet as ModalBottomSheet
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -395,6 +396,8 @@ fun MultiplayerGameScreen(
         ) {
             PlayerProfileView(
                 username = userInfo.name,
+                user = state.gameState.game?.players?.firstOrNull { it.user.id == userInfo.id }?.user,
+                modifier = Modifier.heightIn(max = 560.dp),
                 gameCount = userInfo.gameCount,
                 winCount = userInfo.winCount,
                 rating = userInfo.rating,

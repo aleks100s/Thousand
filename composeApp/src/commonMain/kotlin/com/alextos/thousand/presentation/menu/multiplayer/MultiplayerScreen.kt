@@ -88,7 +88,7 @@ fun MultiplayerScreen(
                     TextButton(onClick = {
                         openPlayerProfile()
                     }) {
-                        Text(it, color = actionColor)
+                        Text("Профиль", color = actionColor)
                     }
                 }
             }

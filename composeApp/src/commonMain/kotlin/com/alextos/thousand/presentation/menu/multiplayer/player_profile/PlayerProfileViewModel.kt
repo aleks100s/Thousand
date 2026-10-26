@@ -47,6 +47,7 @@ class PlayerProfileViewModel(
                 _state.update {
                     it.copy(
                         userId = user?.id.orEmpty(),
+                        user = user,
                         username = user?.name.orEmpty(),
                         userInfo = null,
                     )
