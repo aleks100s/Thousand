@@ -146,6 +146,7 @@ fun MultiplayerGameScreen(
     }
 
     Screen(
+        hideNavigationInLandscape = true,
         modifier = Modifier,
         title = state.gameState.gameNavigationTitle,
         goBack = ::leaveGame,

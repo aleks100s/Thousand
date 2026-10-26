@@ -67,6 +67,7 @@ fun PlayGameScreen(
     }
 
     Screen(
+        hideNavigationInLandscape = true,
         modifier = Modifier,
         title = state.gameState.gameNavigationTitle,
         goBack = onGoBack,

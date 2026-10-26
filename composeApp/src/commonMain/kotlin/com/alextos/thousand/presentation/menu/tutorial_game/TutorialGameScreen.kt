@@ -70,6 +70,7 @@ fun TutorialGameScreen(
     }
 
     Screen(
+        hideNavigationInLandscape = true,
         modifier = Modifier,
         title = state.gameState.gameNavigationTitle,
         goBack = onGoBack,

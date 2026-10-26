@@ -38,6 +38,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.dp
 import com.alextos.thousand.domain.models.User
 import com.alextos.thousand.domain.models.UserKind
@@ -72,7 +74,8 @@ internal fun PlayersSelectionView(
 ) {
     var actionHeightPx by remember { mutableIntStateOf(0) }
     val bottomPadding = with(LocalDensity.current) { actionHeightPx.toDp() }.coerceAtLeast(96.dp) + 16.dp
-    Box(modifier.fillMaxSize()) {
+    BoxWithConstraints(modifier.fillMaxSize()) {
+        val landscape = maxWidth > maxHeight
         BoxWithConstraints(Modifier.fillMaxSize()) {
             val compact = maxWidth > maxHeight
             val columns = if (compact) 4 else 2
@@ -94,14 +97,14 @@ internal fun PlayersSelectionView(
             }
         }
         Column(
-            Modifier.align(Alignment.BottomCenter).fillMaxWidth()
+            Modifier.align(Alignment.BottomCenter).zIndex(1f).fillMaxWidth()
                 .onSizeChanged { actionHeightPx = it.height }
                 .navigationBarsPadding().padding(horizontal = 16.dp).padding(top = 8.dp, bottom = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             error?.let { Text(it, color = AppColors.Danger, style = MaterialTheme.typography.bodySmall) }
-            AppButton(Modifier.fillMaxWidth().heightIn(min = 56.dp), enabled = !isBusy && (isEditing || selectedUsers.size >= 2), onClick = onContinue) {
+            AppButton(Modifier.widthIn(max = if (landscape) 400.dp else Dp.Infinity).fillMaxWidth().heightIn(min = 56.dp), enabled = !isBusy && (isEditing || selectedUsers.size >= 2), onClick = onContinue) {
                 Text(if (isEditing) "Готово" else "Далее", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             }
         }

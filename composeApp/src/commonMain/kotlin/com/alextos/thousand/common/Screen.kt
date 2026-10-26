@@ -1,5 +1,7 @@
 package com.alextos.thousand.common
 
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -25,27 +27,31 @@ fun Screen(
     actions: @Composable (Color) -> @Composable RowScope.() -> Unit = { {} },
     bannerView: @Composable (() -> Unit)? = null,
     constrainListWidth: Boolean = false,
+    hideNavigationInLandscape: Boolean = false,
     content: @Composable (Modifier) -> Unit,
 ) {
-    Scaffold(
-        modifier = modifier,
-        containerColor = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.onBackground,
-        topBar = {
-            AppNavigationBar(title, titleView, goBack, backButtonIcon, actions)
-        },
-        floatingActionButton = floatingActionButton,
-        snackbarHost = snackbarHost,
-        bottomBar = { bannerView?.invoke() },
-    ) { innerPaddings ->
-        val contentModifier = Modifier.padding(
-            top = innerPaddings.calculateTopPadding(),
-            bottom = if (bannerView != null) innerPaddings.calculateBottomPadding() else 0.dp,
-        )
-        if (constrainListWidth) {
-            ListScreenContent { content(contentModifier) }
-        } else {
-            content(contentModifier)
+    BoxWithConstraints(modifier.fillMaxSize()) {
+        val showNavigation = !hideNavigationInLandscape || maxWidth <= maxHeight
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = Color.Transparent,
+            contentColor = MaterialTheme.colorScheme.onBackground,
+            topBar = {
+                if (showNavigation) AppNavigationBar(title, titleView, goBack, backButtonIcon, actions)
+            },
+            floatingActionButton = floatingActionButton,
+            snackbarHost = snackbarHost,
+            bottomBar = { bannerView?.invoke() },
+        ) { innerPaddings ->
+            val contentModifier = Modifier.padding(
+                top = innerPaddings.calculateTopPadding(),
+                bottom = if (bannerView != null) innerPaddings.calculateBottomPadding() else 0.dp,
+            )
+            if (constrainListWidth) {
+                ListScreenContent { content(contentModifier) }
+            } else {
+                content(contentModifier)
+            }
         }
     }
 }

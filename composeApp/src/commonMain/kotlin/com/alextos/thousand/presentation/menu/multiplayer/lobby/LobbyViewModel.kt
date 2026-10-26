@@ -58,6 +58,7 @@ class LobbyViewModel(
                                 lobbyId = lobby.id,
                                 gameSettings = lobby.settings,
                                 players = lobby.players,
+                                hostId = lobby.host,
                                 error = null,
                                 isHost = lobby.host == accountService.userProfile.value?.id
                             )
