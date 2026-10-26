@@ -15,6 +15,7 @@ struct ContentView: View {
     
     var body: some View {
         ComposeView()
+            .statusBarHidden(true)
             .ignoresSafeArea(.all)
             .background()
             .onShake {

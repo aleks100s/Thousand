@@ -1,7 +1,7 @@
 package com.alextos.thousand.presentation.menu.create_game
 
 import com.alextos.thousand.application.theme.AppColors
-import androidx.compose.material3.AlertDialog
+import com.alextos.thousand.presentation.components.AppAlertDialog as AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.foundation.layout.Box

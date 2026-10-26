@@ -23,5 +23,8 @@ fun AppBottomSheet(
 ) {
     ModalBottomSheet(onDismissRequest = onDismissRequest, modifier = modifier, sheetState = sheetState,
         sheetGesturesEnabled = sheetGesturesEnabled, shape = shape, containerColor = containerColor,
-        contentColor = contentColor, dragHandle = dragHandle, content = content)
+        contentColor = contentColor, dragHandle = dragHandle) {
+        AppDialogStatusBarEffect()
+        content()
+    }
 }

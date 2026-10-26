@@ -1,5 +1,8 @@
 package com.alextos.thousand.common
 
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.RowScope
@@ -34,6 +37,9 @@ fun Screen(
         val showNavigation = !hideNavigationInLandscape || maxWidth <= maxHeight
         Scaffold(
             modifier = Modifier.fillMaxSize(),
+            contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(
+                WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom,
+            ),
             containerColor = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.onBackground,
             topBar = {
