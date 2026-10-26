@@ -1,5 +1,7 @@
 package com.alextos.thousand.domain.usecase.statistics
 
+import com.alextos.thousand.domain.models.User
+
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.repository.GameRepository
@@ -30,6 +32,7 @@ class RollsStatisticsUseCase(
                 val rolls = turns.allRolls()
 
                 PlayerWithRollStatistics(
+                    user = user,
                     userId = user.id,
                     userName = user.name,
                     rolls = rolls.size,
@@ -79,4 +82,5 @@ data class PlayerWithRollStatistics(
     val bestRoll: Int,
     val averageRollChain: Double,
     val bestRollChain: Int,
+    val user: User = User(userId, userName),
 )

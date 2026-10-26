@@ -32,7 +32,7 @@ import kotlin.collections.plus
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-class AndroidMultiplayerRepository : MultiplayerRepository {
+class AndroidMultiplayerRepository(private val accountService: com.alextos.thousand.domain.service.NativeAccountService) : MultiplayerRepository {
     companion object {
         private const val USERS_NODE = "users"
         private const val LOBBIES_NODE = "lobbies"
@@ -46,10 +46,7 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
         val currentUser = Firebase.auth.currentUser
         val host = currentUser?.uid ?: ""
         val players = listOf(
-            User(
-                id = currentUser?.uid ?: "",
-                name = currentUser?.displayName ?: "Без имени",
-            )
+            accountService.playerForAccount(currentUser?.uid.orEmpty(), currentUser?.displayName ?: "Без имени")
         )
         val key = Uuid.random().toString()
         val lobby = Lobby(
@@ -100,10 +97,7 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
                         return
                     }
 
-                    val currentPlayer = User(
-                        id = currentUser.uid,
-                        name = currentUser.displayName ?: "Без имени",
-                    )
+                    val currentPlayer = accountService.playerForAccount(currentUser.uid, currentUser.displayName ?: "Без имени")
 
                     if (lobby.players.none { it.id == currentPlayer.id }) {
                         lobby.players += currentPlayer

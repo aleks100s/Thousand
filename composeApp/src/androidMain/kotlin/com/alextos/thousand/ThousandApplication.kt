@@ -18,11 +18,12 @@ class ThousandApplication : Application() {
         }
         val gamePresenceObserver = AndroidGamePresenceObserver(this)
 
+        val accountService = AndroidAccountService(this)
         initKoin(
             shakeDeviceObserver = shakeDeviceObserver,
             gamePresenceObserver = gamePresenceObserver,
-            nativeAccountService = AndroidAccountService(this),
-            multiplayerRepository = AndroidMultiplayerRepository(),
+            nativeAccountService = accountService,
+            multiplayerRepository = AndroidMultiplayerRepository(accountService),
         ) {
             androidLogger()
             androidContext(this@ThousandApplication)

@@ -1,5 +1,7 @@
 package com.alextos.thousand.presentation.menu.game_score
 
+import com.alextos.thousand.presentation.components.appearanceColor
+import com.alextos.thousand.presentation.components.PlayerAvatarView
 import com.alextos.thousand.application.theme.AppShapes
 import com.alextos.thousand.application.theme.AppColors
 import androidx.compose.foundation.Canvas
@@ -51,7 +53,7 @@ internal fun ScoreChartCard(
                     style = MaterialTheme.typography.bodyMedium,
                 )
             } else {
-                val colors = chartColors()
+                val colors = series.map { it.user.appearanceColor }
                 ScoreChart(
                     modifier = Modifier.fillMaxWidth().height(240.dp),
                     series = series,
@@ -156,14 +158,7 @@ private fun ChartLegend(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(10.dp)
-                        .background(
-                            color = colors[index % colors.size],
-                            shape = AppShapes.Inset,
-                        )
-                )
+                PlayerAvatarView(playerSeries.user, size = 24.dp)
                 Text(
                     text = playerSeries.playerName,
                     color = SummaryMuted,
@@ -184,6 +179,7 @@ internal fun PlayerStatisticsCard(
             modifier = Modifier.padding(4.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            PlayerAvatarView(statistics.user)
             Text(
                 text = statistics.playerName,
                 color = SummaryCream,
@@ -243,18 +239,6 @@ private fun StatisticComparisonRow(
         Text("Обычно: ${globalValue.toScoreText()}", color = SummaryMuted,
             style = MaterialTheme.typography.labelSmall)
     }
-}
-
-@Composable
-private fun chartColors(): List<Color> {
-    return listOf(
-        AppColors.Positive,
-        AppColors.Highlight,
-        AppColors.ChartBlue,
-        AppColors.Danger,
-        AppColors.Purple,
-        AppColors.ChartCyan,
-    )
 }
 
 private fun Double.toScoreText(): String {

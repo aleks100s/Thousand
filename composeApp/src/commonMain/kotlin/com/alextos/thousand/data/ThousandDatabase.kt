@@ -37,7 +37,8 @@ internal const val THOUSAND_DATABASE_FILE_NAME = "thousand.db"
         TurnEffectEntity::class,
         TurnResultEntity::class,
     ],
-    version = 1,
+    version = 2,
+    autoMigrations = [androidx.room.AutoMigration(from = 1, to = 2)],
     exportSchema = true,
 )
 @ConstructedBy(ThousandDatabaseConstructor::class)

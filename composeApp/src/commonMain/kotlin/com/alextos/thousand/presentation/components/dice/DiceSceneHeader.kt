@@ -17,6 +17,8 @@ data class DiceScenePlayer(
     val online: Boolean?,
     val reactionId: String?,
     val reaction: String?,
+    val color: String = "#86A7BD",
+    val avatar: String = "Neutral",
 )
 
 data class DiceSceneHeader(
@@ -37,6 +39,8 @@ data class DiceSceneHeader(
                 add(buildJsonObject {
                     put("id", player.id)
                     put("name", player.name)
+                    put("color", player.color)
+                    put("avatar", player.avatar)
                     put("score", player.score)
                     put("bot", player.bot)
                     put("winner", player.winner)
@@ -65,7 +69,7 @@ data class DiceSceneHeader(
                         player.user.id, player.user.name, player.currentScore, player.isBot(), player.isWinner,
                         if (game.settings.isTripleBoltFineActive && !game.isFinished()) player.boltCount else 0,
                         if (state.isOnlineGame && !player.isBot()) player.user.id in state.onlinePlayerIds else null,
-                        reaction?.id, reaction?.reaction,
+                        reaction?.id, reaction?.reaction, player.user.color.hex, player.user.avatar.name,
                     )
                 },
                 activePlayerId = state.currentPlayer?.user?.id,

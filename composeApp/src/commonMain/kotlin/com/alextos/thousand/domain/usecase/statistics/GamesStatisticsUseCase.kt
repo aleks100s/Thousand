@@ -1,5 +1,7 @@
 package com.alextos.thousand.domain.usecase.statistics
 
+import com.alextos.thousand.domain.models.User
+
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.repository.GameRepository
 import kotlinx.coroutines.flow.Flow
@@ -27,6 +29,7 @@ class GamesStatisticsUseCase(
                 val games = players.size
 
                 PlayerWithStatistics(
+                    user = user,
                     userId = user.id,
                     userName = user.name,
                     games = games,
@@ -53,4 +56,5 @@ data class PlayerWithStatistics(
     val games: Int,
     val wins: Int,
     val losses: Int,
+    val user: User = User(userId, userName),
 )

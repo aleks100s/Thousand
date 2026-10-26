@@ -1,5 +1,7 @@
 package com.alextos.thousand.data.service
 
+import com.alextos.thousand.data.mappers.firebase.FirebaseUserMapper
+import com.alextos.thousand.domain.models.User
 import android.app.Activity
 import android.app.Application
 import android.net.Uri
@@ -23,12 +25,35 @@ class AndroidAccountService(
     private val application: Application,
 ) : MutableNativeAccountService(), Application.ActivityLifecycleCallbacks, FirebaseAuth.AuthStateListener {
     private var hasAttemptedAuthentication = false
+    private var savedAppearance: String? = null
+    private var pendingAppearance: String? = null
 
     init {
         updateHideMultiplayer(false)
         PlayGamesSdk.initialize(application)
         application.registerActivityLifecycleCallbacks(this)
         Firebase.auth.addAuthStateListener(this)
+    }
+
+    override fun updateLocalAppearance(user: User) {
+        super.updateLocalAppearance(user)
+        if (Firebase.auth.currentUser?.uid != user.id) return
+        val key = "${user.id}:${user.color.name}:${user.avatar.name}"
+        if (key == pendingAppearance || (pendingAppearance == null && key == savedAppearance)) return
+        pendingAppearance = key
+        FirebaseDatabase.getInstance().reference.child(USERS_NODE).child(user.id)
+            .updateChildren(FirebaseUserMapper.appearanceDictionary(user))
+            .addOnSuccessListener {
+                // An older completion must not acknowledge a more recent appearance.
+                if (pendingAppearance == key) {
+                    savedAppearance = key
+                    pendingAppearance = null
+                }
+            }
+            .addOnFailureListener { error ->
+                if (pendingAppearance == key) pendingAppearance = null
+                FirebaseCrashlytics.getInstance().recordException(error)
+            }
     }
 
     override fun onActivityResumed(activity: Activity) {
@@ -45,6 +70,8 @@ class AndroidAccountService(
     // Firebase user observation
 
     override fun onAuthStateChanged(auth: FirebaseAuth) {
+        savedAppearance = null
+        pendingAppearance = null
         val user = auth.currentUser
         if (user != null) {
             updateRemoteUserInfo(user)

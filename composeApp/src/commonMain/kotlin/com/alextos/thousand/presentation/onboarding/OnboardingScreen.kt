@@ -1,5 +1,10 @@
 package com.alextos.thousand.presentation.onboarding
 
+import com.alextos.thousand.presentation.components.PlayerAvatarPicker
+
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -56,11 +61,12 @@ fun OnboardingScreen() {
             Box(
                 modifier = it
                     .fillMaxSize()
+                    .imePadding()
                     .padding(24.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 56.dp).verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
@@ -82,6 +88,9 @@ fun OnboardingScreen() {
                         },
                         singleLine = true,
                         enabled = state.isSaving.not(),
+                    )
+                    PlayerAvatarPicker(
+                        state.avatar, { viewModel.onAction(OnboardingAction.SelectAvatar(it)) }, !state.isSaving,
                     )
                     Button(
                         modifier = Modifier.fillMaxWidth(),

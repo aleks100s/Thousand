@@ -1,5 +1,7 @@
 package com.alextos.thousand.presentation.onboarding
 
+import com.alextos.thousand.domain.models.PlayerAvatar
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alextos.thousand.domain.models.UserKind
@@ -32,6 +34,7 @@ class OnboardingViewModel(
                     _state.update {
                         it.copy(
                             name = authorizedName,
+                            avatar = PlayerAvatar.Neutral,
                             isLoginSheetVisible = false,
                             isLoginInProgress = false,
                         )
@@ -43,6 +46,7 @@ class OnboardingViewModel(
 
     fun onAction(action: OnboardingAction) {
         when (action) {
+            is OnboardingAction.SelectAvatar -> _state.update { it.copy(avatar = action.avatar) }
             is OnboardingAction.UpdateName -> updateName(action.value)
             OnboardingAction.ShowLoginSheet -> showLoginSheet()
             OnboardingAction.HideLoginSheet -> hideLoginSheet()
@@ -123,6 +127,7 @@ class OnboardingViewModel(
             saveUserUseCase(
                 name = name,
                 kind = UserKind.MainUser,
+                avatar = state.value.avatar,
             )
 
             _state.update {

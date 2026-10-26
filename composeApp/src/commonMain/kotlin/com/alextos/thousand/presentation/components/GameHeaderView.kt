@@ -245,19 +245,7 @@ private fun PlayerIcon(
 ) {
     Box(modifier = Modifier.size(PLAYER_ICON_SIZE)) {
         if (reaction == null) {
-            Icon(
-                modifier = Modifier.size(PLAYER_ICON_SIZE),
-                painter = painterResource(
-                    if (player.isBot())
-                        Res.drawable.robot_24px
-                    else if (player.isMain())
-                        Res.drawable.person_heart_24px
-                    else
-                        Res.drawable.person_24px
-                ),
-                contentDescription = null,
-                tint = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
-            )
+            PlayerAvatarView(player.user, size = PLAYER_ICON_SIZE)
         } else {
             Text(
                 modifier = Modifier.align(Alignment.Center),

@@ -35,6 +35,44 @@ class CreateGameViewModelTest {
         vm.onAction(CreateGameAction.Initialize)
     }
 
+    @Test fun newLocalPlayersUseDifferentMutedColorsWhilePaletteHasFreeColors() = runTest {
+        val repo = PlayersRepository(listOf(main, local))
+        val save = SaveUserUseCase(repo)
+        save("Новый игрок", avatar = PlayerAvatar.Male)
+        save("Ещё игрок", avatar = PlayerAvatar.Female)
+        assertEquals(4, repo.users.value.map { it.color }.toSet().size)
+        assertEquals(PlayerColor.Gold, repo.users.value.single { it.id == main.id }.color)
+    }
+
+    @Test fun restoringAccountAfterLocalUsersRestoresSavedAvatarForLobby() = runTest {
+        val saved = main.copy(avatar = PlayerAvatar.Female)
+        val repo = PlayersRepository(listOf(saved))
+        val account = MutableNativeAccountService()
+        val vm = com.alextos.thousand.application.AppViewModel(
+            GetAllUsersUseCase(repo), account, UpdateUserUseCase(repo, account), ReplaceMainUserUseCase(repo),
+        )
+        stores += ViewModelStore().also { it.put("app", vm) }
+        account.updateUserProfile(saved.id, saved.name)
+        assertEquals(saved.avatar, account.playerForAccount(saved.id, saved.name).avatar)
+        assertEquals(saved.color, account.playerForAccount(saved.id, saved.name).color)
+    }
+
+    @Test fun mainOnboardingSavesChosenAvatarAndGoldButAutomaticNameUsesNeutral() = runTest {
+        val repo = PlayersRepository(emptyList())
+        val account = MutableNativeAccountService()
+        val vm = com.alextos.thousand.presentation.onboarding.OnboardingViewModel(SaveUserUseCase(repo), account)
+        stores += ViewModelStore().also { it.put("onboarding", vm) }
+        vm.onAction(com.alextos.thousand.presentation.onboarding.OnboardingAction.UpdateName("Маша"))
+        vm.onAction(com.alextos.thousand.presentation.onboarding.OnboardingAction.SelectAvatar(PlayerAvatar.Female))
+        vm.onAction(com.alextos.thousand.presentation.onboarding.OnboardingAction.SaveUser)
+        assertEquals(PlayerAvatar.Female, repo.users.value.single().avatar)
+        assertEquals(PlayerColor.Gold, repo.users.value.single().color)
+        repo.users.value = emptyList()
+        account.updateUserProfile("account", "Автоматическое имя")
+        assertEquals(PlayerAvatar.Neutral, repo.users.value.single().avatar)
+        assertEquals(PlayerColor.Gold, repo.users.value.single().color)
+    }
+
     @Test fun editingDoesNotChangeSelectionOrAdvanceAndCanFinishWithoutPlayers() = runTest {
         val vm = viewModel(PlayersRepository(listOf(main, bot)))
         vm.onAction(CreateGameAction.TogglePlayersEditing)
@@ -75,7 +113,7 @@ class CreateGameViewModelTest {
         assertEquals(setOf(main, renamed), repo.created!!.players.map { it.user }.toSet())
     }
 
-    @Test fun mainPlayerCannotBeEditedOrDeletedAndNormalModeRejectsManagement() = runTest {
+    @Test fun mainPlayerCanChangeNameAndAvatarButCannotBeDeleted() = runTest {
         val repo = PlayersRepository(listOf(main, bot))
         val vm = viewModel(repo)
         vm.onAction(CreateGameAction.EditPlayer(bot))
@@ -86,9 +124,14 @@ class CreateGameViewModelTest {
         vm.onAction(CreateGameAction.EditPlayer(main))
         vm.onAction(CreateGameAction.RequestDeletePlayer(main))
         vm.onAction(CreateGameAction.ConfirmDeletePlayer)
-        assertFalse(vm.state.value.isPlayerEditorVisible)
+        assertTrue(vm.state.value.isPlayerEditorVisible)
         assertNull(vm.state.value.pendingDeleteUser)
-        assertEquals(listOf(main, bot), repo.users.value)
+        vm.onAction(CreateGameAction.UpdatePlayerName("Новое имя"))
+        vm.onAction(CreateGameAction.SelectPlayerAvatar(PlayerAvatar.Female))
+        vm.onAction(CreateGameAction.SavePlayer)
+        assertEquals(main.copy(name = "Новое имя", avatar = PlayerAvatar.Female), repo.users.value.single { it.id == main.id })
+        assertEquals(PlayerColor.Gold, repo.users.value.single { it.id == main.id }.color)
+        assertEquals(2, repo.users.value.size)
     }
 
     @Test fun deletingSelectedPlayerClearsSelectionAndCancelDoesNotDelete() = runTest {
@@ -134,9 +177,12 @@ class CreateGameViewModelTest {
         val vm = viewModel(repo)
         vm.onAction(CreateGameAction.ShowAddUserSheet)
         vm.onAction(CreateGameAction.UpdatePlayerName("  Алексей  "))
+        vm.onAction(CreateGameAction.SelectPlayerAvatar(PlayerAvatar.Male))
         vm.onAction(CreateGameAction.SavePlayer)
         assertEquals(UserKind.LocalUser, repo.users.value.last().kind)
         assertEquals("Алексей", repo.users.value.last().name)
+        assertEquals(PlayerAvatar.Male, repo.users.value.last().avatar)
+        assertNotEquals(PlayerColor.Gold, repo.users.value.last().color)
         vm.onAction(CreateGameAction.ShowAddBotSheet)
         assertTrue(vm.state.value.playerName.isNotBlank())
         vm.onAction(CreateGameAction.SavePlayer)

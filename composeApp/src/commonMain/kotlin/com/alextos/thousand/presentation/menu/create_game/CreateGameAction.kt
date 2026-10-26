@@ -1,5 +1,6 @@
 package com.alextos.thousand.presentation.menu.create_game
 
+import com.alextos.thousand.domain.models.PlayerAvatar
 import com.alextos.thousand.domain.models.User
 import com.alextos.thousand.domain.models.GameSettings
 
@@ -12,6 +13,7 @@ sealed interface CreateGameAction {
     data object HidePlayerEditor : CreateGameAction
     data class EditPlayer(val user: User) : CreateGameAction
     data class UpdatePlayerName(val value: String) : CreateGameAction
+    data class SelectPlayerAvatar(val avatar: PlayerAvatar) : CreateGameAction
     data object SavePlayer : CreateGameAction
     data class RequestDeletePlayer(val user: User) : CreateGameAction
     data object CancelDeletePlayer : CreateGameAction

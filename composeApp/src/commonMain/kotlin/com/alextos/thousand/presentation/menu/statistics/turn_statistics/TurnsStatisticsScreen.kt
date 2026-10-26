@@ -55,7 +55,7 @@ internal fun TurnsStatisticsContent(modifier: Modifier, state: TurnsStatisticsSt
             item(key = "empty", contentType = "empty") { EmptyStatisticsCard("Пока нет данных по ходам") }
         } else {
             items(state.players, key = { it.userId }, contentType = { "player-statistics" }) { player ->
-                StatisticsTableRow(player.userName, listOf(player.turns.toString(), player.averageTurn.toStatisticsText(), player.bestTurn.toString()))
+                StatisticsTableRow(user = player.user, name = player.userName, values = listOf(player.turns.toString(), player.averageTurn.toStatisticsText(), player.bestTurn.toString()))
             }
         }
     }

@@ -7,5 +7,7 @@ import kotlin.uuid.Uuid
 data class User(
     val id: String = Uuid.random().toString(),
     val name: String,
-    val kind: UserKind = UserKind.LocalUser
+    val kind: UserKind = UserKind.LocalUser,
+    val color: PlayerColor = PlayerColor.defaultFor(id, kind),
+    val avatar: PlayerAvatar = PlayerAvatar.Neutral
 )

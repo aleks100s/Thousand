@@ -1,5 +1,7 @@
 package com.alextos.thousand.domain.usecase.statistics
 
+import com.alextos.thousand.domain.models.User
+
 import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.repository.GameRepository
 import kotlinx.coroutines.flow.Flow
@@ -23,6 +25,7 @@ class TurnsStatisticsUseCase(
         return groupBy { turn -> turn.player.user }
             .map { (user, turns) ->
                 PlayerWithTurnStatistics(
+                    user = user,
                     userId = user.id,
                     userName = user.name,
                     turns = turns.size,
@@ -56,4 +59,5 @@ data class PlayerWithTurnStatistics(
     val turns: Int,
     val averageTurn: Double,
     val bestTurn: Int,
+    val user: User = User(userId, userName),
 )

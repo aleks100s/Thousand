@@ -1,5 +1,7 @@
 package com.alextos.thousand.presentation.menu.create_game
 
+import com.alextos.thousand.presentation.components.PlayerAvatarView
+
 import com.alextos.thousand.application.theme.AppBrushes
 import com.alextos.thousand.application.theme.AppDimens
 import com.alextos.thousand.application.theme.AppShapes
@@ -42,6 +44,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.dp
 import com.alextos.thousand.domain.models.User
+import com.alextos.thousand.presentation.components.appearanceColor
 import com.alextos.thousand.domain.models.UserKind
 import com.alextos.thousand.presentation.components.AppButton
 import org.jetbrains.compose.resources.painterResource
@@ -118,7 +121,7 @@ private fun PlayerSelectionCard(user: User, selected: Boolean, compact: Boolean,
     Box(
         Modifier.fillMaxWidth().heightIn(min = if (compact) 132.dp else 172.dp).clip(PlayerCardShape)
             .background(AppBrushes.Panel)
-            .border(if (selected) 2.dp else AppDimens.Border, if (selected) AppColors.Accent else AppColors.Outline, PlayerCardShape)
+            .border(if (selected) 2.dp else AppDimens.Border, if (selected) user.appearanceColor else AppColors.Outline, PlayerCardShape)
             .then(selection),
     ) {
         Column(
@@ -126,21 +129,21 @@ private fun PlayerSelectionCard(user: User, selected: Boolean, compact: Boolean,
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(if (compact) 4.dp else 8.dp),
         ) {
-            PlayerAvatar(user, compact)
+            PlayerAvatarView(user, size = if (compact) 56.dp else 80.dp)
             Text(user.name, color = PlayerCream, style = if (compact) MaterialTheme.typography.titleSmall else MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
             if (user.kind == UserKind.MainUser) {
                 Text("Это вы", color = PlayerMuted, style = MaterialTheme.typography.labelSmall)
             }
         }
-        if (editing && user.kind != UserKind.MainUser) {
+        if (editing) {
             Row(Modifier.align(Alignment.TopCenter).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 PlayerEditButton(Res.drawable.edit_24px, "Редактировать ${user.name}", false, !busy, onEdit)
-                PlayerEditButton(Res.drawable.delete_24px, "Удалить ${user.name}", true, !busy, onDelete)
+                if (user.kind != UserKind.MainUser) PlayerEditButton(Res.drawable.delete_24px, "Удалить ${user.name}", true, !busy, onDelete)
             }
         }
         if (selected && !editing) {
-            Box(Modifier.align(Alignment.TopEnd).padding(if (compact) 8.dp else 12.dp).size(26.dp).background(PlayerMint, CircleShape), contentAlignment = Alignment.Center) {
+            Box(Modifier.align(Alignment.TopEnd).padding(if (compact) 8.dp else 12.dp).size(26.dp).background(user.appearanceColor, CircleShape), contentAlignment = Alignment.Center) {
                 // A drawn check keeps the selection decoration passive; the whole card is one accessible control.
                 Box(Modifier.size(15.dp).drawBehind {
                     val stroke = 2.5.dp.toPx()
@@ -156,25 +159,6 @@ private fun PlayerSelectionCard(user: User, selected: Boolean, compact: Boolean,
 private fun PlayerEditButton(icon: DrawableResource, label: String, destructive: Boolean, enabled: Boolean, onClick: () -> Unit) {
     IconButton(onClick, enabled = enabled, modifier = Modifier.size(AppDimens.TouchTarget)) {
         Icon(painterResource(icon), label, Modifier.size(AppDimens.Icon), tint = if (destructive) AppColors.Danger else PlayerMuted)
-    }
-}
-
-@Composable
-private fun PlayerAvatar(user: User, compact: Boolean) {
-    val bot = user.kind == UserKind.Bot
-    val colors = if (bot) listOf(AppColors.AvatarBotTop, AppColors.AvatarBotBottom)
-        else if (user.kind == UserKind.MainUser) listOf(AppColors.AvatarMainTop, AppColors.AvatarMainBottom)
-        else listOf(AppColors.AvatarLocalTop, AppColors.AvatarLocalBottom)
-    Box(
-        Modifier.size(if (compact) 56.dp else 80.dp).clip(CircleShape).background(Brush.verticalGradient(colors))
-            .border(2.dp, AppColors.AvatarOutline, CircleShape).padding(5.dp)
-            .border(1.dp, AppColors.Accent.copy(alpha = .4f), CircleShape),
-        contentAlignment = Alignment.Center,
-    ) {
-        if (bot) Icon(painterResource(Res.drawable.robot_24px), contentDescription = null,
-            modifier = Modifier.size(if (compact) 28.dp else 40.dp), tint = PlayerCream)
-        else Text(user.name.trim().firstOrNull()?.uppercaseChar()?.toString() ?: "?",
-            style = if (compact) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineLarge, color = PlayerCream, fontWeight = FontWeight.Bold)
     }
 }
 

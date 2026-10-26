@@ -51,7 +51,7 @@ internal fun GamesStatisticsContent(modifier: Modifier, state: GamesStatisticsSt
             item(key = "empty", contentType = "empty") { EmptyStatisticsCard("Пока нет данных по игрокам") }
         } else {
             items(state.players, key = { it.userId }, contentType = { "player-statistics" }) { player ->
-                StatisticsTableRow(player.userName, listOf(player.games.toString(), player.wins.toString(), player.losses.toString()))
+                StatisticsTableRow(user = player.user, name = player.userName, values = listOf(player.games.toString(), player.wins.toString(), player.losses.toString()))
             }
         }
     }

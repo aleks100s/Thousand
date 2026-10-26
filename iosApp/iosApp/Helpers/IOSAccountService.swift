@@ -15,6 +15,9 @@ import GameKit
 import UIKit
 
 final class IOSAccountService: MutableNativeAccountService {
+    private var savedAppearance: String?
+    private var pendingAppearance: String?
+
     override init() {
         super.init()
         FirebaseApp.configure()
@@ -22,6 +25,25 @@ final class IOSAccountService: MutableNativeAccountService {
         launchGameCenter()
     }
     
+    override func updateLocalAppearance(user: ComposeApp.User) {
+        super.updateLocalAppearance(user: user)
+        guard Auth.auth().currentUser?.uid == user.id else { return }
+        let key = "\(user.id):\(user.color.name):\(user.avatar.name)"
+        guard key != pendingAppearance, pendingAppearance != nil || key != savedAppearance else { return }
+        pendingAppearance = key
+        Database.database().reference().child(FirebasePath.users).child(user.id)
+            .updateChildValues(FirebaseUserMapper.shared.appearanceDictionary(from: user)) { [weak self] error, _ in
+                guard let self else { return }
+                if let error {
+                    if self.pendingAppearance == key { self.pendingAppearance = nil }
+                    Crashlytics.crashlytics().record(error: error)
+                } else if self.pendingAppearance == key {
+                    self.savedAppearance = key
+                    self.pendingAppearance = nil
+                }
+            }
+    }
+
     override func logIn(
         email: String,
         password: String,
@@ -108,6 +130,8 @@ extension IOSAccountService {
     private func observeFirebaseAuthorizationState() {
         Task {
             for try await user in Auth.auth().authStateChanges {
+                savedAppearance = nil
+                pendingAppearance = nil
                 if let user {
                     updateRemoteUserInfo(user: user)
                 } else {

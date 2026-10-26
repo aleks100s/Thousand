@@ -7,6 +7,6 @@ class ReplaceMainUserUseCase(
     private val repository: GameRepository
 ) {
     suspend operator fun invoke(previous: User, new: User) {
-        repository.replaceUser(previous, new)
+        repository.replaceUser(previous, new.copy(color = previous.color, avatar = previous.avatar))
     }
 }

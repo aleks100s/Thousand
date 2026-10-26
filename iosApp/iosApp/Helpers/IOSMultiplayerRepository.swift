@@ -11,6 +11,12 @@ import FirebaseDatabase
 import Foundation
 
 final class IOSMultiplayerRepository: MultiplayerRepository {
+    let accountService: IOSAccountService
+
+    init(accountService: IOSAccountService) {
+        self.accountService = accountService
+    }
+
     func createLobby(gameSettings: GameSettings) async throws -> String {
         let gameID = String(Int.random(in: 1000...10000))
         let currentUser = Auth.auth().currentUser

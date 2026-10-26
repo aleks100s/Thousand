@@ -59,7 +59,7 @@ internal fun RollsStatisticsContent(modifier: Modifier, state: RollsStatisticsSt
             item(key = "empty", contentType = "empty") { EmptyStatisticsCard("Пока нет данных по броскам") }
         } else {
             items(state.players, key = { it.userId }, contentType = { "player-statistics" }) { player ->
-                StatisticsTableRow(player.userName, listOf(player.rolls.toString(), player.averageRoll.toStatisticsText(), player.bestRoll.toString(),
+                StatisticsTableRow(user = player.user, name = player.userName, values = listOf(player.rolls.toString(), player.averageRoll.toStatisticsText(), player.bestRoll.toString(),
                     player.averageRollChain.toStatisticsText(), player.bestRollChain.toString()), scrollState = tableScroll)
             }
         }

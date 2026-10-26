@@ -23,11 +23,11 @@
     .header-player:disabled{opacity:1;cursor:default}
     .player-avatar{position:relative;display:block;width:var(--app-badge);height:var(--app-badge);flex:0 0 var(--app-badge);border-radius:50%;border:2px solid var(--app-avatar-outline);box-shadow:0 2px 7px #0006}
     .player-avatar svg{width:100%;height:100%;border-radius:50%;display:block}
-    .header-player[data-active=true] .player-avatar{border-color:var(--app-positive);box-shadow:0 0 0 3px rgba(var(--app-positive-rgb),.36),0 0 14px rgba(var(--app-positive-rgb),.24)}
+    .header-player[data-active=true] .player-avatar{border-color:var(--player-color);box-shadow:0 0 0 3px color-mix(in srgb,var(--player-color) 36%,transparent),0 0 14px color-mix(in srgb,var(--player-color) 24%,transparent)}
     .player-meta{display:flex;flex-direction:column;gap:2px;min-width:0}
     .player-name{font-size:14px;line-height:19px;font-weight:550;max-width:144px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .player-score{font-size:22px;line-height:26px;font-weight:750;letter-spacing:.2px}
-    .header-player[data-active=true] .player-score{color:var(--app-positive)}
+    .header-player[data-active=true] .player-score{color:var(--player-color)}
     .player-bolts{position:absolute;left:-4px;bottom:-2px;display:flex;gap:2px;pointer-events:none}
     .bolt-card{display:block;width:6px;height:10px;border-radius:1.5px;background:var(--app-danger);border:1px solid rgba(var(--app-danger-rgb),.5);box-shadow:0 1px 3px #0008}
     .online-dot{position:absolute;right:-1px;bottom:0;width:8px;height:8px;border:2px solid var(--app-navigation-bottom);background:var(--app-outline-subtle);border-radius:50%}

@@ -55,7 +55,7 @@ internal fun EventsStatisticsContent(modifier: Modifier, state: EventsStatistics
             item(key = "empty", contentType = "empty") { EmptyStatisticsCard("Пока нет событий для статистики") }
         } else {
             items(state.players, key = { it.userId }, contentType = { "player-statistics" }) { player ->
-                StatisticsTableRow(player.userName, listOf(player.pitFalls.toString(), player.overtakes.toString(), player.tripleBolts.toString()))
+                StatisticsTableRow(user = player.user, name = player.userName, values = listOf(player.pitFalls.toString(), player.overtakes.toString(), player.tripleBolts.toString()))
             }
         }
     }

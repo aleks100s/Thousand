@@ -1,5 +1,8 @@
 package com.alextos.thousand.presentation.menu.multiplayer.lobby
 
+import com.alextos.thousand.domain.models.User
+import com.alextos.thousand.presentation.components.PlayerAvatarView
+
 import com.alextos.thousand.presentation.components.AppBottomSheet as ModalBottomSheet
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -195,18 +198,13 @@ internal fun LobbyContent(state: LobbyState, goBack: () -> Unit, onAction: (Lobb
 }
 
 @Composable
-private fun LobbyPlayerRow(player: com.alextos.thousand.domain.models.User, isHost: Boolean) {
+private fun LobbyPlayerRow(player: User, isHost: Boolean) {
     Row(
         Modifier.fillMaxWidth().appPanel().padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Box(Modifier.size(48.dp).clip(CircleShape).background(AppColors.SurfaceRaised)
-            .border(2.dp, if (isHost) AppColors.Highlight else AppColors.Accent, CircleShape),
-            contentAlignment = Alignment.Center) {
-            Icon(painterResource(Res.drawable.person_24px), null,
-                modifier = Modifier.size(28.dp), tint = AppColors.TextPrimary)
-        }
+        PlayerAvatarView(player)
         Column(Modifier.weight(1f)) {
             Text(player.name, color = AppColors.TextPrimary, fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.titleMedium)
@@ -239,12 +237,12 @@ internal fun LobbyPreview() {
         com.alextos.thousand.application.theme.AppBackground {
             LobbyContent(
                 LobbyState(lobbyId = "1234", isHost = true, hostId = "preview-a", players = listOf(
-                    com.alextos.thousand.domain.models.User(id = "preview-a", name = "Маша"),
-                    com.alextos.thousand.domain.models.User(id = "preview-b", name = "Саша"),
-                    com.alextos.thousand.domain.models.User(id = "preview-c", name = "Александр"),
-                    com.alextos.thousand.domain.models.User(id = "preview-d", name = "Легендарный Хомяк"),
-                    com.alextos.thousand.domain.models.User(id = "preview-e", name = "Олег"),
-                    com.alextos.thousand.domain.models.User(id = "preview-f", name = "Екатерина"),
+                    User(id = "preview-a", name = "Маша"),
+                    User(id = "preview-b", name = "Саша"),
+                    User(id = "preview-c", name = "Александр"),
+                    User(id = "preview-d", name = "Легендарный Хомяк"),
+                    User(id = "preview-e", name = "Олег"),
+                    User(id = "preview-f", name = "Екатерина"),
                 )), {}, {},
             )
         }

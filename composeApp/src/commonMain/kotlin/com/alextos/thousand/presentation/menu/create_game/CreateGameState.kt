@@ -1,5 +1,6 @@
 package com.alextos.thousand.presentation.menu.create_game
 
+import com.alextos.thousand.domain.models.PlayerAvatar
 import com.alextos.thousand.domain.models.User
 import com.alextos.thousand.domain.models.UserKind
 import com.alextos.thousand.domain.models.GameSettings
@@ -13,6 +14,7 @@ data class CreateGameState(
     val isPlayerEditorVisible: Boolean = false,
     val editingUser: User? = null,
     val playerName: String = "",
+    val playerAvatar: PlayerAvatar = PlayerAvatar.Neutral,
     val playerKind: UserKind = UserKind.LocalUser,
     val isPlayerOperationRunning: Boolean = false,
     val playerError: String? = null,

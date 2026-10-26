@@ -46,6 +46,7 @@ class AppViewModel(
                 users to hideMultiplayer
             }.collect { state ->
                 val (users, hideMultiplayer) = state
+                users.firstOrNull { it.kind == UserKind.MainUser }?.let(nativeAccountService::updateLocalAppearance)
                 _state.update {
                     it.copy(
                         isLoading = false,
@@ -73,8 +74,11 @@ class AppViewModel(
             }.collect { (remoteUser, localUser) ->
                 if (remoteUser.id != localUser.id) {
                     replaceMainUserUseCase(localUser, remoteUser)
-                } else if (remoteUser.name != localUser.name) {
-                    updateUserUseCase(localUser.copy(name = remoteUser.name))
+                } else {
+                    nativeAccountService.updateLocalAppearance(localUser)
+                    if (remoteUser.name != localUser.name) {
+                        updateUserUseCase(localUser.copy(name = remoteUser.name))
+                    }
                 }
             }
         }

@@ -1,5 +1,7 @@
 package com.alextos.thousand.presentation.menu.create_game
 
+import com.alextos.thousand.domain.models.PlayerAvatar
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alextos.thousand.domain.models.User
@@ -43,6 +45,7 @@ class CreateGameViewModel(
         when (action) {
             CreateGameAction.Initialize -> initialize()
             CreateGameAction.HidePlayerEditor -> if (!state.value.isPlayerOperationRunning) closePlayerEditor()
+            is CreateGameAction.SelectPlayerAvatar -> if (!state.value.isPlayerOperationRunning) _state.update { it.copy(playerAvatar = action.avatar) }
             CreateGameAction.SavePlayer -> savePlayer()
             CreateGameAction.ShowAddUserSheet -> showPlayerEditor(UserKind.LocalUser)
             CreateGameAction.ShowAddBotSheet -> showPlayerEditor(UserKind.Bot)
@@ -98,15 +101,16 @@ class CreateGameViewModel(
     private fun showPlayerEditor(kind: UserKind) {
         if (state.value.isPlayerOperationRunning || state.value.step != CreateGameStep.Players) return
         _state.update { it.copy(isPlayerEditorVisible = true, editingUser = null, playerKind = kind,
+            playerAvatar = PlayerAvatar.Neutral,
             playerName = if (kind == UserKind.Bot) generateBotNameUseCase() else "", playerError = null) }
     }
 
     private fun editPlayer(user: User) {
         val current = state.value
         val actual = current.users.firstOrNull { it.id == user.id } ?: return
-        if (!current.isEditingPlayers || current.isPlayerOperationRunning || actual.kind == UserKind.MainUser) return
+        if (!current.isEditingPlayers || current.isPlayerOperationRunning) return
         _state.update { it.copy(isPlayerEditorVisible = true, editingUser = actual, playerKind = actual.kind,
-            playerName = actual.name, playerError = null) }
+            playerAvatar = actual.avatar, playerName = actual.name, playerError = null) }
     }
 
     private fun openPlayersStep() {
@@ -138,13 +142,13 @@ class CreateGameViewModel(
 
     private fun savePlayer() {
         val current = state.value
-        if (!current.canSavePlayer || current.editingUser?.kind == UserKind.MainUser) return
+        if (!current.canSavePlayer) return
         _state.update { it.copy(isPlayerOperationRunning = true, playerError = null) }
         viewModelScope.launch {
             try {
                 val name = current.playerName.trim()
-                val edited = current.editingUser?.copy(name = name)
-                if (edited == null) saveUserUseCase(name = name, kind = current.playerKind)
+                val edited = current.editingUser?.copy(name = name, avatar = current.playerAvatar)
+                if (edited == null) saveUserUseCase(name = name, kind = current.playerKind, avatar = current.playerAvatar)
                 else {
                     updateUserUseCase(edited)
                     _state.update { value -> value.copy(selectedUsers = value.selectedUsers.map {

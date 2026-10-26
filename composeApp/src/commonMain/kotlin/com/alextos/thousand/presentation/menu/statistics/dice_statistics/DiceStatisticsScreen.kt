@@ -1,5 +1,7 @@
 package com.alextos.thousand.presentation.menu.statistics.dice_statistics
 
+import com.alextos.thousand.domain.models.User
+
 import com.alextos.thousand.application.theme.AppShapes
 import com.alextos.thousand.presentation.components.AppBottomSheet as ModalBottomSheet
 import androidx.compose.foundation.background
@@ -18,6 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.domain.models.DieValue
 import com.alextos.thousand.domain.usecase.statistics.DieValueDistribution
+import com.alextos.thousand.presentation.components.appearanceColor
 import com.alextos.thousand.presentation.components.SingleDieView
 import com.alextos.thousand.presentation.menu.statistics.*
 import org.koin.compose.viewmodel.koinViewModel
@@ -41,7 +44,7 @@ fun DiceStatisticsScreen(goBack: () -> Unit) {
         ModalBottomSheet(
             onDismissRequest = { histogram = null },
         ) {
-            DiceDistributionHistogram(data.title, data.distribution)
+            DiceDistributionHistogram(data.title, data.distribution, data.user)
         }
     }
 }
@@ -71,16 +74,16 @@ private fun DiceStatisticsContent(modifier: Modifier, state: DiceStatisticsState
             item(key = "empty", contentType = "empty") { EmptyStatisticsCard("Пока нет данных по кубикам") }
         } else {
             items(state.players, key = { it.userId }, contentType = { "player-statistics" }) { player ->
-                StatisticsTableRow(player.userName, listOf(player.dice.toString(), player.averageDie.toStatisticsText()),
+                StatisticsTableRow(user = player.user, name = player.userName, values = listOf(player.dice.toString(), player.averageDie.toStatisticsText()),
                     showAction = true,
-                    onClick = { showHistogram(HistogramState("Распределение: ${player.userName}", player.distribution)) })
+                    onClick = { showHistogram(HistogramState("Распределение: ${player.userName}", player.distribution, player.user)) })
             }
         }
     }
 }
 
 @Composable
-private fun DiceDistributionHistogram(title: String, distribution: List<DieValueDistribution>) {
+private fun DiceDistributionHistogram(title: String, distribution: List<DieValueDistribution>, user: User?) {
     val maxCount = distribution.maxOfOrNull { it.count } ?: 0
     LazyColumn(Modifier.fillMaxWidth(), contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -91,7 +94,7 @@ private fun DiceDistributionHistogram(title: String, distribution: List<DieValue
                     SingleDieView(Modifier.size(28.dp), DieValue.entries.first { it.value == item.value })
                     Box(Modifier.weight(1f).height(20.dp).clip(AppShapes.Inset).background(StatisticsOutline.copy(alpha = .2f))) {
                         val fraction = if (maxCount == 0) 0f else item.count.toFloat() / maxCount
-                        Box(Modifier.fillMaxWidth(fraction).fillMaxHeight().background(StatisticsBlue))
+                        Box(Modifier.fillMaxWidth(fraction).fillMaxHeight().background(user?.appearanceColor ?: StatisticsBlue))
                     }
                     Text(item.count.toString(), color = StatisticsCream, style = MaterialTheme.typography.bodyMedium)
                 }
@@ -100,7 +103,7 @@ private fun DiceDistributionHistogram(title: String, distribution: List<DieValue
     }
 }
 
-private data class HistogramState(val title: String, val distribution: List<DieValueDistribution>)
+private data class HistogramState(val title: String, val distribution: List<DieValueDistribution>, val user: User? = null)
 
 @androidx.compose.ui.tooling.preview.Preview
 @Composable

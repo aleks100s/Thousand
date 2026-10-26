@@ -1,8 +1,12 @@
 package com.alextos.thousand.presentation.menu.statistics
 
+import com.alextos.thousand.domain.models.User
+import com.alextos.thousand.presentation.components.PlayerAvatarView
+
 import com.alextos.thousand.application.theme.AppDimens
 import com.alextos.thousand.presentation.components.AppIconBadge
 import com.alextos.thousand.presentation.components.AppPanel
+import com.alextos.thousand.presentation.components.appearanceColor
 import com.alextos.thousand.application.theme.AppShapes
 import com.alextos.thousand.application.theme.AppColors
 import androidx.compose.foundation.ScrollState
@@ -114,6 +118,7 @@ internal fun StatisticsTableRow(
     scrollState: ScrollState? = null,
     showAction: Boolean = false,
     onClick: (() -> Unit)? = null,
+    user: User? = null,
 ) {
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val tableWidth = maxWidth.coerceAtLeast(if (values.size > 3) 640.dp else 0.dp)
@@ -125,7 +130,7 @@ internal fun StatisticsTableRow(
             Row(
                 Modifier.width(tableWidth).heightIn(min = if (header) 44.dp else 64.dp).clip(shape)
                     .background(if (header) AppColors.SurfaceRaised else AppColors.Surface)
-                    .border(if (header) AppDimens.BorderSubtle else AppDimens.Border, AppColors.Outline, shape)
+                    .border(if (header) AppDimens.BorderSubtle else AppDimens.Border, user?.appearanceColor ?: AppColors.Outline, shape)
                     .then(action).padding(horizontal = 12.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -133,10 +138,8 @@ internal fun StatisticsTableRow(
                 Row(Modifier.weight(2.5f), verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (!header) {
-                        Box(Modifier.size(AppDimens.AvatarCompact).clip(AppShapes.Inset).background(AppColors.SurfaceMuted),
-                            contentAlignment = Alignment.Center) {
-                            Icon(painterResource(Res.drawable.person_24px), null, Modifier.size(AppDimens.IconCompact), tint = AppColors.TextSecondary)
-                        }
+                        PlayerAvatarView(
+                            user ?: User(name, name), size = AppDimens.AvatarCompact)
                     }
                     Text(name, Modifier.weight(1f), color = if (header) StatisticsBody else StatisticsCream,
                         style = if (header) MaterialTheme.typography.labelSmall else MaterialTheme.typography.bodyMedium,

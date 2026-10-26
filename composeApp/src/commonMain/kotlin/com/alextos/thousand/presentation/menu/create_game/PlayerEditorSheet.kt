@@ -1,5 +1,8 @@
 package com.alextos.thousand.presentation.menu.create_game
 
+import com.alextos.thousand.presentation.components.PlayerAvatarPicker
+import com.alextos.thousand.presentation.components.PlayerAvatarView
+
 import com.alextos.thousand.presentation.components.AppIconBadge
 import com.alextos.thousand.presentation.components.AppBottomSheet as ModalBottomSheet
 import com.alextos.thousand.application.theme.AppShapes
@@ -27,15 +30,6 @@ private val EditorGold = AppColors.Highlight
 private val EditorCyan = AppColors.Outline
 private val EditorRed = AppColors.Danger
 
-@Composable
-private fun EditorPlayerAvatar(user: User, modifier: Modifier = Modifier) {
-    AppIconBadge(when (user.kind) {
-        UserKind.MainUser -> Res.drawable.player_crown
-        UserKind.Bot -> Res.drawable.robot_24px
-        else -> Res.drawable.rules_casino
-    }, modifier = modifier, large = true)
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun PlayerEditorSheet(state: CreateGameState, onAction: (CreateGameAction) -> Unit) {
@@ -50,13 +44,18 @@ internal fun PlayerEditorSheet(state: CreateGameState, onAction: (CreateGameActi
             verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                EditorPlayerAvatar(state.editingUser ?: User("new", "", state.playerKind))
+                PlayerAvatarView(
+                    (state.editingUser ?: User("new", "", state.playerKind)).copy(avatar = state.playerAvatar))
                 Text(if (state.editingUser != null) "Редактирование игрока" else if (state.playerKind == UserKind.Bot) "Новый бот" else "Новый игрок", modifier = Modifier.weight(1f),
                     color = EditorCream, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 IconButton(modifier = Modifier.align(Alignment.Top), enabled = !state.isPlayerOperationRunning, onClick = { onAction(CreateGameAction.HidePlayerEditor) }) {
                     Icon(painterResource(Res.drawable.close_24px), "Закрыть", tint = EditorBody)
                 }
             }
+            if (state.playerKind != UserKind.Bot) PlayerAvatarPicker(
+                state.playerAvatar, { onAction(CreateGameAction.SelectPlayerAvatar(it)) }, !state.isPlayerOperationRunning,
+                showLabels = false,
+            )
             OutlinedTextField(
                 value = state.playerName,
                 onValueChange = { onAction(CreateGameAction.UpdatePlayerName(it)) },

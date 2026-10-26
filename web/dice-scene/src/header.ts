@@ -1,16 +1,15 @@
+import { playerAvatars } from './player-avatars';
 import { designColors } from './design-tokens';
 export type HeaderPlayer = {
   id: string; name: string; score: number; bot: boolean; winner: boolean; bolts: number;
-  online?: boolean; reactionId?: string | null; reaction?: string | null;
+  color?: string; avatar?: string; online?: boolean; reactionId?: string | null; reaction?: string | null;
 };
 export type HeaderState = {
   gameId: string; players: HeaderPlayer[]; activePlayerId: string | null;
   goal: number; barrelBoundaries: number[]; clickable: boolean;
 };
 export type HeaderEvent = { type: string; running?: boolean; playerId?: string };
-const robot = `<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 11V5m-4 0h8" stroke="#9beddc" stroke-width="3" stroke-linecap="round"/><rect x="9" y="16" width="46" height="37" rx="14" fill="#e9c18e"/><rect x="13" y="20" width="38" height="25" rx="10" fill="#15263d"/><circle cx="24" cy="32" r="5" fill="#8cebdc"/><circle cx="40" cy="32" r="5" fill="#8cebdc"/><circle cx="25" cy="30" r="1.5" fill="white"/><circle cx="41" cy="30" r="1.5" fill="white"/><path d="M27 49h10" stroke="#75588d" stroke-width="3" stroke-linecap="round"/><path d="M6 28v12m52-12v12" stroke="#b99bdb" stroke-width="5" stroke-linecap="round"/></svg>`;
-const face = `<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 64c0-18 44-18 44 0" fill="#f2b68b"/><path d="M24 48h16v12H24" fill="#d99062"/><ellipse cx="32" cy="31" rx="19" ry="23" fill="#f6c999"/><path d="M12 31C4 9 26 1 36 9 55 4 58 24 49 34l-3-15c-8 7-16 5-22 0l-8 16z" fill="#292c43"/><ellipse cx="24" cy="32" rx="2.3" ry="3" fill="#292c43"/><ellipse cx="40" cy="32" rx="2.3" ry="3" fill="#292c43"/><path d="M27 42q5 5 10 0" fill="none" stroke="#9d514c" stroke-width="2.4" stroke-linecap="round"/><path d="M11 64l13-8 8 8 8-8 13 8" fill="#87b7d0"/></svg>`;
-const colors = [designColors.AvatarMainBottom, designColors.AvatarLocalBottom, designColors.AvatarBotBottom, designColors.SurfaceMuted];
+
 
 export function createGameHeader(root: HTMLElement, emit: (event: HeaderEvent) => void,
   startScoreTransfer: (playerId: string, gameId: string) => ((progress: number) => void) | undefined = () => undefined,
@@ -30,14 +29,16 @@ export function createGameHeader(root: HTMLElement, emit: (event: HeaderEvent) =
     const previousScroll = list.scrollLeft;
     list.replaceChildren();
     root.hidden = false;
-    state.players.forEach((player, index) => {
+    state.players.forEach(player => {
+      const color = /^#[0-9a-f]{6}$/i.test(player.color ?? '') ? player.color! : designColors.AvatarLocalBottom;
       const card = document.createElement('button'); card.type = 'button'; card.className = 'header-player';
       card.dataset.playerId = player.id; card.dataset.active = String(player.id === state.activePlayerId);
       card.setAttribute('aria-label', `${player.name}, ${player.score} очков${player.id === state.activePlayerId ? ', ходит' : ''}${player.bolts ? `, болтов: ${player.bolts}` : ''}`);
+      card.style.setProperty('--player-color', color);
       card.disabled = !state.clickable;
       card.addEventListener('click', () => emit({ type: 'playerSelected', playerId: player.id }));
-      const avatar = document.createElement('span'); avatar.className = 'player-avatar'; avatar.style.backgroundColor = colors[index % colors.length];
-      avatar.innerHTML = player.bot ? robot : face; // Only static, locally-authored SVG, never player text.
+      const avatar = document.createElement('span'); avatar.className = 'player-avatar'; avatar.style.backgroundColor = color;
+      avatar.innerHTML = player.bot ? playerAvatars.robot : playerAvatars[(player.avatar ?? 'Neutral').toLowerCase() as keyof typeof playerAvatars] ?? playerAvatars.neutral; // Only static, locally-authored SVG, never player text.
       if (player.online !== undefined) {
         const dot = document.createElement('i'); dot.className = `online-dot ${player.online ? 'online' : ''}`; avatar.append(dot);
       }
@@ -78,6 +79,7 @@ export function createGameHeader(root: HTMLElement, emit: (event: HeaderEvent) =
     goal.textContent = String(state.goal);
     track.setAttribute('aria-valuemin', '0'); track.setAttribute('aria-valuemax', String(state.goal));
     const active = state.players.find(p => p.id === state.activePlayerId) ?? state.players.find(p => p.winner);
+    fill.style.background = active?.color && /^#[0-9a-f]{6}$/i.test(active.color) ? active.color : designColors.Accent;
     setScore(active?.score ?? 0, state.goal, active?.name ?? 'Игрок');
     const activeCard = Array.from(list.children).find(el => (el as HTMLElement).dataset.playerId === state.activePlayerId) as HTMLElement | undefined;
     if (activeCard && state.activePlayerId !== shown?.activePlayerId) {

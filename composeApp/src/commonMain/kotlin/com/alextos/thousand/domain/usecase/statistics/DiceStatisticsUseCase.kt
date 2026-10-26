@@ -1,5 +1,7 @@
 package com.alextos.thousand.domain.usecase.statistics
 
+import com.alextos.thousand.domain.models.User
+
 import com.alextos.thousand.domain.models.Die
 import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.repository.GameRepository
@@ -28,6 +30,7 @@ class DiceStatisticsUseCase(
                 val dice = turns.allDice()
 
                 PlayerWithDiceStatistics(
+                    user = user,
                     userId = user.id,
                     userName = user.name,
                     dice = dice.size,
@@ -76,6 +79,7 @@ data class PlayerWithDiceStatistics(
     val dice: Int,
     val averageDie: Double,
     val distribution: List<DieValueDistribution>,
+    val user: User = User(userId, userName),
 )
 
 data class DieValueDistribution(

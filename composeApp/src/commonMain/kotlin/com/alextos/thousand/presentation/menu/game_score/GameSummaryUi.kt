@@ -1,5 +1,7 @@
 package com.alextos.thousand.presentation.menu.game_score
 
+import com.alextos.thousand.domain.models.User
+
 import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Player
@@ -9,6 +11,7 @@ data class PlayerScoreSeries(
     val userId: String,
     val playerName: String,
     val points: List<Int>,
+    val user: User = User(userId, playerName),
 )
 
 data class GameResultsPlayerStatistics(
@@ -18,6 +21,7 @@ data class GameResultsPlayerStatistics(
     val globalAverageTurn: Double,
     val gameAverageRoll: Double,
     val globalAverageRoll: Double,
+    val user: User = User(userId, playerName),
 )
 
 internal fun Game.buildScoreSeries(turns: List<Turn>): List<PlayerScoreSeries> {
@@ -28,7 +32,7 @@ internal fun Game.buildScoreSeries(turns: List<Turn>): List<PlayerScoreSeries> {
         players.forEach { player -> points.getValue(player.user.id).add(scores.getValue(player.user.id)) }
     }
     return players.map { player ->
-        PlayerScoreSeries(player.user.id, player.user.name, points.getValue(player.user.id))
+        PlayerScoreSeries(player.user.id, player.user.name, points.getValue(player.user.id), player.user)
     }
 }
 
@@ -42,6 +46,7 @@ internal fun Game.buildPlayerStatistics(
         val playerRolls = playerTurns.flatMap { turn -> turn.rolls }
 
         GameResultsPlayerStatistics(
+            user = player.user,
             userId = player.user.id,
             playerName = player.user.name,
             gameAverageTurn = playerTurns.averageTotal(),

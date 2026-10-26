@@ -5,10 +5,9 @@ import Foundation
 extension IOSMultiplayerRepository {
     func currentPlayer() -> ComposeApp.User {
         let currentUser = Auth.auth().currentUser
-        return User(
+        return accountService.playerForAccount(
             id: currentUser?.uid ?? UUID().uuidString,
-            name: currentUser?.displayName ?? "Без имени",
-            kind: UserKind.remote
+            name: currentUser?.displayName ?? "Без имени"
         )
     }
 

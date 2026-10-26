@@ -50,6 +50,7 @@ class EventsStatisticsUseCase(
                 val user = eventCounts.first().user
 
                 PlayerWithEventsStatistics(
+                    user = user,
                     userId = user.id,
                     userName = user.name,
                     pitFalls = eventCounts.countOf(Effect.PIT_FALL),
@@ -96,6 +97,7 @@ data class PlayerWithEventsStatistics(
     val pitFalls: Int,
     val overtakes: Int,
     val tripleBolts: Int,
+    val user: User = User(userId, userName),
 ) {
     val total: Int
         get() = pitFalls + overtakes + tripleBolts
