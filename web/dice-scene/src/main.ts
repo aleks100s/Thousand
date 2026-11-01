@@ -83,8 +83,8 @@ try {
     return [point.toArray().map(v => v.toFixed(5)).join(','), point] as const;
   })).values()];
   const ivory = new THREE.MeshStandardMaterial({ color: '#fffdf4', roughness: .28, metalness: .02 });
-  // Nested back-face shells create a soft silhouette without a bloom pass or an idle render loop.
-  const haloMaterials = [.30, .16, .085, .045, .02].map(opacity => new THREE.MeshBasicMaterial({
+  // Nested back-face shells create a bright silhouette without a bloom pass or an idle render loop.
+  const haloMaterials = [.55, .34, .2, .11, .05, .02].map(opacity => new THREE.MeshBasicMaterial({
     color: designColors.Scoring, transparent: true, opacity, side: THREE.BackSide, depthWrite: false, toneMapped: false,
   }));
   const ink = new THREE.MeshStandardMaterial({ color: '#202625', roughness: .6 });
@@ -210,7 +210,7 @@ try {
       if (request?.scoringIndices?.includes(index)) {
         haloMaterials.forEach((material, layer) => {
           const shell = new THREE.Mesh(geometry, material);
-          shell.scale.setScalar(1.04 + layer * .03);
+          shell.scale.setScalar(1.05 + layer * .045);
           shell.renderOrder = 1;
           halo.add(shell);
         });

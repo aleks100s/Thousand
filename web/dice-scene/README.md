@@ -11,7 +11,7 @@ browser-only preview; the native app uses exactly the same scene/JSON bridge.
 CSS background color, normalized bounds, promptText and an optional request (presentationId,
 values, animate, scoringIndices, scoreText). Kotlin supplies the formatted roll
 score (for example, "15 очков") and zero-based scoringIndices: all
-ones, fives and groups of at least three equal values. A soft turquoise silhouette
+ones, fives and groups of at least three equal values. A bright turquoise glow
 appears around these dice only after settling, and disappears on the next roll.
 The score appears below the dice after settling. Dice, spacing and score form a
 single block centered between the header and the bottom of the viewport. Rounded
