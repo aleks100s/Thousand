@@ -49,7 +49,7 @@ fun PlayerAvatarPicker(
         listOf(PlayerAvatar.Male, PlayerAvatar.Neutral, PlayerAvatar.Female).forEach { avatar ->
             val isSelected = selected == avatar
             val label = when (avatar) { PlayerAvatar.Neutral -> "Нейтральный"; PlayerAvatar.Male -> "Мужской"; PlayerAvatar.Female -> "Женский" }
-            Column(Modifier.clip(com.alextos.thousand.application.theme.AppShapes.Row)
+            Column(Modifier.weight(1f).clip(com.alextos.thousand.application.theme.AppShapes.Row)
                 .selectable(selected = isSelected, enabled = enabled, role = Role.RadioButton) { onSelect(avatar) }
                 .semantics { contentDescription = label }
                 .padding(vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
