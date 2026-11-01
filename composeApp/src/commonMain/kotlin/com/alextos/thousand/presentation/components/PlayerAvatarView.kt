@@ -7,8 +7,6 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,6 +18,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.alextos.thousand.application.theme.AppColors
+import com.alextos.thousand.application.theme.AppDimens
 import com.alextos.thousand.domain.models.*
 import org.jetbrains.compose.resources.painterResource
 import thousand.composeapp.generated.resources.*
@@ -45,19 +44,18 @@ fun PlayerAvatarPicker(
     selected: PlayerAvatar,
     onSelect: (PlayerAvatar) -> Unit,
     enabled: Boolean = true,
-    showLabels: Boolean = true,
 ) {
     Row(Modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)) {
-        PlayerAvatar.entries.forEach { avatar ->
+        listOf(PlayerAvatar.Male, PlayerAvatar.Neutral, PlayerAvatar.Female).forEach { avatar ->
+            val isSelected = selected == avatar
             val label = when (avatar) { PlayerAvatar.Neutral -> "Нейтральный"; PlayerAvatar.Male -> "Мужской"; PlayerAvatar.Female -> "Женский" }
-            Column(Modifier.weight(1f).clip(com.alextos.thousand.application.theme.AppShapes.Row)
-                .selectable(selected = selected == avatar, enabled = enabled, role = Role.RadioButton) { onSelect(avatar) }
-                .then(if (showLabels) Modifier else Modifier.semantics { contentDescription = label })
+            Column(Modifier.clip(com.alextos.thousand.application.theme.AppShapes.Row)
+                .selectable(selected = isSelected, enabled = enabled, role = Role.RadioButton) { onSelect(avatar) }
+                .semantics { contentDescription = label }
                 .padding(vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 PlayerAvatarView(User("avatar-choice", "", UserKind.MainUser, avatar = avatar),
-                    Modifier.border(if (selected == avatar) 3.dp else 0.dp,
-                        if (selected == avatar) AppColors.TextPrimary else Color.Transparent, CircleShape), size = 56.dp)
-                if (showLabels) Text(label, style = MaterialTheme.typography.labelSmall, color = AppColors.TextPrimary)
+                    Modifier.border(if (isSelected) 3.dp else AppDimens.BorderSubtle,
+                        if (isSelected) AppColors.Accent else AppColors.OutlineSubtle, CircleShape), size = if (isSelected) 64.dp else 52.dp)
             }
         }
     }

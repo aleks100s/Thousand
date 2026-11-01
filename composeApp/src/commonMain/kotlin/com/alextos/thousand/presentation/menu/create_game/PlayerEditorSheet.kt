@@ -54,7 +54,6 @@ internal fun PlayerEditorSheet(state: CreateGameState, onAction: (CreateGameActi
             }
             if (state.playerKind != UserKind.Bot) PlayerAvatarPicker(
                 state.playerAvatar, { onAction(CreateGameAction.SelectPlayerAvatar(it)) }, !state.isPlayerOperationRunning,
-                showLabels = false,
             )
             OutlinedTextField(
                 value = state.playerName,
