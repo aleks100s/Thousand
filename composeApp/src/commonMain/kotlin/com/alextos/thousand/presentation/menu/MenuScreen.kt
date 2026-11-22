@@ -132,14 +132,15 @@ internal fun MenuContent(
     isLandscape: Boolean? = null,
     onClick: (MenuTileAction) -> Unit = {},
 ) {
+    val menuPadding = 16.dp
     BoxWithConstraints(modifier.fillMaxSize().safeDrawingPadding()) {
         val landscape = isLandscape ?: (maxWidth > maxHeight)
         Layout(
             modifier = Modifier.fillMaxSize(),
             content = {
-                MenuHero(Modifier.fillMaxSize())
+                MenuHero(Modifier.fillMaxSize(), horizontalPadding = menuPadding)
                 Column(
-                    Modifier.fillMaxWidth().padding(16.dp).verticalScroll(rememberScrollState()),
+                    Modifier.fillMaxWidth().padding(menuPadding).verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     tiles.filter { it.size == MenuTileSize.Large }.forEach { tile ->

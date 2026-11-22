@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -36,22 +37,26 @@ private val floatingDice = listOf(
 
 /** Decorative artwork only: cached images move in the draw phase, without relayout per frame. */
 @Composable
-internal fun MenuHero(modifier: Modifier = Modifier) {
+internal fun MenuHero(modifier: Modifier, horizontalPadding: Dp) {
     val lifecycleState by LocalLifecycleOwner.current.lifecycle.currentStateFlow.collectAsState()
     BoxWithConstraints(modifier.clipToBounds(), contentAlignment = Alignment.Center) {
         if (maxHeight < 48.dp || maxWidth < 48.dp) return@BoxWithConstraints
-        val width = minOf(maxWidth - 24.dp, maxHeight * (360f / 280f))
-        val height = width * (280f / 360f)
+        val diceWidth = minOf(maxWidth - 24.dp, maxHeight * (360f / 280f))
+        val height = diceWidth * (280f / 360f)
+        val diceLeft = (maxWidth - diceWidth) / 2
+        val table = painterResource(Res.drawable.table)
+        val tableAspectRatio = table.intrinsicSize.width / table.intrinsicSize.height
+        val tableWidth = minOf(maxWidth - horizontalPadding * 2, height * tableAspectRatio)
         val transition = if (lifecycleState.isAtLeast(Lifecycle.State.RESUMED)) {
             rememberInfiniteTransition(label = "Floating menu dice")
         } else null
-        Box(Modifier.size(width, height)) {
+        Box(Modifier.fillMaxWidth().height(height)) {
             Image(
-                painterResource(Res.drawable.table), contentDescription = null,
-                modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().aspectRatio(1199f / 401f),
+                table, contentDescription = null,
+                modifier = Modifier.align(Alignment.BottomCenter).width(tableWidth).aspectRatio(tableAspectRatio),
                 contentScale = ContentScale.Fit,
             )
-            floatingDice.forEach { die ->
+            floatingDice.forEachIndexed { index, die ->
                 key(die.image) {
                     val movement = transition?.animateFloat(
                         initialValue = -1f,
@@ -63,12 +68,22 @@ internal fun MenuHero(modifier: Modifier = Modifier) {
                         ),
                         label = "Die ${die.durationMillis}",
                     )
-                    val side = width * die.size
+                    val rotation = transition?.animateFloat(
+                        initialValue = 0f,
+                        targetValue = if (index % 2 == 0) 360f else -360f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(die.durationMillis * 2, easing = LinearEasing),
+                            initialStartOffset = StartOffset(die.phaseMillis, StartOffsetType.FastForward),
+                        ),
+                        label = "Die rotation $index",
+                    )
+                    val side = diceWidth * die.size
                     Image(
                         painterResource(die.image), contentDescription = null,
-                        modifier = Modifier.offset(width * die.x - side / 2, height * die.y - side / 2)
+                        modifier = Modifier.offset(diceLeft + diceWidth * die.x - side / 2, height * die.y - side / 2)
                             .size(side).graphicsLayer {
                                 translationY = (movement?.value ?: 0f) * (height * die.amplitude).toPx()
+                                rotationZ = rotation?.value ?: 0f
                             },
                         contentScale = ContentScale.Fit,
                     )

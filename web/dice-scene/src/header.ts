@@ -34,7 +34,6 @@ export function createGameHeader(root: HTMLElement, emit: (event: HeaderEvent) =
       const card = document.createElement('button'); card.type = 'button'; card.className = 'header-player';
       card.dataset.playerId = player.id; card.dataset.active = String(player.id === state.activePlayerId);
       card.setAttribute('aria-label', `${player.name}, ${player.score} очков${player.id === state.activePlayerId ? ', ходит' : ''}${player.bolts ? `, болтов: ${player.bolts}` : ''}`);
-      card.style.setProperty('--player-color', color);
       card.disabled = !state.clickable;
       card.addEventListener('click', () => emit({ type: 'playerSelected', playerId: player.id }));
       const avatar = document.createElement('span'); avatar.className = 'player-avatar'; avatar.style.backgroundColor = color;
