@@ -8,6 +8,7 @@ import { createFeltMaterial, drawWoodenFrame } from './table';
 import { createGameHeader, type HeaderState } from './header';
 import { createNotifications, type SceneMessage } from './notifications';
 import { createScoreTransfer } from './score-transfer';
+import { createRollDurations, ROLL_DURATION_MS } from './roll-timing';
 
 type Request = { presentationId: string; values: number[]; animate: boolean; scoringIndices?: number[]; scoreText?: string };
 type Bounds = { left: number; top: number; right: number; bottom: number };
@@ -25,7 +26,6 @@ const send = (type: string, presentationId?: string, extra: object = {}) => {
   else if (native.webkit?.messageHandlers?.diceScene) native.webkit.messageHandlers.diceScene.postMessage(message);
   else window.dispatchEvent(new CustomEvent('diceSceneEvent', { detail: JSON.parse(message) }));
 };
-const DURATION = 1200;
 let config: Configuration = {
   request: null, bounds: { left: .06, top: .2, right: .94, bottom: .7 },
   background: '#212622', active: true,
@@ -98,6 +98,7 @@ try {
   ];
   let dice: THREE.Group[] = [];
   let halos: THREE.Group[] = [];
+  let rollDurations: number[] = [];
   let targets: THREE.Vector3[] = [];
   let scale = 1;
   const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -231,21 +232,23 @@ try {
     });
     layout();
   }
-  function pose(progress: number) {
+  function pose(elapsedMs: number) {
     const request = config.request;
     if (!request) return;
-    const ease = 1 - Math.pow(1 - progress, 3);
     dice.forEach((die, i) => {
+      const progress = Math.min(elapsedMs / rollDurations[i], 1);
+      const remaining = 1 - progress;
+      const motion = remaining * remaining;
       const target = targets[i];
       const direction = i % 2 ? -1 : 1;
       die.position.copy(target);
-      die.position.x += Math.sin(progress * Math.PI * 2 + i) * (1 - ease) * scale * .35;
-      die.position.y += Math.abs(Math.sin(progress * Math.PI * 3)) * (1 - progress) * scale * .65;
-      die.position.z += direction * (1 - ease) * scale * .4;
+      die.position.x += Math.sin(progress * Math.PI * 2 + i) * motion * scale * .35;
+      die.position.y += Math.abs(Math.sin(progress * Math.PI * 3)) * remaining * scale * .65;
+      die.position.z += direction * motion * scale * .4;
       const spin = new THREE.Quaternion().setFromEuler(new THREE.Euler(
-        direction * (1 - ease) * Math.PI * 4,
-        (1 - ease) * Math.PI * (3 + i),
-        (1 - ease) * Math.PI * 2,
+        direction * motion * Math.PI * 4,
+        motion * Math.PI * (3 + i),
+        motion * Math.PI * 2,
       ));
       die.quaternion.copy(orientationFor(request.values[i])).multiply(spin);
     });
@@ -266,7 +269,7 @@ try {
   function stopFrame() { cancelAnimationFrame(frame); frame = 0; }
   function finish() {
     stopFrame();
-    pose(1);
+    pose(ROLL_DURATION_MS);
     halos.forEach(halo => { halo.visible = true; });
     render();
     positionResult();
@@ -278,11 +281,14 @@ try {
   function tick(now: number) {
     if (!config.active || failed) return;
     if (startedAt === null) startedAt = now;
-    const progress = Math.min((now - startedAt) / DURATION, 1);
-    pose(progress);
+    const elapsed = now - startedAt;
+    if (elapsed >= ROLL_DURATION_MS) {
+      finish();
+      return;
+    }
+    pose(elapsed);
     render();
-    if (progress < 1) frame = requestAnimationFrame(tick);
-    else finish();
+    frame = requestAnimationFrame(tick);
   }
   function resize() {
     updateNotifications();
@@ -292,7 +298,7 @@ try {
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     layout();
-    if (complete) { pose(1); positionResult(); }
+    if (complete) { pose(ROLL_DURATION_MS); positionResult(); }
     render();
   }
   function applyConfiguration(next: Configuration) {
@@ -332,6 +338,7 @@ try {
         currentId = next.request?.presentationId;
         complete = false;
         startedAt = null;
+        rollDurations = createRollDurations(next.request.values.length);
         rebuild(next.request);
         if (next.request?.animate && config.active && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
           send('rollStarted', currentId);
@@ -340,7 +347,7 @@ try {
       } else {
         layout();
         if (!config.active || !next.request?.animate) finish();
-        else if (complete) { pose(1); render(); positionResult(); }
+        else if (complete) { pose(ROLL_DURATION_MS); render(); positionResult(); }
       }
     } catch (error) { console.error('Dice scene update failed', error); failed = true; stopFrame(); send('error', currentId); }
   }

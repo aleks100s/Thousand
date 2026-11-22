@@ -40,6 +40,7 @@ data class DicePresentationState(
     val ready: Boolean = false,
     val completed: Boolean = true,
     val active: Boolean = true,
+    val currentTurn: List<DiceRoll> = emptyList(),
 ) {
     val showResult: Boolean get() = request != null && completed
     val actionsEnabled: Boolean get() = ready && phase != DiceScenePhase.Error && completed
@@ -74,6 +75,7 @@ class DiceSceneCoordinator(private val onFinished: () -> Unit) {
         _state.value = _state.value.copy(
             request = request,
             completed = request == null,
+            currentTurn = next.history,
             phase = when {
                 failed -> DiceScenePhase.Error
                 !_state.value.ready -> DiceScenePhase.Loading

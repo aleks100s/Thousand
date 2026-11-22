@@ -176,19 +176,19 @@ private fun GameField(
                 state.currentTurn,
             )
         }
-        val hideActions = headerAnimating || (!sceneConfiguration.isOpponentTurn && !presentation.actionsEnabled)
+        val showActions = presentation.actionsEnabled && !headerAnimating && presentation.currentTurn == state.currentTurn
         ButtonsView(
             Modifier.align(Alignment.BottomCenter)
                 .onSizeChanged { buttonsHeight = it.height }
-                .alpha(if (hideActions) 0f else 1f)
-                .then(if (hideActions) Modifier.clearAndSetSemantics {} else Modifier),
+                .alpha(if (showActions) 1f else 0f)
+                .then(if (showActions) Modifier else Modifier.clearAndSetSemantics {}),
             state, isManualInputEnabled,
             onAction = { action ->
                 if (action == GameAction.FinishTurn) coordinator.clearCompletedRoll()
                 onAction(action)
             },
             onFinishGame = onFinishGame,
-            actionsEnabled = presentation.actionsEnabled && !headerAnimating,
+            actionsEnabled = showActions,
         )
     }
 }
