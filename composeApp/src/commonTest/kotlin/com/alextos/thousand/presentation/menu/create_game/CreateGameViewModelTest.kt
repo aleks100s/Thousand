@@ -20,7 +20,7 @@ import kotlin.test.*
 @OptIn(ExperimentalCoroutinesApi::class)
 class CreateGameViewModelTest {
     private val stores = mutableListOf<ViewModelStore>()
-    private val main = User("main", "Основной", UserKind.MainUser)
+    private val main = User("main", "Основной", UserKind.MainUser, color = PlayerColor.Sky)
     private val bot = User("bot", "Бот", UserKind.Bot)
     private val local = User("local", "Маша")
 
@@ -35,13 +35,16 @@ class CreateGameViewModelTest {
         vm.onAction(CreateGameAction.Initialize)
     }
 
-    @Test fun newLocalPlayersUseDifferentMutedColorsWhilePaletteHasFreeColors() = runTest {
+    @Test fun newPlayersUseAllFreeColorsBeforeReusingAny() = runTest {
         val repo = PlayersRepository(listOf(main, local))
         val save = SaveUserUseCase(repo)
-        save("Новый игрок", avatar = PlayerAvatar.Male)
-        save("Ещё игрок", avatar = PlayerAvatar.Female)
-        assertEquals(4, repo.users.value.map { it.color }.toSet().size)
-        assertEquals(PlayerColor.Gold, repo.users.value.single { it.id == main.id }.color)
+        repeat(PlayerColor.entries.size - repo.users.value.size) { index ->
+            save("Игрок $index")
+        }
+        assertEquals(PlayerColor.entries.toSet(), repo.users.value.map { it.color }.toSet())
+        save("Ещё игрок")
+        assertEquals(PlayerColor.entries.size + 1, repo.users.value.size)
+        assertEquals(main.color, repo.users.value.single { it.id == main.id }.color)
     }
 
     @Test fun restoringAccountAfterLocalUsersRestoresSavedAvatarForLobby() = runTest {
@@ -57,20 +60,24 @@ class CreateGameViewModelTest {
         assertEquals(saved.color, account.playerForAccount(saved.id, saved.name).color)
     }
 
-    @Test fun mainOnboardingSavesChosenAvatarAndGoldButAutomaticNameUsesNeutral() = runTest {
-        val repo = PlayersRepository(emptyList())
+    @Test fun mainOnboardingUsesAvailableColorsAndKeepsAvatarChoice() = runTest {
+        val occupied = PlayerColor.entries.filterNot { it == PlayerColor.Sky }
+            .map { User(id = it.name, name = it.name, color = it) }
+        val repo = PlayersRepository(occupied)
         val account = MutableNativeAccountService()
         val vm = com.alextos.thousand.presentation.onboarding.OnboardingViewModel(SaveUserUseCase(repo), account)
         stores += ViewModelStore().also { it.put("onboarding", vm) }
         vm.onAction(com.alextos.thousand.presentation.onboarding.OnboardingAction.UpdateName("Маша"))
         vm.onAction(com.alextos.thousand.presentation.onboarding.OnboardingAction.SelectAvatar(PlayerAvatar.Female))
         vm.onAction(com.alextos.thousand.presentation.onboarding.OnboardingAction.SaveUser)
-        assertEquals(PlayerAvatar.Female, repo.users.value.single().avatar)
-        assertEquals(PlayerColor.Gold, repo.users.value.single().color)
-        repo.users.value = emptyList()
+        val manualPlayer = repo.users.value.single { it.kind == UserKind.MainUser }
+        assertEquals(PlayerAvatar.Female, manualPlayer.avatar)
+        assertEquals(PlayerColor.Sky, manualPlayer.color)
+        repo.users.value = occupied
         account.updateUserProfile("account", "Автоматическое имя")
-        assertEquals(PlayerAvatar.Neutral, repo.users.value.single().avatar)
-        assertEquals(PlayerColor.Gold, repo.users.value.single().color)
+        val automaticPlayer = repo.users.value.single { it.kind == UserKind.MainUser }
+        assertEquals(PlayerAvatar.Neutral, automaticPlayer.avatar)
+        assertEquals(PlayerColor.Sky, automaticPlayer.color)
     }
 
     @Test fun editingDoesNotChangeSelectionOrAdvanceAndCanFinishWithoutPlayers() = runTest {
@@ -130,7 +137,6 @@ class CreateGameViewModelTest {
         vm.onAction(CreateGameAction.SelectPlayerAvatar(PlayerAvatar.Female))
         vm.onAction(CreateGameAction.SavePlayer)
         assertEquals(main.copy(name = "Новое имя", avatar = PlayerAvatar.Female), repo.users.value.single { it.id == main.id })
-        assertEquals(PlayerColor.Gold, repo.users.value.single { it.id == main.id }.color)
         assertEquals(2, repo.users.value.size)
     }
 
@@ -182,7 +188,7 @@ class CreateGameViewModelTest {
         assertEquals(UserKind.LocalUser, repo.users.value.last().kind)
         assertEquals("Алексей", repo.users.value.last().name)
         assertEquals(PlayerAvatar.Male, repo.users.value.last().avatar)
-        assertNotEquals(PlayerColor.Gold, repo.users.value.last().color)
+        assertNotEquals(main.color, repo.users.value.last().color)
         vm.onAction(CreateGameAction.ShowAddBotSheet)
         assertTrue(vm.state.value.playerName.isNotBlank())
         vm.onAction(CreateGameAction.SavePlayer)

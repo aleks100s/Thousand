@@ -17,9 +17,10 @@ class SaveUserUseCase(
         avatar: PlayerAvatar = PlayerAvatar.Neutral,
     ) {
         val userName = name.trim()
-        val color = if (kind == UserKind.MainUser) PlayerColor.Gold else {
-            val usedColors = gameRepository.getAllUsers().first().map { it.color }.toSet()
-            val palette = PlayerColor.entries.filter { it != PlayerColor.Gold }
+        val users = gameRepository.getAllUsers().first()
+        val color = users.firstOrNull { it.id == id }?.color ?: run {
+            val usedColors = users.map { it.color }.toSet()
+            val palette = PlayerColor.entries
             palette.filterNot { it in usedColors }.ifEmpty { palette }.random()
         }
         val user = if (id == null) {

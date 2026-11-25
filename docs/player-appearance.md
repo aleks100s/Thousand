@@ -1,6 +1,6 @@
 # Player appearance
 
-`User.color` and `User.avatar` are stable player properties. `PlayerColor` contains a muted palette; new main users receive Gold and new local players receive a random non-gold color when saved. Existing users without a stored color use a deterministic ID-based fallback (Gold for the main user). Editing the name or avatar preserves the color.
+`User.color` and `User.avatar` are stable player properties. New players, including the main user, receive a random color from the shared palette. If all colors are in use, any color can be reused. Existing users without a stored color use the original deterministic fallback (Gold for the main user and an ID-based color for other players). Editing the name or avatar preserves the color.
 
 Room schema 2 adds both fields with an automatic migration from schema 1. Firebase game and lobby user maps carry enum names, with safe defaults for older clients/data. The native account bridge writes appearance changes to `users/{uid}` with a partial update (without replacing statistics) and reuses the saved main user's appearance when entering a lobby; account identity replacement preserves it.
 

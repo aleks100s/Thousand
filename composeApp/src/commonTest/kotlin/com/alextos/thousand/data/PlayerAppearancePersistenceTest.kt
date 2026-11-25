@@ -10,13 +10,15 @@ import kotlin.test.*
 
 class PlayerAppearancePersistenceTest {
     @Test fun appearanceSurvivesRoomAndMultiplayerRoundTrips() {
-        for (avatar in PlayerAvatar.entries) {
-            val user = User("id", "Маша", color = PlayerColor.Sage, avatar = avatar)
-            assertEquals(user, user.toEntity().toDomain())
-            assertEquals(user, FirebaseUserMapper.user(FirebaseUserMapper.dictionary(user)))
-            val lobbyUser = FirebaseUserMapper.lobbyPlayer(FirebaseUserMapper.lobbyPlayerDictionary(user))
-            assertEquals(user.avatar, lobbyUser.avatar)
-            assertEquals(user.color, lobbyUser.color)
+        for (color in PlayerColor.entries) {
+            for (avatar in PlayerAvatar.entries) {
+                val user = User("id", "Маша", color = color, avatar = avatar)
+                assertEquals(user, user.toEntity().toDomain())
+                assertEquals(user, FirebaseUserMapper.user(FirebaseUserMapper.dictionary(user)))
+                val lobbyUser = FirebaseUserMapper.lobbyPlayer(FirebaseUserMapper.lobbyPlayerDictionary(user))
+                assertEquals(avatar, lobbyUser.avatar)
+                assertEquals(color, lobbyUser.color)
+            }
         }
     }
 
@@ -34,8 +36,8 @@ class PlayerAppearancePersistenceTest {
 
     @Test fun legacyAndUnknownAppearanceUseStableSafeDefaults() {
         val legacy = UserEntity("legacy", "Маша", UserKind.LocalUser.ordinal)
-        assertEquals(legacy.toDomain().color, legacy.copy(name = "Мария").toDomain().color)
-        assertNotEquals(PlayerColor.Gold, legacy.toDomain().color)
+        assertEquals(PlayerColor.Terracotta, legacy.toDomain().color)
+        assertEquals(PlayerColor.Terracotta, legacy.copy(name = "Мария").toDomain().color)
         assertEquals(PlayerColor.Gold, legacy.copy(kind = UserKind.MainUser.ordinal).toDomain().color)
         val malformed = FirebaseUserMapper.user(mapOf("id" to "legacy", "color" to "invalid", "avatar" to "invalid"))
         assertEquals(legacy.toDomain().color, malformed.color)
