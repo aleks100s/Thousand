@@ -6,11 +6,14 @@ import com.alextos.thousand.domain.models.UserReaction
 object FirebaseGameMapper {
     fun dictionary(from: RemoteGame): Map<String, Any> = from.toFirebaseMap()
 
+    fun reactionDictionary(from: UserReaction): Map<String, Any> = from.toFirebaseMap()
+
     fun game(from: Any?, key: String?): RemoteGame? = from.asFirebaseMap()?.toFirebaseGame(key)
 }
 
 internal fun RemoteGame.toFirebaseMap(): Map<String, Any> =
     buildMap {
+        put("lastGameplayAt", mapOf(".sv" to "timestamp"))
         put("id", id)
         put("settings", settings.toFirebaseMap())
         put("players", players.map { player -> player.toFirebaseMap() })

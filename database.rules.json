@@ -1,0 +1,23 @@
+{
+  "rules": {
+    "lobbies": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "games": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": [
+        "lastGameplayAt"
+      ]
+    },
+    "users": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+    ".read": false,
+    ".write": false
+  }
+}

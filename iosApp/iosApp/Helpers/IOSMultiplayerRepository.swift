@@ -276,6 +276,14 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
             .updateChildValues(updateDictionary(from: game))
     }
 
+    func sendReaction(gameKey: String, reaction: UserReaction) async throws {
+        try await Database.database().reference()
+            .child(FirebasePath.games)
+            .child(gameKey)
+            .child(FirebaseGameKey.reaction)
+            .setValue(swiftDictionary(from: FirebaseGameMapper.shared.reactionDictionary(from: reaction)))
+    }
+
     func updatePlayerOnlineStatus(gameKey: String, isOnline: Bool) async throws {
         guard let user = Auth.auth().currentUser else {
             return

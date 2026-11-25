@@ -1,5 +1,6 @@
 package com.alextos.thousand.data.repository
 
+import com.alextos.thousand.data.mappers.firebase.FirebaseGameMapper
 import com.alextos.thousand.data.repository.mappers.toDatabaseMap
 import com.alextos.thousand.data.repository.mappers.toDatabaseUpdateMap
 import com.alextos.thousand.data.repository.mappers.toFinishedGameStatisticsUpdates
@@ -12,6 +13,7 @@ import com.alextos.thousand.domain.models.GameSettings
 import com.alextos.thousand.domain.models.Lobby
 import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.RemoteGame
+import com.alextos.thousand.domain.models.UserReaction
 import com.alextos.thousand.domain.models.RemoteUserInfo
 import com.alextos.thousand.domain.models.RollAbility
 import com.alextos.thousand.domain.models.User
@@ -314,6 +316,18 @@ class AndroidMultiplayerRepository(private val accountService: com.alextos.thous
                 .addOnFailureListener {
                     continuation.cancel(it)
                 }
+        }
+    }
+
+    override suspend fun sendReaction(gameKey: String, reaction: UserReaction) {
+        suspendCancellableCoroutine { continuation ->
+            FirebaseDatabase.getInstance().reference
+                .child(GAMES_NODE)
+                .child(gameKey)
+                .child("reaction")
+                .setValue(FirebaseGameMapper.reactionDictionary(reaction))
+                .addOnSuccessListener { continuation.resume(Unit) }
+                .addOnFailureListener { continuation.cancel(it) }
         }
     }
 

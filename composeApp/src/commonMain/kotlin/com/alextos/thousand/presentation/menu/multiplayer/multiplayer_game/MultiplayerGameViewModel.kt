@@ -475,7 +475,11 @@ class MultiplayerGameViewModel(
                 it.copy(isReactionButtonEnabled = false)
             }
 
-            updateRemote(remoteGame.copy(reaction = userReaction))
+            try {
+                multiplayerRepository.sendReaction(remoteGame.key, userReaction)
+            } catch (e: Exception) {
+                _events.emit(MultiplayerGameEvent.Error(e.message ?: "Ошибка при отправке реакции"))
+            }
             delay(REACTION_COOLDOWN_MILLIS)
 
             _state.update {

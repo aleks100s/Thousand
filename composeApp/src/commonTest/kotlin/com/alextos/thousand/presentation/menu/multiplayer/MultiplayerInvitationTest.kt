@@ -107,6 +107,7 @@ private class FakeMultiplayerRepository : MultiplayerRepository {
     override suspend fun disconnectFromLobby(key: String) = Unit
     override suspend fun startGame(key: String) = Unit
     override fun observeGame(key: String): Flow<RemoteGame> = error("Unused")
+    override suspend fun sendReaction(gameKey: String, reaction: UserReaction) = Unit
     override suspend fun updateGame(game: RemoteGame) = Unit
     override suspend fun updatePlayerOnlineStatus(gameKey: String, isOnline: Boolean) = Unit
     override suspend fun finishGame(game: RemoteGame, userInfo: Map<String, RemoteUserInfo>) = Unit
