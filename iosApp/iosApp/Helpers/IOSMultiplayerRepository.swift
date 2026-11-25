@@ -117,8 +117,7 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
             .child(FirebasePath.lobbies)
             .child(key)
         let snapshot = try await reference.getData()
-        let data = snapshot.value as? [String: [String: Any]]
-        guard let lobby = lobby(from: data?[key] ?? [:], key: key) else {
+        guard snapshot.exists(), let lobby = lobby(from: snapshot.firebaseDictionary, key: key) else {
             return
         }
 

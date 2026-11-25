@@ -2,7 +2,8 @@
   "rules": {
     "lobbies": {
       ".read": "auth != null",
-      ".write": "auth != null"
+      ".write": "auth != null",
+      ".indexOn": ["lastActivityAt"]
     },
     "games": {
       ".read": "auth != null",

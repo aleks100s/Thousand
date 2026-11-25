@@ -11,6 +11,7 @@ object FirebaseLobbyMapper {
 internal fun Lobby.toFirebaseMap(): Map<String, Any> =
     mapOf(
         "id" to id,
+        "lastActivityAt" to mapOf(".sv" to "timestamp"),
         "settings" to settings.toFirebaseMap(),
         "players" to players.map { player -> player.toFirebaseLobbyPlayerMap() },
         "host" to host,
