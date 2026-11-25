@@ -32,8 +32,9 @@ the game goal and enabled barrel boundaries. The header sits above the table
 native normalized overlay bounds are converted to table coordinates. Cards grow
 to fill the row or scroll horizontally when their intrinsic widths no longer fit.
 Player selection events retain native player actions, online state, bolts and reactions.
-One score track shows every player's color and initial, with nearby markers spaced
-apart for readability. Saved score changes move the markers in either direction.
+One score track shows each player's color and initial. Markers sharing a position
+within one CSS pixel form a single count badge. Partially overlapping markers stay
+at their score positions. Saved score changes move the markers in either direction.
 When the outgoing player's saved score increases, the header animates for 850ms
 before switching the active card and applying the latest table command. Commands
 received during the animation replace the pending command.

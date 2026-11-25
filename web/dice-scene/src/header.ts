@@ -12,10 +12,13 @@ export type HeaderEvent = { type: string; running?: boolean; playerId?: string }
 
 type PlayerScoreView = {
   name: string;
+  initial: string;
   score: number;
   label: HTMLElement;
   marker: HTMLElement;
 };
+
+const coincidentMarkerDistance = 1; // CSS pixel
 
 export function createGameHeader(root: HTMLElement, emit: (event: HeaderEvent) => void,
   startScoreTransfer: (playerId: string, gameId: string) => ((progress: number) => void) | undefined = () => undefined,
@@ -37,31 +40,40 @@ export function createGameHeader(root: HTMLElement, emit: (event: HeaderEvent) =
 
   function updateScore(view: PlayerScoreView, score: number) {
     view.score = score;
-    const roundedScore = Math.round(score);
-    view.label.textContent = String(roundedScore);
-    view.marker.title = `${view.name}, ${roundedScore} очков`;
-    view.marker.setAttribute('aria-label', view.marker.title);
+    view.label.textContent = String(Math.round(score));
   }
 
   function positionMarkers() {
     const width = track.clientWidth;
-    if (!width || !scoreViews.size) return;
-    const positions = Array.from(scoreViews.values(), ({ score, marker }) => ({
-      marker,
-      x: Math.max(0, Math.min(1, score / scoreGoal)) * width,
+    if (!width) return;
+    const positions = Array.from(scoreViews.values(), view => ({
+      view,
+      x: Math.max(0, Math.min(1, view.score / scoreGoal)) * width,
     })).sort((a, b) => a.x - b.x);
-    const spacing = Math.min(positions[0].marker.offsetWidth + 2, width / Math.max(1, positions.length - 1));
 
-    // Keep adjacent letters readable, including ties at either end of the track.
-    for (let i = 1; i < positions.length; i++) {
-      positions[i].x = Math.max(positions[i].x, positions[i - 1].x + spacing);
-    }
-    let right = width;
-    for (let i = positions.length - 1; i >= 0; i--) {
-      const { marker, x } = positions[i];
-      const left = Math.max(0, Math.min(x, right));
-      marker.style.transform = `translate(${left}px, -50%) translateX(-50%)`;
-      right = left - spacing;
+    for (let start = 0; start < positions.length;) {
+      const { view: { marker, initial }, x } = positions[start];
+      let end = start + 1;
+      while (end < positions.length && positions[end].x - x <= coincidentMarkerDistance) {
+        positions[end].view.marker.hidden = true;
+        end++;
+      }
+
+      const count = end - start;
+      marker.hidden = false;
+      marker.classList.toggle('score-marker-group', count > 1);
+      marker.style.transform = `translate(${x}px, -50%) translateX(-50%)`;
+      const caption = count > 1 ? String(count) : initial;
+      if (marker.textContent !== caption) marker.textContent = caption;
+
+      const players = positions.slice(start, end)
+        .map(({ view }) => `${view.name}, ${Math.round(view.score)} очков`).join('. ');
+      const description = count > 1 ? `Игроки (${count}). ${players}` : players;
+      if (marker.title !== description) {
+        marker.title = description;
+        marker.setAttribute('aria-label', description);
+      }
+      start = end;
     }
   }
 
@@ -99,11 +111,10 @@ export function createGameHeader(root: HTMLElement, emit: (event: HeaderEvent) =
       const marker = document.createElement('span');
       marker.className = 'score-marker';
       marker.setAttribute('role', 'img');
-      marker.style.backgroundColor = color;
-      if (color === designColors.AvatarLocalBottom) marker.style.color = designColors.TextPrimary;
+      marker.style.setProperty('--marker-color', color);
+      if (color === designColors.AvatarLocalBottom) marker.style.setProperty('--marker-text-color', designColors.TextPrimary);
       const [initial] = player.name.trim();
-      marker.textContent = initial?.toLocaleUpperCase() ?? '?';
-      const scoreView = { name: player.name, score: player.score, label: score, marker };
+      const scoreView = { name: player.name, initial: initial?.toLocaleUpperCase() ?? '?', score: player.score, label: score, marker };
       scoreViews.set(player.id, scoreView);
       updateScore(scoreView, player.score);
       markers.append(marker);
