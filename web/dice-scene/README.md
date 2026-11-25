@@ -32,9 +32,11 @@ the game goal and enabled barrel boundaries. The header sits above the table
 native normalized overlay bounds are converted to table coordinates. Cards grow
 to fill the row or scroll horizontally when their intrinsic widths no longer fit.
 Player selection events retain native player actions, online state, bolts and reactions.
-When the outgoing player's saved score increases, the header animates its number
-and progress for 850ms before switching the active card and applying the latest
-table command. Commands received during this animation replace the pending command.
+One score track shows every player's color and initial, with nearby markers spaced
+apart for readability. Saved score changes move the markers in either direction.
+When the outgoing player's saved score increases, the header animates for 850ms
+before switching the active card and applying the latest table command. Commands
+received during the animation replace the pending command.
 Backgrounding or reduced-motion preference skips the animation. The native host
 blocks actions during it and falls back after a bounded timeout.
 An empty promptText hides the decision prompt during tutorials; the opponent

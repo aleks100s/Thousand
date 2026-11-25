@@ -10,24 +10,69 @@ export type HeaderState = {
 };
 export type HeaderEvent = { type: string; running?: boolean; playerId?: string };
 
+type PlayerScoreView = {
+  name: string;
+  score: number;
+  label: HTMLElement;
+  marker: HTMLElement;
+};
 
 export function createGameHeader(root: HTMLElement, emit: (event: HeaderEvent) => void,
   startScoreTransfer: (playerId: string, gameId: string) => ((progress: number) => void) | undefined = () => undefined,
 ) {
   const list = document.createElement('div'); list.className = 'players-list';
   const progressRow = document.createElement('div'); progressRow.className = 'progress-row';
-  const track = document.createElement('div'); track.className = 'score-track'; track.setAttribute('role', 'progressbar');
-  const fill = document.createElement('div'); fill.className = 'score-fill';
+  const track = document.createElement('div'); track.className = 'score-track'; track.setAttribute('role', 'group');
   const zones = document.createElement('div'); zones.className = 'barrel-zones'; zones.setAttribute('aria-hidden', 'true');
-  const ticks = document.createElement('div'); ticks.className = 'barrel-ticks'; track.append(fill, zones, ticks);
+  const ticks = document.createElement('div'); ticks.className = 'barrel-ticks';
+  const markers = document.createElement('div'); markers.className = 'score-markers';
+  track.append(zones, ticks, markers);
   const goal = document.createElement('span'); goal.className = 'score-goal'; progressRow.append(track, goal); root.append(list, progressRow);
   let shown: HeaderState | null = null, latest: HeaderState | null = null;
   let pending: (() => void) | null = null, animation = 0, animating = false;
   let scoreTransfer: ((progress: number) => void) | undefined;
+  let scoreGoal = 1;
+  const scoreViews = new Map<string, PlayerScoreView>();
   const expired = new Set<string>(), reactionTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
+  function updateScore(view: PlayerScoreView, score: number) {
+    view.score = score;
+    const roundedScore = Math.round(score);
+    view.label.textContent = String(roundedScore);
+    view.marker.title = `${view.name}, ${roundedScore} очков`;
+    view.marker.setAttribute('aria-label', view.marker.title);
+  }
+
+  function positionMarkers() {
+    const width = track.clientWidth;
+    if (!width || !scoreViews.size) return;
+    const positions = Array.from(scoreViews.values(), ({ score, marker }) => ({
+      marker,
+      x: Math.max(0, Math.min(1, score / scoreGoal)) * width,
+    })).sort((a, b) => a.x - b.x);
+    const spacing = Math.min(positions[0].marker.offsetWidth + 2, width / Math.max(1, positions.length - 1));
+
+    // Keep adjacent letters readable, including ties at either end of the track.
+    for (let i = 1; i < positions.length; i++) {
+      positions[i].x = Math.max(positions[i].x, positions[i - 1].x + spacing);
+    }
+    let right = width;
+    for (let i = positions.length - 1; i >= 0; i--) {
+      const { marker, x } = positions[i];
+      const left = Math.max(0, Math.min(x, right));
+      marker.style.transform = `translate(${left}px, -50%) translateX(-50%)`;
+      right = left - spacing;
+    }
+  }
+
+  new ResizeObserver(positionMarkers).observe(track);
+
   function render(state: HeaderState) {
     const previousScroll = list.scrollLeft;
     list.replaceChildren();
+    markers.replaceChildren();
+    scoreViews.clear();
+    scoreGoal = state.goal;
     root.hidden = false;
     state.players.forEach(player => {
       const color = /^#[0-9a-f]{6}$/i.test(player.color ?? '') ? player.color! : designColors.AvatarLocalBottom;
@@ -50,7 +95,18 @@ export function createGameHeader(root: HTMLElement, emit: (event: HeaderEvent) =
       }
       const meta = document.createElement('span'); meta.className = 'player-meta';
       const name = document.createElement('span'); name.className = 'player-name'; name.textContent = player.name + (player.winner ? ' 🏆' : '');
-      const score = document.createElement('span'); score.className = 'player-score'; score.textContent = String(player.score); score.dataset.scoreFor = player.id;
+      const score = document.createElement('span'); score.className = 'player-score'; score.dataset.scoreFor = player.id;
+      const marker = document.createElement('span');
+      marker.className = 'score-marker';
+      marker.setAttribute('role', 'img');
+      marker.style.backgroundColor = color;
+      if (color === designColors.AvatarLocalBottom) marker.style.color = designColors.TextPrimary;
+      const [initial] = player.name.trim();
+      marker.textContent = initial?.toLocaleUpperCase() ?? '?';
+      const scoreView = { name: player.name, score: player.score, label: score, marker };
+      scoreViews.set(player.id, scoreView);
+      updateScore(scoreView, player.score);
+      markers.append(marker);
       if (player.bolts) {
         const bolts = document.createElement('span'); bolts.className = 'player-bolts'; bolts.setAttribute('aria-hidden', 'true');
         for (let i = 0; i < player.bolts; i++) {
@@ -76,19 +132,13 @@ export function createGameHeader(root: HTMLElement, emit: (event: HeaderEvent) =
       const label = document.createElement('span'); label.textContent = String(boundary); tick.append(label); ticks.append(tick);
     });
     goal.textContent = String(state.goal);
-    track.setAttribute('aria-valuemin', '0'); track.setAttribute('aria-valuemax', String(state.goal));
-    const active = state.players.find(p => p.id === state.activePlayerId) ?? state.players.find(p => p.winner);
-    fill.style.background = active?.color && /^#[0-9a-f]{6}$/i.test(active.color) ? active.color : designColors.Accent;
-    setScore(active?.score ?? 0, state.goal, active?.name ?? 'Игрок');
+    track.setAttribute('aria-label', `Шкала очков от 0 до ${state.goal}`);
+    positionMarkers();
     const activeCard = Array.from(list.children).find(el => (el as HTMLElement).dataset.playerId === state.activePlayerId) as HTMLElement | undefined;
     if (activeCard && state.activePlayerId !== shown?.activePlayerId) {
       const left = activeCard.offsetLeft - list.offsetLeft, right = left + activeCard.offsetWidth;
       if (left < list.scrollLeft || right > list.scrollLeft + list.clientWidth) list.scrollTo({ left: left - (list.clientWidth - activeCard.offsetWidth) / 2, behavior: 'smooth' });
     }
-  }
-  function setScore(score: number, max: number, name: string) {
-    fill.style.width = `${Math.max(0, Math.min(100, score / max * 100))}%`;
-    track.setAttribute('aria-valuenow', String(Math.round(score))); track.setAttribute('aria-label', `${name}: ${Math.round(score)} из ${max} очков`);
   }
   function finish() {
     cancelAnimationFrame(animation); animation = 0;
@@ -104,22 +154,31 @@ export function createGameHeader(root: HTMLElement, emit: (event: HeaderEvent) =
       latest = next; pending = applyScene;
       if (animating) { if (!active || next?.gameId !== shown?.gameId) finish(); return; }
       if (!next) { finish(); return; }
-      const previousPlayer = shown?.players.find(p => p.id === shown?.activePlayerId);
-      const updatedPlayer = next.players.find(p => p.id === previousPlayer?.id);
-      if (shown?.gameId === next.gameId && previousPlayer && updatedPlayer && updatedPlayer.score > previousPlayer.score && active && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const previous = shown?.gameId === next.gameId ? shown : null;
+      const previousScores = new Map(previous?.players.map(player => [player.id, player.score]));
+      const scoreChanges = next.players.flatMap(player => {
+        const from = previousScores.get(player.id);
+        return from === undefined || from === player.score ? [] : [{ id: player.id, from, to: player.score }];
+      });
+      if (previous && scoreChanges.length && active && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
         animating = true;
-        const outgoing = { ...next, activePlayerId: previousPlayer.id };
-        render({ ...outgoing, players: outgoing.players.map(p => p.id === previousPlayer.id ? { ...p, score: previousPlayer.score } : p) });
-        scoreTransfer = startScoreTransfer(previousPlayer.id, next.gameId);
+        const outgoingId = previous.activePlayerId;
+        const transfersScore = outgoingId !== null && scoreChanges.some(({ id, from, to }) => id === outgoingId && to > from);
+        render({
+          ...next,
+          activePlayerId: transfersScore ? outgoingId : next.activePlayerId,
+          players: next.players.map(player => ({ ...player, score: previousScores.get(player.id) ?? player.score })),
+        });
+        const animatedScores = scoreChanges.map(change => ({ ...change, view: scoreViews.get(change.id)! }));
+        if (transfersScore) scoreTransfer = startScoreTransfer(outgoingId, next.gameId);
         emit({ type: 'headerAnimation', running: true });
         const started = performance.now();
+        const duration = transfersScore ? 850 : 300;
         const step = (now: number) => {
-          const progress = Math.min(1, (now - started) / 850), eased = 1 - (1 - progress) ** 3;
+          const progress = Math.min(1, (now - started) / duration), eased = 1 - (1 - progress) ** 3;
           scoreTransfer?.(progress);
-          const value = previousPlayer.score + (updatedPlayer.score - previousPlayer.score) * eased;
-          setScore(value, next.goal, previousPlayer.name);
-          const label = Array.from(list.querySelectorAll<HTMLElement>('[data-score-for]')).find(el => el.dataset.scoreFor === previousPlayer.id);
-          if (label) label.textContent = String(Math.round(value));
+          for (const { view, from, to } of animatedScores) updateScore(view, from + (to - from) * eased);
+          positionMarkers();
           if (progress < 1) animation = requestAnimationFrame(step); else finish();
         };
         animation = requestAnimationFrame(step);
