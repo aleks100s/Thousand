@@ -1,6 +1,8 @@
 *.iml
 .kotlin
 .gradle
+/.firebase/
+/firebase-debug.log
 **/build/
 xcuserdata
 !src/**/build/
