@@ -5,6 +5,7 @@ import kotlin.test.*
 class LobbyLinksTest {
     @Test
     fun sharedLinkRoundTripsWithoutChangingCodeCase() {
+        assertEquals("https://thousand-688b0.web.app/lobby/AbC123-x_y", LobbyLinks.create("AbC123-x_y"))
         assertEquals("AbC123-x_y", LobbyLinks.parse(LobbyLinks.create("AbC123-x_y")))
         assertEquals("AbC123", LobbyLinks.parse("THOUSAND://LOBBY/AbC123/"))
     }

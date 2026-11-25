@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Приглашение в Thousand</title>
+    <style>
+        body { margin: 0; padding: 3rem 1.5rem; font: 1.125rem/1.5 Roboto, sans-serif; color: #182522; background: #f5f8f6; }
+        main { max-width: 30rem; margin: auto; }
+        h1 { font-size: 2rem; line-height: 1.2; }
+        p { overflow-wrap: anywhere; }
+        a { display: inline-block; padding: .75rem 1.25rem; border-radius: .6rem; background: #19614e; color: white; text-decoration: none; }
+        [hidden] { display: none; }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Приглашение в Thousand</h1>
+        <p id="message">Некорректная ссылка приглашения.</p>
+        <a id="open" hidden>Открыть в игре</a>
+    </main>
+    <script>
+        const match = /^\/lobby\/([A-Za-z0-9_-]{1,128})\/?$/.exec(location.pathname)
+        if (match) {
+            const code = match[1]
+            document.getElementById("message").textContent = "Код лобби: " + code
+            const link = document.getElementById("open")
+            link.href = "thousand://lobby/" + code
+            link.hidden = false
+        }
+    </script>
+</body>
+</html>

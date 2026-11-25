@@ -1,8 +1,13 @@
 # Lobby invitations
 
 The lobby's **Поделиться ссылкой** button opens the platform share sheet with
-`thousand://lobby/<public-code>`. This is an installed-app URL scheme, not an
-HTTPS universal link; it does not redirect to an app store when the app is absent.
+`https://thousand-688b0.web.app/lobby/<public-code>`. Firebase Hosting serves a fallback
+page with the lobby code and an open-in-game button using the original
+`thousand://lobby/<public-code>` scheme.
+
+Before distributing Android builds, replace the placeholder fingerprint in
+`hosting/public/.well-known/assetlinks.json` with the SHA-256 of the app signing
+certificate and redeploy Hosting. For Google Play, use the Play app signing certificate.
 
 - Android: BROWSABLE VIEW intent, including cold launch and `onNewIntent`.
 - iOS: CFBundleURLTypes and SwiftUI `onOpenURL`.

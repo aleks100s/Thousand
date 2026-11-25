@@ -1,0 +1,16 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": [
+          "579X949DTW.com.alextos.thousand.Thousand"
+        ],
+        "components": [
+          {
+            "/": "/lobby/*"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -5,15 +5,21 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlin.random.Random
 
 object LobbyLinks {
+    private const val invitePrefix = "https://thousand-688b0.web.app/lobby/"
     private val codePattern = Regex("[A-Za-z0-9_-]{1,128}")
-    private val linkPattern = Regex("thousand://lobby/([A-Za-z0-9_-]{1,128})/?", RegexOption.IGNORE_CASE)
+    private val legacyLinkPattern = Regex("thousand://lobby/([A-Za-z0-9_-]{1,128})/?", RegexOption.IGNORE_CASE)
 
     fun create(code: String): String {
         require(codePattern.matches(code)) { "Invalid lobby code" }
-        return "thousand://lobby/$code"
+        return "$invitePrefix$code"
     }
 
-    fun parse(url: String): String? = linkPattern.matchEntire(url)?.groupValues?.get(1)
+    fun parse(url: String): String? {
+        if (url.startsWith(invitePrefix)) {
+            return url.removePrefix(invitePrefix).removeSuffix("/").takeIf(codePattern::matches)
+        }
+        return legacyLinkPattern.matchEntire(url)?.groupValues?.get(1)
+    }
 }
 
 data class LobbyInvitation(val code: String, val id: Long)
