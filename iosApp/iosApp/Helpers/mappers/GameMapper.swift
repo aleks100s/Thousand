@@ -8,6 +8,8 @@ extension IOSMultiplayerRepository {
     func updateDictionary(from game: RemoteGame) -> [String: Any] {
         var dictionary = dictionary(from: game)
         dictionary.removeValue(forKey: FirebaseGameKey.onlinePlayerIds)
+        dictionary.removeValue(forKey: "memberIds")
+        dictionary.removeValue(forKey: FirebaseGameKey.reaction)
 
         if game.currentRoll == nil {
             dictionary[FirebaseGameKey.currentRoll] = NSNull()

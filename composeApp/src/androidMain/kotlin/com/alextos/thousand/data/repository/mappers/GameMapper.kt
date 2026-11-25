@@ -15,7 +15,7 @@ internal fun RemoteGame.toDatabaseMap(): Map<String, Any> =
 
 internal fun RemoteGame.toDatabaseUpdateMap(): Map<String, Any?> =
     toDatabaseMap()
-        .filterKeys { key -> key != "onlinePlayerIds" }
+        .filterKeys { key -> key != "onlinePlayerIds" && key != "memberIds" && (key != "reaction" || reaction == null) }
         .mapValues { entry -> entry.value as Any? }
         .toMutableMap()
         .apply {

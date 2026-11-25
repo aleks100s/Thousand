@@ -3,14 +3,46 @@
     "lobbies": {
       ".read": "auth != null",
       ".write": "auth != null",
-      ".indexOn": ["lastActivityAt"]
+      ".indexOn": [
+        "lastActivityAt"
+      ]
     },
     "games": {
       ".read": "auth != null",
-      ".write": "auth != null",
       ".indexOn": [
         "lastGameplayAt"
-      ]
+      ],
+      "$gameId": {
+        ".write": "auth != null && ((!data.exists() && newData.child('host').val() === auth.uid) || (!newData.exists() && ((data.child('memberIds').child(auth.uid).isString() && data.child('players').child(data.child('memberIds').child(auth.uid).val()).child('user/id').val() === auth.uid) || (!data.child('memberIds').exists() && (data.child('players/0/user/id').val() === auth.uid || data.child('players/1/user/id').val() === auth.uid || data.child('players/2/user/id').val() === auth.uid || data.child('players/3/user/id').val() === auth.uid || data.child('players/4/user/id').val() === auth.uid || data.child('players/5/user/id').val() === auth.uid || data.child('players/6/user/id').val() === auth.uid || data.child('players/7/user/id').val() === auth.uid || data.child('players/8/user/id').val() === auth.uid || data.child('players/9/user/id').val() === auth.uid || data.child('players/10/user/id').val() === auth.uid || data.child('players/11/user/id').val() === auth.uid || data.child('players/12/user/id').val() === auth.uid || data.child('players/13/user/id').val() === auth.uid || data.child('players/14/user/id').val() === auth.uid || data.child('players/15/user/id').val() === auth.uid)))))",
+        ".validate": "auth != null && newData.hasChildren(['host','players']) && ((!data.exists() && newData.child('host').val() === auth.uid) || ((data.child('memberIds').child(auth.uid).isString() && data.child('players').child(data.child('memberIds').child(auth.uid).val()).child('user/id').val() === auth.uid) || (!data.child('memberIds').exists() && (data.child('players/0/user/id').val() === auth.uid || data.child('players/1/user/id').val() === auth.uid || data.child('players/2/user/id').val() === auth.uid || data.child('players/3/user/id').val() === auth.uid || data.child('players/4/user/id').val() === auth.uid || data.child('players/5/user/id').val() === auth.uid || data.child('players/6/user/id').val() === auth.uid || data.child('players/7/user/id').val() === auth.uid || data.child('players/8/user/id').val() === auth.uid || data.child('players/9/user/id').val() === auth.uid || data.child('players/10/user/id').val() === auth.uid || data.child('players/11/user/id').val() === auth.uid || data.child('players/12/user/id').val() === auth.uid || data.child('players/13/user/id').val() === auth.uid || data.child('players/14/user/id').val() === auth.uid || data.child('players/15/user/id').val() === auth.uid))))",
+        "onlinePlayerIds": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid",
+            ".validate": "auth.uid === $uid && newData.isBoolean()"
+          }
+        },
+        "reaction": {
+          ".write": "auth != null",
+          ".validate": "newData.child('authorId').val() === auth.uid || (newData.child('authorId').val() === data.child('authorId').val() && newData.child('id').val() === data.child('id').val() && newData.child('author').val() === data.child('author').val() && newData.child('reaction').val() === data.child('reaction').val())"
+        },
+        "host": {
+          ".write": "auth != null && newData.val() === data.val()"
+        },
+        "players": {
+          ".write": "auth != null && newData.exists()",
+          "$slot": {
+            ".validate": "!data.parent().exists() || (data.exists() && newData.child('user/id').val() === data.child('user/id').val())"
+          }
+        },
+        "$field": {
+          ".write": "auth != null && ($field === 'id' || $field === 'settings' || $field === 'currentTurn' || $field === 'rollAbility' || $field === 'buttons' || $field === 'messagesToShow' || $field === 'currentPlayerIndex' || $field === 'currentRoll' || $field === 'lastGameplayAt')"
+        },
+        "memberIds": {
+          "$uid": {
+            ".validate": "newData.isString() && newData.parent().parent().child('players').child(newData.val()).child('user/id').val() === $uid"
+          }
+        }
+      }
     },
     "users": {
       "$uid": {

@@ -18,6 +18,7 @@ internal fun RemoteGame.toFirebaseMap(): Map<String, Any> =
         put("settings", settings.toFirebaseMap())
         put("players", players.map { player -> player.toFirebaseMap() })
         put("host", host)
+        put("memberIds", players.mapIndexed { index, player -> player.user.id to index.toString() }.toMap())
         put("currentTurn", currentTurn.map { roll -> roll.toFirebaseMap() })
         put("rollAbility", rollAbility.name)
         put("buttons", buttons.map { button -> button.name })
