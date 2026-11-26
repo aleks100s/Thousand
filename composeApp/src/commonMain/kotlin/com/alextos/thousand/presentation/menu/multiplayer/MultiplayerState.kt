@@ -19,6 +19,4 @@ data class MultiplayerState(
     val lobbies: List<Lobby> = emptyList(),
     val activeGames: List<RemoteGame> = emptyList(),
     val finishedGames: List<RemoteGame> = emptyList(),
-) {
-    val hasActiveGameOrLobby: Boolean = activeGames.isNotEmpty() || lobbies.isNotEmpty()
-}
+)

@@ -69,7 +69,6 @@ fun MultiplayerScreen(
 ) {
     val viewModel: MultiplayerViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
-    var isCreateGameUnavailableSheetVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -110,13 +109,7 @@ fun MultiplayerScreen(
                 MultiplayerHero(
                     state = state,
                     onAction = viewModel::onAction,
-                    openCreateLobby = {
-                        if (state.hasActiveGameOrLobby) {
-                            isCreateGameUnavailableSheetVisible = true
-                        } else {
-                            openCreateLobby()
-                        }
-                    },
+                    openCreateLobby = openCreateLobby,
                 )
             }
 
@@ -224,41 +217,6 @@ fun MultiplayerScreen(
             state = state,
             onAction = viewModel::onAction,
         )
-    }
-
-    if (isCreateGameUnavailableSheetVisible) {
-        ModalBottomSheet(
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-            onDismissRequest = {
-                isCreateGameUnavailableSheetVisible = false
-            },
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                Text(
-                    text = "Нельзя создать новую игру",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-
-                Text(
-                    text = "У вас уже есть активная игра или лобби. Завершите игру или покиньте лобби, чтобы создать новую игру.",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-
-                AppButton(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = {
-                        isCreateGameUnavailableSheetVisible = false
-                    },
-                ) {
-                    Text("Понятно")
-                }
-            }
-        }
     }
 
     if (state.isJoiningLobby) {
