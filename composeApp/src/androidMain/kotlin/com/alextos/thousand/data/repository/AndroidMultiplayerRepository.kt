@@ -23,6 +23,9 @@ import com.google.firebase.auth.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.MutableData
+import com.google.firebase.database.ServerValue
+import com.google.firebase.database.Transaction
 import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -167,46 +170,44 @@ class AndroidMultiplayerRepository(private val accountService: com.alextos.thous
     }
 
     override suspend fun disconnectFromLobby(key: String) {
-        val currentUser = Firebase.auth.currentUser ?: return
+        val userId = Firebase.auth.currentUser?.uid ?: return
 
         val lobbyReference = FirebaseDatabase.getInstance().reference
             .child(LOBBIES_NODE)
             .child(key)
 
         suspendCancellableCoroutine { continuation ->
-            lobbyReference
-                .get()
-                .addOnSuccessListener { snapshot ->
-                    val lobby = snapshot.toLobby() ?: return@addOnSuccessListener
+            lobbyReference.runTransaction(object : Transaction.Handler {
+                override fun doTransaction(currentData: MutableData): Transaction.Result {
+                    val code = currentData.child("id").value as? String
+                    val hostId = currentData.child("host").value as? String
+                    // The first snapshot may be empty until Firebase checks it against the server.
+                    if (code.isNullOrBlank() || hostId.isNullOrBlank()) {
+                        return Transaction.success(currentData)
+                    }
 
-                    if (lobby.host == currentUser.uid) {
-                        lobbyReference.removeValue()
-                            .addOnSuccessListener {
-                                if (continuation.isActive) {
-                                    continuation.resume(Unit)
-                                }
-                            }
-                            .addOnFailureListener { error ->
-                                continuation.cancel(error)
-                            }
+                    if (hostId == userId) {
+                        currentData.value = null
+                        return Transaction.success(currentData)
+                    }
+
+                    val entries = currentData.child("players").children.filter { it.child("id").value == userId }
+                    if (entries.isNotEmpty()) {
+                        entries.forEach { it.value = null }
+                        currentData.child("lastActivityAt").value = ServerValue.TIMESTAMP
+                    }
+                    return Transaction.success(currentData)
+                }
+
+                override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
+                    if (!continuation.isActive) return
+                    if (error == null) {
+                        continuation.resume(Unit)
                     } else {
-                        val players = lobby.players.toMutableList()
-                        players.removeIf { it.id == currentUser.uid }
-                        lobby.players = players
-                        lobbyReference.setValue(lobby.toDatabaseMap())
-                            .addOnSuccessListener {
-                                if (continuation.isActive) {
-                                    continuation.resume(Unit)
-                                }
-                            }
-                            .addOnFailureListener { error ->
-                                continuation.cancel(error)
-                            }
+                        continuation.resumeWithException(error.toException())
                     }
                 }
-                .addOnFailureListener { error ->
-                    continuation.cancel(error)
-                }
+            }, false)
         }
     }
 

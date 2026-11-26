@@ -111,23 +111,45 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
     }
 
     func disconnectFromLobby(key: String) async throws {
-        guard let currentUser = Auth.auth().currentUser else {
+        guard let userId = Auth.auth().currentUser?.uid else {
             return
         }
 
         let reference = Database.database().reference()
             .child(FirebasePath.lobbies)
             .child(key)
-        let snapshot = try await reference.getData()
-        guard snapshot.exists(), let lobby = lobby(from: snapshot.firebaseDictionary, key: key) else {
-            return
-        }
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            reference.runTransactionBlock({ data in
+                guard let code = data.childData(byAppendingPath: FirebaseLobbyKey.id).value as? String,
+                      !code.isEmpty,
+                      let hostId = data.childData(byAppendingPath: "host").value as? String,
+                      !hostId.isEmpty else {
+                    // The first snapshot may be empty until Firebase checks it against the server.
+                    return TransactionResult.success(withValue: data)
+                }
 
-        if lobby.host == currentUser.uid {
-            try await reference.removeValue()
-        } else {
-            lobby.players = lobby.players.filter { $0.id != currentUser.uid }
-            try await reference.setValue(dictionary(from: lobby))
+                if hostId == userId {
+                    data.value = nil
+                    return TransactionResult.success(withValue: data)
+                }
+
+                let entries = data.childData(byAppendingPath: "players").children.allObjects
+                    .compactMap { $0 as? MutableData }
+                    .filter { $0.childData(byAppendingPath: "id").value as? String == userId }
+                if !entries.isEmpty {
+                    for entry in entries {
+                        entry.value = nil
+                    }
+                    data.childData(byAppendingPath: "lastActivityAt").value = ServerValue.timestamp()
+                }
+                return TransactionResult.success(withValue: data)
+            }, andCompletionBlock: { error, _, _ in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume()
+                }
+            }, withLocalEvents: false)
         }
     }
     

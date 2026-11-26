@@ -96,7 +96,7 @@ internal fun LobbyContent(state: LobbyState, goBack: () -> Unit, onAction: (Lobb
                 )
             },
             confirmButton = {
-                TextButton(onClick = goBack) { Text("В мультиплеер") }
+                TextButton(onClick = goBack) { Text("Выйти") }
             },
         )
     } else if (state.error != null) {
