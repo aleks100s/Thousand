@@ -48,6 +48,7 @@ import com.alextos.thousand.common.Screen
 import com.alextos.thousand.application.invites.LobbyLinks
 import com.alextos.thousand.presentation.components.rememberTextShare
 import com.alextos.thousand.presentation.components.AppButton
+import com.alextos.thousand.presentation.components.AppAlertDialog
 import com.alextos.thousand.presentation.components.AppButtonStyle
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -84,7 +85,21 @@ internal fun LobbyContent(state: LobbyState, goBack: () -> Unit, onAction: (Lobb
     val clipboardManager = LocalClipboardManager.current
     val shareText = rememberTextShare()
 
-    if (state.error != null) {
+    if (state.isClosed) {
+        AppAlertDialog(
+            onDismissRequest = {},
+            title = { Text("Лобби закрыто") },
+            text = {
+                Text(
+                    if (state.lobbyId.isNotBlank() && !state.isHost) "Хозяин закрыл лобби."
+                    else "Это лобби больше недоступно."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = goBack) { Text("В мультиплеер") }
+            },
+        )
+    } else if (state.error != null) {
         ModalBottomSheet(
             onDismissRequest = goBack
         ) {

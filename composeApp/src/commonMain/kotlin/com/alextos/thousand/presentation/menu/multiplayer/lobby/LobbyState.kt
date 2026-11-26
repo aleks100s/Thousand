@@ -9,6 +9,7 @@ data class LobbyState(
     val players: List<User> = emptyList(),
     val isHost: Boolean = false,
     val hostId: String = "",
+    val isClosed: Boolean = false,
     val error: String? = null
 ) {
     val isStartButtonEnabled: Boolean = isHost && players.count() > 1

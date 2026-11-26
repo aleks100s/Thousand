@@ -8,6 +8,8 @@ import com.alextos.thousand.domain.models.UserReaction
 import com.alextos.thousand.domain.models.RemoteUserInfo
 import kotlinx.coroutines.flow.Flow
 
+class LobbyNotFoundException : IllegalStateException("Лобби больше недоступно.")
+
 interface MultiplayerRepository {
     suspend fun createLobby(gameSettings: GameSettings): String
     suspend fun joinLobby(id: String): String

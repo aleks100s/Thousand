@@ -25,6 +25,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -35,17 +36,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.InfoCardView
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.domain.models.User
 import com.alextos.thousand.presentation.components.GameHistoryCard
 import com.alextos.thousand.presentation.components.GameStatusView
+import com.alextos.thousand.presentation.components.AppDialogStatusBarEffect
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
 import thousand.composeapp.generated.resources.language_24px
@@ -213,7 +219,7 @@ fun MultiplayerScreen(
         )
     }
 
-    if (state.isJoinLobbySheetVisible) {
+    if (state.isJoinLobbySheetVisible && !state.isJoiningLobby) {
         JoinLobbySheet(
             state = state,
             onAction = viewModel::onAction,
@@ -250,6 +256,25 @@ fun MultiplayerScreen(
                     },
                 ) {
                     Text("Понятно")
+                }
+            }
+        }
+    }
+
+    if (state.isJoiningLobby) {
+        Dialog(
+            onDismissRequest = {},
+            properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
+        ) {
+            AppDialogStatusBarEffect()
+            Surface(shape = MaterialTheme.shapes.large) {
+                Row(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                    Text("Подключение к лобби…")
                 }
             }
         }
@@ -385,6 +410,7 @@ private fun JoinLobbySheet(
     state: MultiplayerState,
     onAction: (MultiplayerAction) -> Unit,
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
     var lobbyId by rememberSaveable { mutableStateOf(state.lobbyId) }
     val canJoinLobby = lobbyId.trim().isNotBlank()
 
@@ -437,6 +463,7 @@ private fun JoinLobbySheet(
                 modifier = Modifier.fillMaxWidth(),
                 enabled = canJoinLobby,
                 onClick = {
+                    keyboardController?.hide()
                     onAction(MultiplayerAction.UpdateLobbyId(lobbyId))
                     onAction(MultiplayerAction.JoinLobby)
                 },

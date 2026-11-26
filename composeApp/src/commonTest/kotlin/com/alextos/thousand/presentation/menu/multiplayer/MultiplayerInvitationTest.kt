@@ -8,6 +8,7 @@ import com.alextos.thousand.domain.repository.MultiplayerRepository
 import com.alextos.thousand.domain.service.MutableNativeAccountService
 import com.alextos.thousand.domain.usecase.LogInUseCase
 import com.alextos.thousand.domain.usecase.SignUpUseCase
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -17,6 +18,54 @@ import kotlin.test.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class MultiplayerInvitationTest {
+    @Test
+    fun invitationShowsConnectingStateUntilLobbyIsResolved() = runTest {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        val account = MutableNativeAccountService().apply { updateUserProfile("user", "Игрок") }
+        val joinResult = CompletableDeferred<String>()
+        val repository = FakeMultiplayerRepository().apply { this.joinResult = joinResult }
+        val vm = viewModel(account, repository)
+        try {
+            runCurrent()
+            vm.onAction(MultiplayerAction.OpenInvitation("1234", 1))
+            runCurrent()
+            assertTrue(vm.state.value.isJoiningLobby)
+
+            joinResult.complete("resolved-key")
+            runCurrent()
+            assertFalse(vm.state.value.isJoiningLobby)
+            assertEquals(MultiplayerEvent.OpenLobby("resolved-key"), vm.events.first())
+        } finally { vm.viewModelScope.cancel(); Dispatchers.resetMain() }
+    }
+
+    @Test
+    fun joiningFromSheetShowsLoaderAndRestoresCodeAfterTenSeconds() = runTest {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        val account = MutableNativeAccountService().apply { updateUserProfile("user", "Игрок") }
+        val repository = FakeMultiplayerRepository().apply { joinResult = CompletableDeferred() }
+        val vm = viewModel(account, repository)
+        try {
+            runCurrent()
+            vm.onAction(MultiplayerAction.ShowJoinLobbySheet)
+            vm.onAction(MultiplayerAction.UpdateLobbyId("A7K2M"))
+            vm.onAction(MultiplayerAction.JoinLobby)
+            runCurrent()
+            assertEquals(listOf("A7K2M"), repository.joined)
+            assertTrue(vm.state.value.isJoiningLobby)
+
+            advanceTimeBy(9_999)
+            runCurrent()
+            assertTrue(vm.state.value.isJoiningLobby)
+
+            advanceTimeBy(1)
+            runCurrent()
+            assertFalse(vm.state.value.isJoiningLobby)
+            assertTrue(vm.state.value.isJoinLobbySheetVisible)
+            assertEquals("A7K2M", vm.state.value.lobbyId)
+            assertNotNull(vm.state.value.lobbyError)
+        } finally { vm.viewModelScope.cancel(); Dispatchers.resetMain() }
+    }
+
     @Test
     fun fiveCharacterInvitationJoinsUsingCanonicalUppercaseCode() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
@@ -83,6 +132,7 @@ class MultiplayerInvitationTest {
             vm.onAction(MultiplayerAction.OpenInvitation("9999", 1))
             runCurrent()
             assertEquals("Лобби не найдено", vm.state.value.lobbyError)
+            assertFalse(vm.state.value.isJoiningLobby)
             assertTrue(vm.state.value.isJoinLobbySheetVisible)
             assertEquals("9999", vm.state.value.lobbyId)
             repository.failure = null
@@ -99,7 +149,13 @@ class MultiplayerInvitationTest {
 private class FakeMultiplayerRepository : MultiplayerRepository {
     val joined = mutableListOf<String>()
     var failure: Exception? = null
-    override suspend fun joinLobby(id: String): String { joined += id; failure?.let { throw it }; return "resolved-key" }
+    var joinResult: CompletableDeferred<String>? = null
+
+    override suspend fun joinLobby(id: String): String {
+        joined += id
+        failure?.let { throw it }
+        return joinResult?.await() ?: "resolved-key"
+    }
     override fun userLobbies(): Flow<List<Lobby>> = flowOf(emptyList())
     override fun userGames(): Flow<List<RemoteGame>> = flowOf(emptyList())
     override suspend fun createLobby(gameSettings: GameSettings): String = error("Unused")

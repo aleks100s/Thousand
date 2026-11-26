@@ -4,15 +4,17 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import com.alextos.thousand.domain.repository.LobbyNotFoundException
 import com.alextos.thousand.domain.repository.MultiplayerRepository
 import com.alextos.thousand.domain.service.NativeAccountService
 import com.alextos.thousand.presentation.menu.multiplayer.MultiplayerRoute
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -26,8 +28,8 @@ class LobbyViewModel(
     private val _state = MutableStateFlow(LobbyState())
     val state: StateFlow<LobbyState> = _state.asStateFlow()
 
-    private val _events = MutableSharedFlow<LobbyEvent>()
-    val events = _events.asSharedFlow()
+    private val _events = Channel<LobbyEvent>(Channel.BUFFERED)
+    val events = _events.receiveAsFlow()
 
     init {
         connectToLobby()
@@ -43,16 +45,18 @@ class LobbyViewModel(
 
     private fun connectToLobby() {
         viewModelScope.launch {
-            repository.connectToLobby(lobbyId)
+            val startedLobby = repository.connectToLobby(lobbyId)
                 .catch { error ->
                     _state.update {
-                        it.copy(error = error.message)
+                        if (error is LobbyNotFoundException) {
+                            it.copy(isClosed = true)
+                        } else {
+                            it.copy(error = error.message)
+                        }
                     }
                 }
-                .collect { lobby ->
-                    if (lobby.game.isNotEmpty()) {
-                        _events.emit(LobbyEvent.StartGame(lobby.game))
-                    } else {
+                .firstOrNull { lobby ->
+                    if (lobby.game.isEmpty()) {
                         _state.update {
                             it.copy(
                                 lobbyId = lobby.id,
@@ -64,14 +68,16 @@ class LobbyViewModel(
                             )
                         }
                     }
+                    lobby.game.isNotEmpty()
                 }
+            startedLobby?.let { _events.send(LobbyEvent.StartGame(it.game)) }
         }
     }
 
     private fun leaveGame() {
         viewModelScope.launch {
             try {
-                _events.emit(LobbyEvent.Disconnect)
+                _events.send(LobbyEvent.Disconnect)
                 repository.disconnectFromLobby(lobbyId)
             } catch (e: Exception) {
                 _state.update {

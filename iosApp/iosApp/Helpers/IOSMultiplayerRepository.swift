@@ -50,14 +50,15 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
             .queryOrdered(byChild: FirebaseLobbyKey.id)
             .queryEqual(toValue: id)
         
-        let lobby: (key: String, lobby: Lobby)? = try await withCheckedThrowingContinuation { continuation in
+        let lobby: (key: String, update: Lobby?) = try await withCheckedThrowingContinuation { continuation in
             query.observeSingleEvent(of: .value, with: { [weak self] snapshot in
-                guard let childSnapshot = snapshot.children.allObjects.first as? DataSnapshot,
-                      let lobby = self?.lobby(from: childSnapshot.firebaseDictionary, key: childSnapshot.key) else {
+                guard let self,
+                      let childSnapshot = snapshot.children.allObjects.first as? DataSnapshot,
+                      let lobby = self.lobby(from: childSnapshot.firebaseDictionary, key: childSnapshot.key) else {
                     let error = NSError(
                         domain: "IOSMultiplayerRepository",
                         code: 1,
-                        userInfo: [NSLocalizedDescriptionKey: "Failed to join lobby."]
+                        userInfo: [NSLocalizedDescriptionKey: "Лобби не найдено"]
                     )
                     continuation.resume(throwing: error)
                     return
@@ -65,14 +66,12 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
 
                 let key = childSnapshot.key
                 
-                guard let currentPlayer = self?.currentPlayer(), lobby.players.contains(where: { $0.id == currentUser.uid }) == false else {
-                    continuation.resume(returning: nil)
+                if lobby.players.contains(where: { $0.id == currentUser.uid }) {
+                    continuation.resume(returning: (key, nil))
                     return
                 }
 
-                var players = lobby.players
-                players.append(currentPlayer)
-                lobby.players = players
+                lobby.players.append(self.currentPlayer())
                 
                 continuation.resume(returning: (key, lobby))
             }, withCancel: { error in
@@ -80,13 +79,10 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
             })
         }
         
-        guard let lobby else {
-            return ""
+        if let update = lobby.update {
+            try Task.checkCancellation()
+            try await lobbies.child(lobby.key).setValue(dictionary(from: update))
         }
-        
-        try await lobbies
-            .child(lobby.key)
-            .setValue(dictionary(from: lobby.lobby))
         return lobby.key
     }
 
@@ -94,7 +90,11 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
         let bridge = GameSettingsFlowBridge()
         let reference = Database.database().reference().child(FirebasePath.lobbies).child(key)
 
-        reference.observe(.value, with: { [weak self] snapshot in
+        let handle = reference.observe(.value, with: { [weak self] snapshot in
+            guard snapshot.exists() else {
+                bridge.closeMissingLobby()
+                return
+            }
             guard let self, let lobby = self.lobby(from: snapshot.firebaseDictionary, key: snapshot.key) else {
                 bridge.closeWithError(message: "Failed to connect")
                 return
@@ -105,7 +105,9 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
             bridge.closeWithError(message: error.localizedDescription)
         })
 
-        return bridge.flow
+        return bridge.flow(removeObserver: {
+            reference.removeObserver(withHandle: handle)
+        })
     }
 
     func disconnectFromLobby(key: String) async throws {

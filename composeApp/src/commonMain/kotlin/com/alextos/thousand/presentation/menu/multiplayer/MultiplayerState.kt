@@ -7,6 +7,7 @@ data class MultiplayerState(
     val isAuthorized: Boolean = false,
     val isLoginSheetVisible: Boolean = false,
     val isJoinLobbySheetVisible: Boolean = false,
+    val isJoiningLobby: Boolean = false,
     val lobbyId: String = "",
     val currentUserId: String? = null,
     val username: String? = null,

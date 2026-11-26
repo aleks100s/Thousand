@@ -8,6 +8,7 @@ import com.alextos.thousand.data.repository.mappers.toGame
 import com.alextos.thousand.data.repository.mappers.toLobby
 import com.alextos.thousand.data.repository.mappers.toRemoteUserInfo
 import com.alextos.thousand.domain.models.GameButton
+import com.alextos.thousand.domain.repository.LobbyNotFoundException
 import com.alextos.thousand.domain.repository.MultiplayerRepository
 import com.alextos.thousand.domain.models.GameSettings
 import com.alextos.thousand.domain.models.Lobby
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import com.alextos.thousand.domain.models.LobbyCode
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.collections.plus
@@ -88,40 +90,46 @@ class AndroidMultiplayerRepository(private val accountService: com.alextos.thous
         return suspendCancellableCoroutine { continuation ->
             val listener = object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
+                    query.removeEventListener(this)
+                    if (!continuation.isActive) return
                     val child = snapshot.children.firstOrNull()
                     val lobby = child?.toLobby() ?: run {
-                        continuation.cancel(IllegalStateException("Failed to join lobby."))
+                        continuation.resumeWithException(IllegalStateException("Лобби не найдено"))
                         return
                     }
 
                     val key = child.key ?: run {
-                        continuation.cancel(IllegalStateException("Failed to join lobby."))
+                        continuation.resumeWithException(IllegalStateException("Не удалось подключиться к лобби"))
                         return
                     }
 
                     val currentPlayer = accountService.playerForAccount(currentUser.uid, currentUser.displayName ?: "Без имени")
-
-                    if (lobby.players.none { it.id == currentPlayer.id }) {
-                        lobby.players += currentPlayer
-                        lobbies
-                            .child(key)
-                            .setValue(lobby.toDatabaseMap())
-                            .addOnCompleteListener { task ->
-                                if (task.isSuccessful && continuation.isActive) {
-                                    continuation.resume(key)
-                                } else {
-                                    continuation.cancel(task.exception)
-                                }
-                            }
+                    if (lobby.players.any { it.id == currentPlayer.id }) {
+                        continuation.resume(key)
+                        return
                     }
+
+                    lobby.players += currentPlayer
+                    lobbies.child(key).setValue(lobby.toDatabaseMap())
+                        .addOnCompleteListener { task ->
+                            if (!continuation.isActive) return@addOnCompleteListener
+                            if (task.isSuccessful) {
+                                continuation.resume(key)
+                            } else {
+                                continuation.resumeWithException(
+                                    task.exception ?: IllegalStateException("Не удалось подключиться к лобби"),
+                                )
+                            }
+                        }
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    continuation.cancel(error.toException())
+                    continuation.resumeWithException(error.toException())
                 }
 
             }
-            query.addListenerForSingleValueEvent(listener)
+            query.addValueEventListener(listener)
+            continuation.invokeOnCancellation { query.removeEventListener(listener) }
         }
     }
 
@@ -133,6 +141,10 @@ class AndroidMultiplayerRepository(private val accountService: com.alextos.thous
 
             val listener = object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
+                    if (!snapshot.exists()) {
+                        close(LobbyNotFoundException())
+                        return
+                    }
                     val lobby = snapshot.toLobby() ?: run {
                         close(IllegalStateException("Failed to connect to lobby."))
                         return

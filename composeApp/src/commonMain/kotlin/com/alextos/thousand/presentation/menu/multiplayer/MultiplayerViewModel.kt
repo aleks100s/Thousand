@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 class MultiplayerViewModel(
     private val nativeAccountService: NativeAccountService,
@@ -182,8 +183,10 @@ class MultiplayerViewModel(
         val lobbyId = LobbyCode.normalize(state.value.lobbyId)
         if (lobbyId.isBlank() || !state.value.isAuthorized || joinJob?.isActive == true) return
         joinJob = viewModelScope.launch {
+            _state.update { it.copy(isJoiningLobby = true, lobbyError = null) }
             try {
-                val key = multiplayerRepository.joinLobby(lobbyId)
+                val key = withTimeoutOrNull(10_000) { multiplayerRepository.joinLobby(lobbyId) }
+                    ?: error("Не удалось подключиться вовремя. Попробуйте ещё раз.")
                 check(key.isNotBlank()) { "Не удалось подключиться к лобби" }
                 _state.update { it.copy(isJoinLobbySheetVisible = false, lobbyId = "") }
                 savedStateHandle.remove<String>("pendingLobby")
@@ -191,7 +194,14 @@ class MultiplayerViewModel(
             } catch (e: Exception) {
                 currentCoroutineContext().ensureActive()
                 savedStateHandle.remove<String>("pendingLobby")
-                _state.update { it.copy(lobbyError = e.message, isJoinLobbySheetVisible = true) }
+                _state.update {
+                    it.copy(
+                        lobbyError = e.message ?: "Не удалось подключиться к лобби",
+                        isJoinLobbySheetVisible = true,
+                    )
+                }
+            } finally {
+                _state.update { it.copy(isJoiningLobby = false) }
             }
         }
     }
