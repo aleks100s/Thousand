@@ -6,7 +6,5 @@
 	<array>
 		<string>applinks:thousand-688b0.web.app</string>
 	</array>
-	<key>com.apple.developer.game-center</key>
-	<true/>
 </dict>
 </plist>

@@ -18,7 +18,7 @@ class ThousandApplication : Application() {
         }
         val gamePresenceObserver = AndroidGamePresenceObserver(this)
 
-        val accountService = AndroidAccountService(this)
+        val accountService = AndroidAccountService()
         initKoin(
             shakeDeviceObserver = shakeDeviceObserver,
             gamePresenceObserver = gamePresenceObserver,

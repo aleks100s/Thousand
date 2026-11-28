@@ -11,8 +11,6 @@ import FirebaseCore
 import FirebaseCrashlytics
 import FirebaseCrashlyticsSwift
 import FirebaseDatabase
-import GameKit
-import UIKit
 
 final class IOSAccountService: MutableNativeAccountService {
     private var savedAppearance: String?
@@ -22,7 +20,6 @@ final class IOSAccountService: MutableNativeAccountService {
         super.init()
         FirebaseApp.configure()
         observeFirebaseAuthorizationState()
-        launchGameCenter()
     }
     
     override func updateLocalAppearance(user: ComposeApp.User) {
@@ -141,16 +138,13 @@ extension IOSAccountService {
         }
     }
     
-    private func updateFirebaseUser(name: String, photoURL: URL? = nil) {
+    private func updateFirebaseUser(name: String) {
         guard let user = Auth.auth().currentUser else {
             return
         }
 
         let changeRequest = user.createProfileChangeRequest()
         changeRequest.displayName = name
-        if let photoURL {
-            changeRequest.photoURL = photoURL
-        }
         changeRequest.commitChanges { error in
             if let error {
                 Crashlytics.crashlytics().record(error: error)
@@ -205,71 +199,6 @@ extension IOSAccountService {
     }
 }
 
-// MARK: - Game Center Authentication
-
-extension IOSAccountService {
-    private func launchGameCenter() {
-        GKLocalPlayer.local.authenticateHandler = { [weak self] viewController, error in
-            DispatchQueue.main.async {
-                self?.handleGameCenterAuthentication(viewController: viewController, error: error)
-            }
-        }
-    }
-    
-    private func handleGameCenterAuthentication(
-        viewController: UIViewController?,
-        error: Error?
-    ) {
-        if let viewController {
-            present(viewController: viewController)
-            return
-        }
-        
-        if let error {
-            Crashlytics.crashlytics().record(error: error)
-            return
-        }
-        
-        let hideMultiplayer = GKLocalPlayer.local.isUnderage ||
-            GKLocalPlayer.local.isMultiplayerGamingRestricted
-        updateHideMultiplayer(hideMultiplayer: hideMultiplayer)
-        if Auth.auth().currentUser == nil {
-            connectFirebaseWithGameCenter()
-        }
-    }
-    
-    private func connectFirebaseWithGameCenter() {
-        // Get Firebase credentials from the player's Game Center credentials
-        GameCenterAuthProvider.getCredential() { [weak self] (credential, error) in
-            if let error = error {
-                self?.handleAuthenticationError(error: error)
-                return
-            }
-            
-            guard let credential else {
-                self?.handleAuthenticationError(error: nil)
-                return
-            }
-            
-            // The credential can be used to sign in, or re-auth, or link or unlink.
-            Auth.auth().signIn(with: credential) { (user, error) in
-                if let error = error {
-                    self?.handleAuthenticationError(error: error)
-                    return
-                }
-                
-                guard let user = user?.user else {
-                    self?.handleAuthenticationError(error: nil)
-                    return
-                }
-                
-                let name = user.displayName ?? GKLocalPlayer.local.displayName
-                self?.updateFirebaseUser(name: name)
-            }
-        }
-    }
-}
-
 // MARK: - Helpers
 
 extension IOSAccountService {
@@ -278,45 +207,5 @@ extension IOSAccountService {
         if let error {
             Crashlytics.crashlytics().record(error: error)
         }
-    }
-    
-    private func present(viewController: UIViewController) {
-        guard let presenter = UIApplication.shared.activeTopViewController else {
-            return
-        }
-        
-        presenter.present(viewController, animated: true)
-    }
-}
-
-private extension UIApplication {
-    var activeTopViewController: UIViewController? {
-        connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .first { $0.activationState == .foregroundActive }?
-            .windows
-            .first { $0.isKeyWindow }?
-            .rootViewController?
-            .topViewController
-    }
-}
-
-private extension UIViewController {
-    var topViewController: UIViewController {
-        if let presentedViewController {
-            return presentedViewController.topViewController
-        }
-        
-        if let navigationController = self as? UINavigationController,
-           let visibleViewController = navigationController.visibleViewController {
-            return visibleViewController.topViewController
-        }
-        
-        if let tabBarController = self as? UITabBarController,
-           let selectedViewController = tabBarController.selectedViewController {
-            return selectedViewController.topViewController
-        }
-        
-        return self
     }
 }

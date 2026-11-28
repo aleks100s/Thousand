@@ -45,7 +45,7 @@ fun App() {
                             OnboardingScreen()
                         }
                         else -> {
-                            AppNavHost(hideMultiplayer = state.hideMultiplayer)
+                            AppNavHost()
                         }
                     }
                 }

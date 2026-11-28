@@ -31,7 +31,6 @@ import thousand.composeapp.generated.resources.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MenuScreen(
-    hideMultiplayer: Boolean,
     openLocalGame: (hasLocalGames: Boolean) -> Unit,
     openMultiplayer: () -> Unit,
     openRules: () -> Unit,
@@ -43,15 +42,6 @@ fun MenuScreen(
     var pendingFirstLaunchDestination by remember {
         mutableStateOf<MenuTileAction?>(null)
     }
-    val tiles = remember(state.tiles, hideMultiplayer) {
-        state.tiles.mapNotNull { tile ->
-            when (tile.action) {
-                MenuTileAction.Multiplayer if hideMultiplayer -> null
-                else -> tile
-            }
-        }
-    }
-
     fun openTile(tileAction: MenuTileAction) {
         when (tileAction) {
             MenuTileAction.Tutorial -> openTutorial()
@@ -67,7 +57,7 @@ fun MenuScreen(
         Screen(Modifier, titleView = { LogoView() }, hideNavigationInLandscape = true) { modifier ->
             MenuContent(
                 modifier = modifier.consumeWindowInsets(WindowInsets.statusBars),
-                tiles = tiles,
+                tiles = state.tiles,
                 isLandscape = landscape,
             ) { action ->
                 when (action) {

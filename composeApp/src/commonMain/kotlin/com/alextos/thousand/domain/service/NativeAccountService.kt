@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.asStateFlow
 
 interface NativeAccountService {
     val userProfile: StateFlow<User?>
-    val hideMultiplayer: StateFlow<Boolean>
 
     suspend fun logIn(email: String, password: String)
     suspend fun signUp(email: String, password: String, name: String)
@@ -21,10 +20,8 @@ interface NativeAccountService {
 
 open class MutableNativeAccountService : NativeAccountService {
     private val _userProfile = MutableStateFlow<User?>(null)
-    private val _hideMultiplayer = MutableStateFlow(false)
 
     override val userProfile: StateFlow<User?> = _userProfile.asStateFlow()
-    override val hideMultiplayer: StateFlow<Boolean> = _hideMultiplayer.asStateFlow()
 
     override suspend fun logIn(email: String, password: String) = Unit
     override suspend fun signUp(email: String, password: String, name: String) = Unit
@@ -47,9 +44,5 @@ open class MutableNativeAccountService : NativeAccountService {
 
     fun clearUserProfile() {
         _userProfile.value = null
-    }
-
-    fun updateHideMultiplayer(hideMultiplayer: Boolean) {
-        _hideMultiplayer.value = hideMultiplayer
     }
 }

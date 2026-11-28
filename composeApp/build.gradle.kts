@@ -40,7 +40,6 @@ kotlin {
             implementation(libs.firebase.auth)
             implementation(libs.firebase.crashlytics)
             implementation(libs.firebase.database)
-            implementation(libs.play.services.games.v2)
         }
         commonMain.dependencies {
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")

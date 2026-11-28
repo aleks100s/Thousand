@@ -20,9 +20,7 @@ import com.alextos.thousand.presentation.menu.tutorial_game.TutorialGameScreen
 import com.alextos.thousand.presentation.menu.multiplayer.MultiplayerRoot
 
 @Composable
-fun MenuRoot(
-    hideMultiplayer: Boolean,
-) {
+fun MenuRoot() {
     val navController = rememberNavController()
     val invitation by LobbyInvitations.pending.collectAsStateWithLifecycle()
     LaunchedEffect(invitation?.id) {
@@ -41,7 +39,6 @@ fun MenuRoot(
     ) {
         horizontalTransition<MenuRoute.Menu> {
             MenuScreen(
-                hideMultiplayer = hideMultiplayer,
                 openLocalGame = { hasLocalGames ->
                     if (hasLocalGames) {
                         navController.navigate(MenuRoute.GamesList)

@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -39,19 +38,12 @@ class AppViewModel(
 
     private fun observeUsers() {
         viewModelScope.launch {
-            combine(
-                getAllUsersUseCase(),
-                nativeAccountService.hideMultiplayer,
-            ) { users, hideMultiplayer ->
-                users to hideMultiplayer
-            }.collect { state ->
-                val (users, hideMultiplayer) = state
+            getAllUsersUseCase().collect { users ->
                 users.firstOrNull { it.kind == UserKind.MainUser }?.let(nativeAccountService::updateLocalAppearance)
                 _state.update {
                     it.copy(
                         isLoading = false,
                         isOnboardingRequired = users.none { user -> user.kind == UserKind.MainUser },
-                        hideMultiplayer = hideMultiplayer,
                     )
                 }
             }
