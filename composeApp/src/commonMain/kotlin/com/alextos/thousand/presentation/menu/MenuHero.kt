@@ -20,19 +20,19 @@ import thousand.composeapp.generated.resources.*
 private data class FloatingDie(
     val image: DrawableResource,
     val x: Float,
-    val y: Float,
+    val topY: Float,
+    val bottomY: Float,
     val size: Float,
-    val amplitude: Float,
     val durationMillis: Int,
     val phaseMillis: Int,
 )
 
 private val floatingDice = listOf(
-    FloatingDie(Res.drawable.main_die_1, .17f, .48f, .19f, .17f, 1650, 0),
-    FloatingDie(Res.drawable.main_die_2, .35f, .36f, .135f, .23f, 2300, 760),
-    FloatingDie(Res.drawable.main_die_3, .52f, .48f, .17f, .21f, 1950, 1200),
-    FloatingDie(Res.drawable.main_die_4, .70f, .33f, .12f, .24f, 2850, 430),
-    FloatingDie(Res.drawable.main_die_5, .84f, .52f, .15f, .19f, 3250, 1900),
+    FloatingDie(Res.drawable.main_die_1, .17f, .31f, .66f, .19f, 1650, 0),
+    FloatingDie(Res.drawable.main_die_2, .35f, .13f, .64f, .135f, 2300, 760),
+    FloatingDie(Res.drawable.main_die_3, .52f, .27f, .69f, .17f, 1950, 1200),
+    FloatingDie(Res.drawable.main_die_4, .70f, .09f, .65f, .12f, 2850, 430),
+    FloatingDie(Res.drawable.main_die_5, .84f, .33f, .68f, .15f, 3250, 1900),
 )
 
 /** Decorative artwork only: cached images move in the draw phase, without relayout per frame. */
@@ -77,12 +77,14 @@ internal fun MenuHero(modifier: Modifier, horizontalPadding: Dp) {
                         ),
                         label = "Die rotation $index",
                     )
-                    val side = diceWidth * die.size
+                    val side = diceWidth * die.size / 2
+                    val centerY = height * ((die.topY + die.bottomY) / 2)
+                    val amplitude = height * ((die.bottomY - die.topY) / 2)
                     Image(
                         painterResource(die.image), contentDescription = null,
-                        modifier = Modifier.offset(diceLeft + diceWidth * die.x - side / 2, height * die.y - side / 2)
+                        modifier = Modifier.offset(diceLeft + diceWidth * die.x - side / 2, centerY - side / 2)
                             .size(side).graphicsLayer {
-                                translationY = (movement?.value ?: 0f) * (height * die.amplitude).toPx()
+                                translationY = (movement?.value ?: 0f) * amplitude.toPx()
                                 rotationZ = rotation?.value ?: 0f
                             },
                         contentScale = ContentScale.Fit,

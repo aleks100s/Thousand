@@ -1,5 +1,6 @@
 package com.alextos.thousand.presentation.menu.achievements
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -19,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
@@ -43,7 +46,6 @@ import thousand.composeapp.generated.resources.achievement_hidden
 import thousand.composeapp.generated.resources.achievement_hidden_condition
 import thousand.composeapp.generated.resources.achievement_unlocked_at
 import thousand.composeapp.generated.resources.lock_24px
-import thousand.composeapp.generated.resources.statistics_emoji_events
 
 @Composable
 fun AchievementsScreen(onGoBack: () -> Unit) {
@@ -96,7 +98,7 @@ private fun AchievementCard(
         contentColor = AppColors.TextPrimary,
         tonalElevation = 0.dp,
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .appPanel(outline = AppColors.OutlineSubtle)
                 .drawWithContent {
@@ -104,18 +106,20 @@ private fun AchievementCard(
                     if (unlockedAt == null) drawRect(Color.Black.copy(alpha = 0.30f))
                 }
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    painter = painterResource(Res.drawable.statistics_emoji_events),
+            if (!isHidden) {
+                Image(
+                    painter = painterResource(achievement.id.image.resource),
                     contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                    tint = if (unlockedAt != null) AppColors.Highlight else AppColors.TextSecondary,
+                    modifier = Modifier.size(72.dp).clip(RoundedCornerShape(12.dp)),
                 )
+            }
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
                 Text(
                     text = if (isHidden) {
                         stringResource(Res.string.achievement_hidden)
@@ -124,39 +128,39 @@ private fun AchievementCard(
                     },
                     style = MaterialTheme.typography.titleMedium,
                 )
-            }
-            if (isHidden) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        painter = painterResource(Res.drawable.lock_24px),
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = AppColors.TextSecondary,
-                    )
+                if (isHidden) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            painter = painterResource(Res.drawable.lock_24px),
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = AppColors.TextSecondary,
+                        )
+                        Text(
+                            text = stringResource(Res.string.achievement_hidden_condition),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = AppColors.TextSecondary,
+                        )
+                    }
+                } else {
                     Text(
-                        text = stringResource(Res.string.achievement_hidden_condition),
+                        text = stringResource(achievement.description),
                         style = MaterialTheme.typography.bodyMedium,
                         color = AppColors.TextSecondary,
                     )
-                }
-            } else {
-                Text(
-                    text = stringResource(achievement.description),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = AppColors.TextSecondary,
-                )
-                unlockedAt?.let {
-                    Text(
-                        text = stringResource(
-                            Res.string.achievement_unlocked_at,
-                            it.formatForUi(),
-                        ),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = AppColors.Highlight,
-                    )
+                    unlockedAt?.let {
+                        Text(
+                            text = stringResource(
+                                Res.string.achievement_unlocked_at,
+                                it.formatForUi(),
+                            ),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = AppColors.Highlight,
+                        )
+                    }
                 }
             }
         }
