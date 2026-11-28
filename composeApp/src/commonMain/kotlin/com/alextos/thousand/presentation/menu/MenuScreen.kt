@@ -35,6 +35,7 @@ fun MenuScreen(
     openMultiplayer: () -> Unit,
     openRules: () -> Unit,
     openTutorial: () -> Unit,
+    openAchievements: () -> Unit,
 ) {
     val viewModel: MenuViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -54,6 +55,7 @@ fun MenuScreen(
         when (tileAction) {
             MenuTileAction.Tutorial -> openTutorial()
             MenuTileAction.Rules -> openRules()
+            MenuTileAction.Achievements -> openAchievements()
             MenuTileAction.Multiplayer -> openMultiplayer()
             MenuTileAction.LocalGame -> openLocalGame(state.hasLocalGames)
         }
@@ -68,8 +70,7 @@ fun MenuScreen(
                 isLandscape = landscape,
             ) { action ->
                 when (action) {
-                    MenuTileAction.Tutorial -> openTutorial()
-                    MenuTileAction.Rules -> openRules()
+                    MenuTileAction.Tutorial, MenuTileAction.Rules, MenuTileAction.Achievements -> openTile(action)
                     MenuTileAction.Multiplayer, MenuTileAction.LocalGame -> {
                         if (state.isFirstLaunch) pendingFirstLaunchDestination = action
                         else openTile(action)
@@ -146,9 +147,12 @@ internal fun MenuContent(
                     tiles.filter { it.size == MenuTileSize.Large }.forEach { tile ->
                         MenuPlayButton(tile) { onClick(tile.action) }
                     }
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
                         tiles.filter { it.size == MenuTileSize.Default }.forEach { tile ->
-                            MenuSectionCard(Modifier.weight(1f), tile) { onClick(tile.action) }
+                            MenuSectionCard(Modifier.weight(1f).fillMaxHeight(), tile) { onClick(tile.action) }
                         }
                     }
                 }
@@ -193,7 +197,7 @@ private fun MenuSectionCard(modifier: Modifier, tile: MenuTile, onClick: () -> U
         color = Color.Transparent,
     ) {
         Column(
-            Modifier.fillMaxWidth().heightIn(min = 128.dp).padding(12.dp),
+            Modifier.fillMaxWidth().heightIn(min = 128.dp).padding(horizontal = 4.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically),
         ) {
@@ -208,6 +212,7 @@ private fun MenuTileAction.icon(): DrawableResource = when (this) {
     MenuTileAction.LocalGame -> Res.drawable.mobile_24px
     MenuTileAction.Multiplayer -> Res.drawable.language_24px
     MenuTileAction.Rules -> Res.drawable.rules_description
+    MenuTileAction.Achievements -> Res.drawable.statistics_emoji_events
     MenuTileAction.Tutorial -> Res.drawable.book_2_24px
 }
 

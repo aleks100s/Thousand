@@ -10,6 +10,9 @@ sealed interface MenuRoute {
     data object Rules : MenuRoute
 
     @Serializable
+    data object Achievements : MenuRoute
+
+    @Serializable
     data object TutorialGame : MenuRoute
 
     @Serializable

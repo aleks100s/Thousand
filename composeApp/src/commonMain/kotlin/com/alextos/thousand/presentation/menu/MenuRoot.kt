@@ -9,6 +9,7 @@ import com.alextos.thousand.application.invites.LobbyInvitations
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.alextos.thousand.common.horizontalTransition
+import com.alextos.thousand.presentation.menu.achievements.AchievementsScreen
 import com.alextos.thousand.presentation.menu.create_game.CreateGameScreen
 import com.alextos.thousand.presentation.menu.game_score.GameScoreScreen
 import com.alextos.thousand.presentation.menu.play_game.PlayGameScreen
@@ -54,6 +55,9 @@ fun MenuRoot(
                 openRules = {
                     navController.navigate(MenuRoute.Rules)
                 },
+                openAchievements = {
+                    navController.navigate(MenuRoute.Achievements)
+                },
                 openTutorial = {
                     navController.navigate(MenuRoute.TutorialGame)
                 },
@@ -61,6 +65,11 @@ fun MenuRoot(
         }
         horizontalTransition<MenuRoute.Rules> {
             GameRulesScreen(
+                onGoBack = navController::popBackStack,
+            )
+        }
+        horizontalTransition<MenuRoute.Achievements> {
+            AchievementsScreen(
                 onGoBack = navController::popBackStack,
             )
         }
