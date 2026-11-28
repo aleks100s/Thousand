@@ -166,7 +166,8 @@ private class FakeMultiplayerRepository : MultiplayerRepository {
     override suspend fun sendReaction(gameKey: String, reaction: UserReaction) = Unit
     override suspend fun updateGame(game: RemoteGame) = Unit
     override suspend fun updatePlayerOnlineStatus(gameKey: String, isOnline: Boolean) = Unit
-    override suspend fun finishGame(game: RemoteGame, userInfo: Map<String, RemoteUserInfo>) = Unit
+    override suspend fun saveGameResult(game: RemoteGame): com.alextos.thousand.domain.models.FinishedGameSaveResult? = null
+    override suspend fun saveGameStatistics(game: RemoteGame, userInfo: Map<String, RemoteUserInfo>) = Unit
     override suspend fun deleteGame(key: String) = Unit
     override suspend fun userInfo(userId: String): RemoteUserInfo? = null
     override fun observeUserInfo(userId: String): Flow<RemoteUserInfo?> = flowOf(null)

@@ -13,6 +13,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.application.navigation.AppNavHost
 import com.alextos.thousand.application.theme.AppBackground
 import com.alextos.thousand.application.theme.ThousandTheme
+import com.alextos.thousand.presentation.menu.achievements.AchievementCapsuleLayer
 import com.alextos.thousand.presentation.onboarding.OnboardingScreen
 import kotlinx.coroutines.delay
 import org.koin.compose.viewmodel.koinViewModel
@@ -30,20 +31,22 @@ fun App() {
         }
 
         AppBackground {
-            Surface(
-                modifier = Modifier.fillMaxSize(),
-                color = Color.Transparent,
-                contentColor = MaterialTheme.colorScheme.onBackground,
-            ) {
-                when {
-                    state.isLoading || !state.isLaunchFinished -> {
-                        LaunchScreen()
-                    }
-                    state.isOnboardingRequired -> {
-                        OnboardingScreen()
-                    }
-                    else -> {
-                        AppNavHost(hideMultiplayer = state.hideMultiplayer)
+            AchievementCapsuleLayer {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = Color.Transparent,
+                    contentColor = MaterialTheme.colorScheme.onBackground,
+                ) {
+                    when {
+                        state.isLoading || !state.isLaunchFinished -> {
+                            LaunchScreen()
+                        }
+                        state.isOnboardingRequired -> {
+                            OnboardingScreen()
+                        }
+                        else -> {
+                            AppNavHost(hideMultiplayer = state.hideMultiplayer)
+                        }
                     }
                 }
             }

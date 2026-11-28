@@ -224,7 +224,8 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
             buttons: [GameButton.rollTheDice],
             messagesToShow: [],
             reaction: nil,
-            onlinePlayerIds: []
+            onlinePlayerIds: [],
+            finishedAt: nil
         )
 
         try await Database.database().reference()
@@ -320,18 +321,49 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
             .setValue(isOnline)
     }
     
-    func finishGame(game: RemoteGame, userInfo: [String: RemoteUserInfo]) async throws {
+    func saveGameResult(game: RemoteGame) async throws -> FinishedGameSaveResult? {
         let reference = Database.database().reference()
-        try await reference
-            .child(FirebasePath.games)
-            .child(game.key)
-            .updateChildValues(updateDictionary(from: game))
-        
-        if game.isFinished() {
-            let updates = finishedGameStatisticsUpdates(for: game, userInfo: userInfo)
-            if !updates.isEmpty {
-                try await reference.updateChildValues(updates)
+        let gameReference = reference.child(FirebasePath.games).child(game.key)
+        let snapshot = try await gameReference.getData()
+        let previousPlayerIndex = snapshot.childSnapshot(forPath: "currentPlayerIndex").value as? Int ?? -1
+        guard game.isFinished() else {
+            return nil
+        }
+
+        if previousPlayerIndex < 0 {
+            guard let savedGame = self.game(from: snapshot.value, key: game.key),
+                  savedGame.isFinished() else {
+                return nil
             }
+            return FinishedGameSaveResult(game: savedGame, newlyFinished: false)
+        }
+
+        var updates = updateDictionary(from: game)
+        updates[FirebaseGameKey.finishedAt] = ServerValue.timestamp()
+        do {
+            try await gameReference.updateChildValues(updates)
+        } catch {
+            let latest = try await gameReference.getData()
+            guard let savedGame = self.game(from: latest.value, key: game.key),
+                  savedGame.isFinished(),
+                  savedGame.finishedAt != nil else {
+                throw error
+            }
+            return FinishedGameSaveResult(game: savedGame, newlyFinished: false)
+        }
+
+        let confirmed = try await gameReference.getData()
+        guard let savedGame = self.game(from: confirmed.value, key: game.key),
+              savedGame.isFinished() else {
+            return nil
+        }
+        return FinishedGameSaveResult(game: savedGame, newlyFinished: true)
+    }
+
+    func saveGameStatistics(game: RemoteGame, userInfo: [String: RemoteUserInfo]) async throws {
+        let updates = finishedGameStatisticsUpdates(for: game, userInfo: userInfo)
+        if !updates.isEmpty {
+            try await Database.database().reference().updateChildValues(updates)
         }
     }
     

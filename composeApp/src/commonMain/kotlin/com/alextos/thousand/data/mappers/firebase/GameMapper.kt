@@ -2,6 +2,7 @@ package com.alextos.thousand.data.mappers.firebase
 
 import com.alextos.thousand.domain.models.RemoteGame
 import com.alextos.thousand.domain.models.UserReaction
+import kotlin.time.Instant
 
 object FirebaseGameMapper {
     fun dictionary(from: RemoteGame): Map<String, Any> = from.toFirebaseMap()
@@ -37,6 +38,11 @@ internal fun RemoteGame.toFirebaseMap(): Map<String, Any> =
 
 internal fun Map<*, *>.toFirebaseGame(key: String?): RemoteGame {
     val players = get("players").asFirebaseMapList().map { player -> player.toFirebasePlayer() }
+    val currentPlayerIndex = int("currentPlayerIndex") ?: 0
+    // Older clients can leave a previous finish timestamp behind after a rematch.
+    val finishedAt = long("finishedAt")?.takeIf {
+        currentPlayerIndex == -1 && it == long("lastGameplayAt")
+    }
 
     return RemoteGame(
         id = long("id") ?: 0L,
@@ -44,7 +50,7 @@ internal fun Map<*, *>.toFirebaseGame(key: String?): RemoteGame {
         players = players,
         host = string("host").orEmpty(),
         key = key.orEmpty(),
-        currentPlayerIndex = int("currentPlayerIndex") ?: 0,
+        currentPlayerIndex = currentPlayerIndex,
         currentTurn = get("currentTurn").asFirebaseMapList().map { roll -> roll.toFirebaseDiceRoll() },
         currentRoll = get("currentRoll").asFirebaseMap()?.toFirebaseDiceRoll(),
         rollAbility = get("rollAbility").toFirebaseRollAbility(),
@@ -61,6 +67,7 @@ internal fun Map<*, *>.toFirebaseGame(key: String?): RemoteGame {
         messagesToShow = get("messagesToShow").asFirebaseStringList(),
         reaction = get("reaction").toFirebaseUserReaction(),
         onlinePlayerIds = get("onlinePlayerIds").asFirebaseOnlinePlayerIds(),
+        finishedAt = finishedAt?.let(Instant::fromEpochMilliseconds),
     )
 }
 

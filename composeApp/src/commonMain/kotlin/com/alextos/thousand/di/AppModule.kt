@@ -2,6 +2,7 @@ package com.alextos.thousand.di
 
 import com.alextos.thousand.application.AppViewModel
 import com.alextos.thousand.data.ThousandDatabase
+import com.alextos.thousand.data.dao.AchievementDao
 import com.alextos.thousand.data.dao.DiceRollDao
 import com.alextos.thousand.data.dao.DieDao
 import com.alextos.thousand.data.dao.GameDao
@@ -13,9 +14,12 @@ import com.alextos.thousand.data.dao.UserDao
 import com.alextos.thousand.data.local.DataStoreKeyValueStorage
 import com.alextos.thousand.data.local.KeyValueStorage
 import com.alextos.thousand.data.repository.GameRepositoryImpl
+import com.alextos.thousand.data.repository.RoomAchievementStore
 import com.alextos.thousand.data.service.StorageServiceImpl
+import com.alextos.thousand.domain.repository.AchievementStore
 import com.alextos.thousand.domain.repository.GameRepository
 import com.alextos.thousand.domain.repository.MultiplayerRepository
+import com.alextos.thousand.domain.service.AchievementService
 import com.alextos.thousand.domain.service.GamePresenceObserver
 import com.alextos.thousand.domain.service.NativeAccountService
 import com.alextos.thousand.domain.service.ShakeDeviceObserver
@@ -94,9 +98,14 @@ fun appModule(
     single<DieDao> { get<ThousandDatabase>().dieDao() }
     single<TurnEffectDao> { get<ThousandDatabase>().turnEffectDao() }
     single<TurnResultDao> { get<ThousandDatabase>().turnResultDao() }
+    single<AchievementDao> { get<ThousandDatabase>().achievementDao() }
+    single<AchievementStore> { RoomAchievementStore(get()) }
+    single { AchievementService(get()) }
     single<KeyValueStorage> { DataStoreKeyValueStorage(get()) }
     single<StorageService> { StorageServiceImpl(get()) }
-    single<GameRepository> { GameRepositoryImpl(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    single<GameRepository> {
+        GameRepositoryImpl(get(), get(), get(), get(), get(), get(), get(), get(), get(), get())
+    }
     single<NativeAccountService> { nativeAccountService }
     single<MultiplayerRepository> { multiplayerRepository }
     factory { GetAllGamesUseCase(get()) }

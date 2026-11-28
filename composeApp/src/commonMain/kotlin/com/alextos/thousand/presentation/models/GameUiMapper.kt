@@ -24,7 +24,7 @@ fun Game.toUi(): GameUi {
     )
 }
 
-private fun Instant.formatForUi(): String {
+internal fun Instant.formatForUi(): String {
     val dateTime = toLocalDateTime(TimeZone.currentSystemDefault())
     return DateFormatter.format(dateTime)
 }

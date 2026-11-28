@@ -1,0 +1,9 @@
+<resources>
+    <string name="achievements_title">Достижения</string>
+    <string name="achievement_first_win_title">Первая победа</string>
+    <string name="achievement_first_win_description">Одержать первую победу в обычной игре</string>
+    <string name="achievement_hidden">Скрытое достижение</string>
+    <string name="achievement_hidden_condition">Условие получения скрыто</string>
+    <string name="achievement_unlocked_at">Получено %1$s</string>
+    <string name="achievement_unlocked_capsule">Достижение разблокировано</string>
+</resources>

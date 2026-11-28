@@ -10,6 +10,9 @@ extension IOSMultiplayerRepository {
         dictionary.removeValue(forKey: FirebaseGameKey.onlinePlayerIds)
         dictionary.removeValue(forKey: "memberIds")
         dictionary.removeValue(forKey: FirebaseGameKey.reaction)
+        if !game.isFinished() && game.finishedAt != nil {
+            dictionary[FirebaseGameKey.finishedAt] = NSNull()
+        }
 
         if game.currentRoll == nil {
             dictionary[FirebaseGameKey.currentRoll] = NSNull()

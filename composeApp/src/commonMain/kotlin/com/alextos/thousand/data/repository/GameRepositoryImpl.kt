@@ -19,6 +19,7 @@ import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.models.User
 import com.alextos.thousand.domain.repository.GameRepository
+import com.alextos.thousand.domain.service.AchievementService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -32,6 +33,7 @@ class GameRepositoryImpl(
     private val dieDao: DieDao,
     private val turnEffectDao: TurnEffectDao,
     private val turnResultDao: TurnResultDao,
+    private val achievementService: AchievementService,
 ) : GameRepository {
     override fun getAllGames(): Flow<List<Game>> {
         return gameDao.getAllGames().map { games ->
@@ -79,13 +81,21 @@ class GameRepositoryImpl(
     }
 
     override suspend fun saveGame(game: Game) {
-        database.useWriterConnection { transactor ->
+        val unlocked = database.useWriterConnection { transactor ->
             transactor.immediateTransaction {
+                val justFinished = game.finishedAt != null && gameDao.getFinishedAt(game.id) == null
                 gameDao.upsert(game.toEntity())
                 gameDao.upsert(game.settings.toEntity(gameId = game.id))
                 playerDao.upsert(game.players.map { it.toEntity(gameId = game.id) })
+                if (justFinished) {
+                    val winner = game.players.firstOrNull { it.isWinner }
+                    achievementService.onLocalGameFinished(winner?.user?.id)
+                } else {
+                    emptyList()
+                }
             }
         }
+        achievementService.notifyUnlocked(unlocked)
     }
 
     override suspend fun getGame(id: Long): Game? {
@@ -112,7 +122,7 @@ class GameRepositoryImpl(
     }
 
     override suspend fun saveTurn(turn: Turn, game: Game): Turn {
-        val turnId = database.useWriterConnection { transactor ->
+        val (savedTurn, unlocked) = database.useWriterConnection { transactor ->
             transactor.immediateTransaction {
                 val turnId = turnDao.insert(
                     turn.toEntity(gameId = game.id)
@@ -153,11 +163,13 @@ class GameRepositoryImpl(
                     }
                 )
 
-                return@immediateTransaction turnId
+                val savedTurn = turn.copy(id = turnId)
+                savedTurn to achievementService.onLocalTurnSaved(savedTurn)
             }
         }
 
-        return turn.copy(id = turnId)
+        achievementService.notifyUnlocked(unlocked)
+        return savedTurn
     }
 
     override suspend fun deleteGame(gameId: Long) {

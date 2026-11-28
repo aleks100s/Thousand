@@ -14,6 +14,7 @@ import com.alextos.thousand.domain.models.GameSettings
 import com.alextos.thousand.domain.models.Lobby
 import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.RemoteGame
+import com.alextos.thousand.domain.models.FinishedGameSaveResult
 import com.alextos.thousand.domain.models.UserReaction
 import com.alextos.thousand.domain.models.RemoteUserInfo
 import com.alextos.thousand.domain.models.RollAbility
@@ -319,10 +320,14 @@ class AndroidMultiplayerRepository(private val accountService: com.alextos.thous
 
     override suspend fun updateGame(game: RemoteGame) {
         suspendCancellableCoroutine { continuation ->
+            val updates = game.toDatabaseUpdateMap().toMutableMap()
+            if (!game.isFinished() && game.finishedAt != null) {
+                updates["finishedAt"] = null
+            }
             FirebaseDatabase.getInstance().reference
                 .child(GAMES_NODE)
                 .child(game.key)
-                .updateChildren(game.toDatabaseUpdateMap())
+                .updateChildren(updates)
                 .addOnSuccessListener {
                     continuation.resume(Unit)
                 }
@@ -365,40 +370,65 @@ class AndroidMultiplayerRepository(private val accountService: com.alextos.thous
         }
     }
 
-    override suspend fun finishGame(
-        game: RemoteGame,
-        userInfo: Map<String, RemoteUserInfo>
-    ) {
+    override suspend fun saveGameResult(game: RemoteGame): FinishedGameSaveResult? =
         suspendCancellableCoroutine { continuation ->
-            val databaseReference = FirebaseDatabase.getInstance().reference
-            databaseReference
+            val gameReference = FirebaseDatabase.getInstance().reference
                 .child(GAMES_NODE)
                 .child(game.key)
-                .updateChildren(game.toDatabaseUpdateMap())
-                .addOnSuccessListener {
-                    if (game.isFinished().not()) {
-                        continuation.resume(Unit)
-                        return@addOnSuccessListener
-                    }
 
-                    val updates = game.toFinishedGameStatisticsUpdates(userInfo)
-                    if (updates.isEmpty()) {
-                        continuation.resume(Unit)
-                        return@addOnSuccessListener
-                    }
-
-                    databaseReference
-                        .updateChildren(updates)
-                        .addOnSuccessListener {
-                            continuation.resume(Unit)
+            fun readSavedResult(newlyFinished: Boolean) {
+                gameReference.get()
+                    .addOnSuccessListener { snapshot ->
+                        val savedGame = FirebaseGameMapper.game(snapshot.value, game.key)
+                        if (savedGame == null || !savedGame.isFinished()) {
+                            continuation.resumeWithException(IllegalStateException("Итог онлайн-игры не сохранён."))
+                        } else {
+                            continuation.resume(FinishedGameSaveResult(savedGame, newlyFinished))
                         }
+                    }
+                    .addOnFailureListener { continuation.resumeWithException(it) }
+            }
+
+            gameReference.get()
+                .addOnSuccessListener { snapshot ->
+                    val currentIndex = snapshot.child("currentPlayerIndex").getValue(Int::class.java) ?: -1
+                    if (!game.isFinished() || currentIndex < 0) {
+                        readSavedResult(newlyFinished = false)
+                        return@addOnSuccessListener
+                    }
+
+                    val updates = game.toDatabaseUpdateMap().toMutableMap()
+                    updates.remove("finishedAt")
+                    updates["finishedAt"] = ServerValue.TIMESTAMP
+
+                    gameReference.updateChildren(updates)
+                        .addOnSuccessListener { readSavedResult(newlyFinished = true) }
                         .addOnFailureListener {
-                            continuation.cancel(it)
+                            gameReference.get()
+                                .addOnSuccessListener { latest ->
+                                    val savedGame = FirebaseGameMapper.game(latest.value, game.key)
+                                    if (savedGame?.isFinished() == true && savedGame.finishedAt != null) {
+                                        continuation.resume(FinishedGameSaveResult(savedGame, newlyFinished = false))
+                                    } else {
+                                        continuation.resumeWithException(it)
+                                    }
+                                }
+                                .addOnFailureListener { continuation.resumeWithException(it) }
                         }
                 }
-                .addOnFailureListener {
-                    continuation.cancel(it)
-                }
+                .addOnFailureListener { continuation.resumeWithException(it) }
+        }
+
+    override suspend fun saveGameStatistics(game: RemoteGame, userInfo: Map<String, RemoteUserInfo>) {
+        suspendCancellableCoroutine { continuation ->
+            val updates = game.toFinishedGameStatisticsUpdates(userInfo)
+            if (updates.isEmpty()) {
+                continuation.resume(Unit)
+            } else {
+                FirebaseDatabase.getInstance().reference.updateChildren(updates)
+                    .addOnSuccessListener { continuation.resume(Unit) }
+                    .addOnFailureListener { continuation.resumeWithException(it) }
+            }
         }
     }
 

@@ -41,6 +41,7 @@ import com.alextos.thousand.presentation.components.GameView
 import com.alextos.thousand.presentation.menu.play_game.components.GameSettingsSheet
 import com.alextos.thousand.presentation.menu.game_rules.GameRulesContent
 import com.alextos.thousand.presentation.menu.multiplayer.player_profile.PlayerProfileView
+import com.alextos.thousand.presentation.menu.achievements.AchievementCapsuleInResultDialog
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.Res
@@ -352,6 +353,7 @@ fun MultiplayerGameScreen(
                 viewModel.onAction(MultiplayerGameAction.DismissGameResultSheet)
             },
         ) {
+            AchievementCapsuleInResultDialog()
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

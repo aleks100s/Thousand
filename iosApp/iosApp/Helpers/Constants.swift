@@ -34,6 +34,7 @@ enum FirebaseGameKey {
     static let onlinePlayerIds = "onlinePlayerIds"
     static let reaction = "reaction"
     static let currentRoll = "currentRoll"
+    static let finishedAt = "finishedAt"
 }
 
 enum FirebasePlatform {

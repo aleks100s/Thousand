@@ -25,6 +25,9 @@ interface GameDao {
     @Query("SELECT * FROM games WHERE id = :id LIMIT 1")
     suspend fun getGame(id: Long): GameWithRelations?
 
+    @Query("SELECT finishedAt FROM games WHERE id = :id LIMIT 1")
+    suspend fun getFinishedAt(id: Long): Long?
+
     @Update
     suspend fun upsert(game: GameEntity)
 

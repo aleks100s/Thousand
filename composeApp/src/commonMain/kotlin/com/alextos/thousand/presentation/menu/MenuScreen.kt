@@ -24,6 +24,7 @@ import com.alextos.thousand.presentation.components.AppBottomSheet as ModalBotto
 import com.alextos.thousand.presentation.components.appPanel
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.*
 
@@ -202,7 +203,12 @@ private fun MenuSectionCard(modifier: Modifier, tile: MenuTile, onClick: () -> U
             verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically),
         ) {
             Icon(painterResource(tile.action.icon()), null, Modifier.size(44.dp), tint = AppColors.Highlight)
-            Text(tile.title, color = AppColors.TextPrimary, textAlign = TextAlign.Center,
+            val title = if (tile.action == MenuTileAction.Achievements) {
+                stringResource(Res.string.achievements_title)
+            } else {
+                tile.title
+            }
+            Text(title, color = AppColors.TextPrimary, textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
     }

@@ -1,5 +1,6 @@
 package com.alextos.thousand.domain.usecase.game
 
+import com.alextos.thousand.domain.models.FinishedGameSaveResult
 import com.alextos.thousand.domain.models.RemoteGame
 import com.alextos.thousand.domain.models.RemoteUserInfo
 import com.alextos.thousand.domain.repository.MultiplayerRepository
@@ -12,19 +13,26 @@ class FinishRemoteGameUseCase(
 ) {
     suspend operator fun invoke(
         game: RemoteGame,
-        userInfo: Map<String, RemoteUserInfo>
+        userInfo: Map<String, RemoteUserInfo>,
+        onGamePersisted: suspend (FinishedGameSaveResult) -> Unit = {},
     ) {
-        val winner = game.players.firstOrNull { it.isWinner } ?: return
+        if (!game.isFinished()) return
+        val savedResult = multiplayerRepository.saveGameResult(game) ?: return
+        onGamePersisted(savedResult)
+        if (!savedResult.newlyFinished) return
+        val finishedGame = savedResult.game
+        val winner = finishedGame.players.firstOrNull { it.isWinner } ?: return
+
         val updatedUserInfo = userInfo.toMutableMap()
-        val losers = game.players.filter { it != winner }
+        val losers = finishedGame.players.filter { it != winner }
 
         if (losers.isEmpty()) {
-            multiplayerRepository.finishGame(game, updatedUserInfo)
+            multiplayerRepository.saveGameStatistics(finishedGame, updatedUserInfo)
             return
         }
 
         val effectiveK = K_FACTOR / losers.size
-        val originalRatings = game.players.associate { player ->
+        val originalRatings = finishedGame.players.associate { player ->
             player.user.id to (userInfo[player.user.id]?.rating ?: INITIAL_RATING)
         }
         val ratingDeltas = mutableMapOf<String, Float>()
@@ -47,7 +55,7 @@ class FinishRemoteGameUseCase(
             updatedUserInfo[userId]?.rating = max(newRating, INITIAL_RATING)
         }
 
-        multiplayerRepository.finishGame(game, updatedUserInfo)
+        multiplayerRepository.saveGameStatistics(finishedGame, updatedUserInfo)
     }
 
     private fun calculateExpectedScore(
