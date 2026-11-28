@@ -255,7 +255,7 @@ class AndroidMultiplayerRepository(private val accountService: com.alextos.thous
             rollAbility = RollAbility.REQUIRED,
             buttons = listOf(GameButton.ROLL_THE_DICE),
             onlinePlayerIds = emptySet(),
-        )
+        ).startAchievementRound()
         val gamesReference = FirebaseDatabase.getInstance().reference
             .child(GAMES_NODE)
             .child(gameID)

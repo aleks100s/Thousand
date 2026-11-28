@@ -225,8 +225,9 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
             messagesToShow: [],
             reaction: nil,
             onlinePlayerIds: [],
-            finishedAt: nil
-        )
+            finishedAt: nil,
+            achievementTurn: nil
+        ).startAchievementRound()
 
         try await Database.database().reference()
             .child(FirebasePath.games)

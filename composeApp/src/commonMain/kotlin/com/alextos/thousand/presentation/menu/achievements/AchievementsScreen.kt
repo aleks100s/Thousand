@@ -71,7 +71,13 @@ private fun AchievementsContent(
     unlocked: Map<AchievementId, Instant>,
 ) {
     val achievements = remember(unlocked) {
-        AchievementCatalog.all.sortedByDescending { it.id in unlocked }
+        AchievementCatalog.all.sortedBy { achievement ->
+            when {
+                achievement.id in unlocked -> 0
+                achievement.visibility == AchievementVisibility.Public -> 1
+                else -> 2
+            }
+        }
     }
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -109,13 +115,11 @@ private fun AchievementCard(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (!isHidden) {
-                Image(
-                    painter = painterResource(achievement.id.image.resource),
-                    contentDescription = null,
-                    modifier = Modifier.size(72.dp).clip(RoundedCornerShape(12.dp)),
-                )
-            }
+            Image(
+                painter = painterResource(achievement.id.image.resource),
+                contentDescription = null,
+                modifier = Modifier.size(72.dp).clip(RoundedCornerShape(12.dp)),
+            )
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -186,7 +190,7 @@ private fun HiddenAchievementPreview() {
     ThousandTheme {
         AppBackground {
             AchievementCard(
-                achievement = AchievementCatalog.all.single().copy(visibility = AchievementVisibility.Hidden),
+                achievement = AchievementCatalog.all.first { it.visibility == AchievementVisibility.Hidden },
                 unlockedAt = null,
             )
         }

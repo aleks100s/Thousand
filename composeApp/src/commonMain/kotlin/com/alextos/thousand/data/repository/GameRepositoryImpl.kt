@@ -88,8 +88,7 @@ class GameRepositoryImpl(
                 gameDao.upsert(game.settings.toEntity(gameId = game.id))
                 playerDao.upsert(game.players.map { it.toEntity(gameId = game.id) })
                 if (justFinished) {
-                    val winner = game.players.firstOrNull { it.isWinner }
-                    achievementService.onLocalGameFinished(winner?.user?.id)
+                    achievementService.onLocalGameFinished(game, getAllTurns(game.id))
                 } else {
                     emptyList()
                 }
@@ -164,7 +163,7 @@ class GameRepositoryImpl(
                 )
 
                 val savedTurn = turn.copy(id = turnId)
-                savedTurn to achievementService.onLocalTurnSaved(savedTurn)
+                savedTurn to achievementService.onLocalTurnSaved(game, savedTurn) { getAllTurns(game.id) }
             }
         }
 

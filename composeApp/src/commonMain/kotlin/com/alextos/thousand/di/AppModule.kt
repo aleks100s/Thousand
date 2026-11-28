@@ -99,7 +99,7 @@ fun appModule(
     single<TurnEffectDao> { get<ThousandDatabase>().turnEffectDao() }
     single<TurnResultDao> { get<ThousandDatabase>().turnResultDao() }
     single<AchievementDao> { get<ThousandDatabase>().achievementDao() }
-    single<AchievementStore> { RoomAchievementStore(get()) }
+    single<AchievementStore> { RoomAchievementStore(get(), get()) }
     single { AchievementService(get()) }
     single<KeyValueStorage> { DataStoreKeyValueStorage(get()) }
     single<StorageService> { StorageServiceImpl(get()) }

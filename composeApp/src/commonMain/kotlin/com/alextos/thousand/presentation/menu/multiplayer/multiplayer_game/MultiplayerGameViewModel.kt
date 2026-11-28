@@ -11,6 +11,7 @@ import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.RemoteGame
 import com.alextos.thousand.domain.models.RemoteUserInfo
 import com.alextos.thousand.domain.models.RollAbility
+import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.models.UserReaction
 import com.alextos.thousand.domain.repository.MultiplayerRepository
 import com.alextos.thousand.domain.service.GamePresenceObserver
@@ -93,7 +94,9 @@ class MultiplayerGameViewModel(
                     }
                     showMessagesIfNeeded(game.messagesToShow)
                     showReactionIfNeeded(game.reaction)
+                    val previous = remoteGame
                     handleGameUpdate(game)
+                    checkObservedAchievements(previous, game)
                 }
         }
     }
@@ -172,9 +175,6 @@ class MultiplayerGameViewModel(
             rollBlocked = game.currentRoll != null
         }
         remoteGame = game
-        if (game.isFinished() && game.finishedAt != null && pendingGameFinish == null) {
-            viewModelScope.launch { awardOnlineWin(game) }
-        }
         val actualGame = remoteGame ?: game
         loadMissingUsersInfo(game)
         val gameState = mapToGameState(actualGame)
@@ -326,7 +326,7 @@ class MultiplayerGameViewModel(
                 messagesToShow = emptyList(),
             )
 
-            updateRemote(resetGame)
+            updateRemote(resetGame.startAchievementRound())
         }
     }
 
@@ -387,9 +387,15 @@ class MultiplayerGameViewModel(
         viewModelScope.launch {
             try {
                 multiplayerRepository.updateGame(newGame)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 rollBlocked = false
                 _events.emit(MultiplayerGameEvent.Error(e.message ?: "Ошибка при обновлении игры"))
+                return@launch
+            }
+            checkAchievements { accountId ->
+                achievementService.onOnlineRollSaved(currentPlayer.user.id, accountId, roll, currentTurn.size)
             }
         }
     }
@@ -416,12 +422,12 @@ class MultiplayerGameViewModel(
         }
 
         when (updateGame(game, turn, skipSaving = true)) {
-            GameStatus.ONGOING -> continueGame(game, messages, player.user.id)
-            GameStatus.FINISHED -> finishGame(game, messages, player.user.id)
+            GameStatus.ONGOING -> continueGame(game, messages, turn)
+            GameStatus.FINISHED -> finishGame(game, messages, turn)
         }
     }
 
-    private suspend fun continueGame(game: Game, messages: List<String>, actorId: String) {
+    private suspend fun continueGame(game: Game, messages: List<String>, turn: Turn) {
         val remoteGame = remoteGame ?: return
         val nextPlayerIndex = (remoteGame.currentPlayerIndex + 1) % remoteGame.players.count()
         val newGame = remoteGame.copy(
@@ -440,14 +446,13 @@ class MultiplayerGameViewModel(
             messagesToShow = messages,
             reaction = null,
         )
-        if (updateRemote(newGame)) {
-            accountService.userProfile.value?.id?.let { accountId ->
-                achievementService.onOnlineTurnSaved(actorId, accountId)
-            }
+        val completedGame = newGame.withCompletedAchievementTurn(turn, nextPlayerIndex)
+        if (updateRemote(completedGame)) {
+            checkAchievements { accountId -> achievementService.onOnlineTurnSaved(completedGame, accountId) }
         }
     }
 
-    private suspend fun finishGame(game: Game, messages: List<String>, actorId: String) {
+    private suspend fun finishGame(game: Game, messages: List<String>, turn: Turn) {
         val remoteGame = remoteGame ?: return
         finishRemote(
             remoteGame.copy(
@@ -459,8 +464,7 @@ class MultiplayerGameViewModel(
                 buttons = emptyList(),
                 messagesToShow = messages,
                 reaction = null,
-            ),
-            actorId,
+            ).withCompletedAchievementTurn(turn, nextPlayerIndex = -1),
         )
     }
 
@@ -511,17 +515,13 @@ class MultiplayerGameViewModel(
         }
     }
 
-    private suspend fun finishRemote(game: RemoteGame, actorId: String) {
+    private suspend fun finishRemote(game: RemoteGame) {
         pendingGameFinish = game
         try {
             finishRemoteGame(game, state.value.usersInfo) { savedResult ->
-                pendingGameFinish = null
-                if (savedResult.newlyFinished) {
-                    accountService.userProfile.value?.id?.let { accountId ->
-                        achievementService.onOnlineTurnSaved(actorId, accountId)
-                    }
+                checkAchievements { accountId ->
+                    achievementService.onOnlineGameFinished(savedResult.game, accountId)
                 }
-                awardOnlineWin(savedResult.game)
             }
         } catch (e: CancellationException) {
             throw e
@@ -532,11 +532,30 @@ class MultiplayerGameViewModel(
         }
     }
 
-    private suspend fun awardOnlineWin(game: RemoteGame) {
+    private suspend fun checkObservedAchievements(previous: RemoteGame?, game: RemoteGame) {
+        val turn = game.achievementTurn ?: return
+        if (game.isFinished() && (game.finishedAt == null || pendingGameFinish != null)) return
+
+        checkAchievements { accountId ->
+            if (game.finishedAt != null) {
+                achievementService.onOnlineGameFinished(game, accountId)
+                return@checkAchievements
+            }
+
+            val previousTurn = previous?.achievementTurn
+            // Our own writes can appear in the Firebase listener before server acknowledgement.
+            if (previous != null && turn.playerId != accountId &&
+                (previousTurn == null || (previousTurn.roundId == turn.roundId && turn.number > previousTurn.number))
+            ) {
+                achievementService.onOnlineTurnSaved(game, accountId)
+            }
+        }
+    }
+
+    private suspend fun checkAchievements(check: suspend (String) -> Unit) {
         val accountId = accountService.userProfile.value?.id ?: return
-        val winnerId = game.players.firstOrNull { it.isWinner }?.user?.id ?: return
         try {
-            achievementService.onOnlineGameFinished(winnerId, accountId, game.finishedAt)
+            check(accountId)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

@@ -1,5 +1,6 @@
 package com.alextos.thousand.data.mappers.firebase
 
+import com.alextos.thousand.domain.models.RemoteAchievementTurn
 import com.alextos.thousand.domain.models.RemoteGame
 import com.alextos.thousand.domain.models.UserReaction
 import kotlin.time.Instant
@@ -26,6 +27,10 @@ internal fun RemoteGame.toFirebaseMap(): Map<String, Any> =
         put("messagesToShow", messagesToShow)
         put("currentPlayerIndex", currentPlayerIndex)
         put("onlinePlayerIds", onlinePlayerIds.associateWith { true })
+
+        achievementTurn?.let { turn ->
+            put("achievementTurn", turn.toFirebaseMap())
+        }
 
         reaction?.let { reaction ->
             put("reaction", reaction.toFirebaseMap())
@@ -68,6 +73,33 @@ internal fun Map<*, *>.toFirebaseGame(key: String?): RemoteGame {
         reaction = get("reaction").toFirebaseUserReaction(),
         onlinePlayerIds = get("onlinePlayerIds").asFirebaseOnlinePlayerIds(),
         finishedAt = finishedAt?.let(Instant::fromEpochMilliseconds),
+        achievementTurn = get("achievementTurn").asFirebaseMap()
+            ?.takeIf { currentPlayerIndex >= 0 || (finishedAt != null && it.long("finishedAt") == finishedAt) }
+            ?.toAchievementTurn()
+            ?.takeIf { it.nextPlayerIndex == currentPlayerIndex },
+    )
+}
+
+private fun RemoteAchievementTurn.toFirebaseMap(): Map<String, Any> = buildMap {
+    put("roundId", roundId)
+    put("number", number)
+    put("nextPlayerIndex", nextPlayerIndex)
+    put("total", total)
+    put("hasCompleteNumbering", hasCompleteNumbering)
+    if (nextPlayerIndex == -1) put("finishedAt", mapOf(".sv" to "timestamp"))
+    playerId?.let { put("playerId", it) }
+    if (pitPlayerIds.isNotEmpty()) put("pitPlayerIds", pitPlayerIds.toList())
+}
+
+private fun Map<*, *>.toAchievementTurn(): RemoteAchievementTurn? {
+    return RemoteAchievementTurn(
+        roundId = string("roundId")?.takeIf { it.isNotBlank() } ?: return null,
+        number = int("number")?.takeIf { it >= 0 } ?: return null,
+        nextPlayerIndex = int("nextPlayerIndex") ?: return null,
+        hasCompleteNumbering = boolean("hasCompleteNumbering", defaultValue = false),
+        playerId = string("playerId"),
+        total = int("total") ?: return null,
+        pitPlayerIds = get("pitPlayerIds").asFirebaseStringList().toSet(),
     )
 }
 
