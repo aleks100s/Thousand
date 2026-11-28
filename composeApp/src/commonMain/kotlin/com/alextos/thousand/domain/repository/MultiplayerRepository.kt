@@ -5,14 +5,15 @@ import com.alextos.thousand.domain.models.Lobby
 import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.RemoteGame
 import com.alextos.thousand.domain.models.FinishedGameSaveResult
+import com.alextos.thousand.domain.models.User
 import com.alextos.thousand.domain.models.UserReaction
 import kotlinx.coroutines.flow.Flow
 
 class LobbyNotFoundException : IllegalStateException("Лобби больше недоступно.")
 
 interface MultiplayerRepository {
-    suspend fun createLobby(gameSettings: GameSettings): String
-    suspend fun joinLobby(id: String): String
+    suspend fun createLobby(gameSettings: GameSettings, player: User): String
+    suspend fun joinLobby(id: String, player: User): String
     fun connectToLobby(key: String): Flow<Lobby>
     suspend fun disconnectFromLobby(key: String)
     suspend fun startGame(key: String)

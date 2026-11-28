@@ -1,7 +1,5 @@
 package com.alextos.thousand.domain.service
 
-import com.alextos.thousand.domain.models.User
-import com.alextos.thousand.domain.models.UserKind
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -18,11 +16,9 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 interface NativeAccountService {
-    val userProfile: StateFlow<User?>
+    val userId: StateFlow<String?>
 
     suspend fun signInAnonymously()
-    fun updateLocalAppearance(user: User) = Unit
-    fun playerForAccount(id: String, name: String): User = User(id, name, UserKind.MainUser)
     suspend fun deleteAccount(
         deleteOwnedOnlineData: suspend (String) -> Unit,
         clearLocalData: suspend () -> Unit,
@@ -30,13 +26,13 @@ interface NativeAccountService {
 }
 
 open class MutableNativeAccountService : NativeAccountService {
-    private val _userProfile = MutableStateFlow<User?>(null)
+    private val _userId = MutableStateFlow<String?>(null)
     private val sessionMutex = Mutex()
     private val isDeleting = MutableStateFlow(false)
     private val authenticationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var pendingSignIn: Deferred<Unit>? = null
 
-    override val userProfile: StateFlow<User?> = _userProfile.asStateFlow()
+    override val userId: StateFlow<String?> = _userId.asStateFlow()
 
     override suspend fun signInAnonymously() {
         check(!isDeleting.value)
@@ -66,7 +62,7 @@ open class MutableNativeAccountService : NativeAccountService {
 
                 withContext(NonCancellable) {
                     if (userId != null) deleteAccountPlatform()
-                    clearUserProfile()
+                    clearUserId()
                     clearLocalData()
                 }
             }
@@ -75,33 +71,17 @@ open class MutableNativeAccountService : NativeAccountService {
         }
     }
 
-    open fun currentAnonymousUserId(): String? = userProfile.value?.id
+    open fun currentAnonymousUserId(): String? = userId.value
 
     open suspend fun signInAnonymouslyPlatform() = Unit
 
     open suspend fun deleteAccountPlatform() = Unit
 
-    override fun updateLocalAppearance(user: User) {
-        val profile = _userProfile.value ?: return
-        if (profile.id == user.id) {
-            _userProfile.value = profile.copy(name = user.name, color = user.color, avatar = user.avatar)
-        }
+    fun updateUserId(id: String) {
+        _userId.value = id
     }
 
-    override fun playerForAccount(id: String, name: String): User =
-        _userProfile.value?.takeIf { it.id == id && it.name.isNotBlank() }
-            ?: User(id, name, UserKind.MainUser)
-
-    fun updateUserProfile(id: String, name: String) {
-        val currentProfile = _userProfile.value?.takeIf { it.id == id }
-        _userProfile.value = if (currentProfile != null) {
-            currentProfile.copy(name = name.ifBlank { currentProfile.name })
-        } else {
-            User(id, name, UserKind.MainUser)
-        }
-    }
-
-    fun clearUserProfile() {
-        _userProfile.value = null
+    fun clearUserId() {
+        _userId.value = null
     }
 }

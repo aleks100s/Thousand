@@ -12,8 +12,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -48,14 +46,12 @@ class AppViewModel(
         viewModelScope.launch {
             combine(
                 getAllUsersUseCase(),
-                nativeAccountService.userProfile.map { it?.id }.distinctUntilChanged(),
+                nativeAccountService.userId,
             ) { users, accountId ->
                 users.firstOrNull { it.kind == UserKind.MainUser } to accountId
             }.collect { (localUser, accountId) ->
                 if (localUser != null && accountId != null) {
-                    if (localUser.id == accountId) {
-                        nativeAccountService.updateLocalAppearance(localUser)
-                    } else {
+                    if (localUser.id != accountId) {
                         replaceMainUserUseCase(localUser, localUser.copy(id = accountId))
                     }
                 }

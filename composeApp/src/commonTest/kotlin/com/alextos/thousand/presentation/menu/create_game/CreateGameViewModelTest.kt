@@ -58,9 +58,9 @@ class CreateGameViewModelTest {
             GetAllUsersUseCase(repo), account, ReplaceMainUserUseCase(repo),
         )
         stores += ViewModelStore().also { it.put("app", vm) }
-        account.updateUserProfile(saved.id, "")
-        assertEquals(saved.avatar, account.playerForAccount(saved.id, saved.name).avatar)
-        assertEquals(saved.color, account.playerForAccount(saved.id, saved.name).color)
+        account.updateUserId(saved.id)
+        assertEquals(saved.avatar, repo.users.value.single().avatar)
+        assertEquals(saved.color, repo.users.value.single().color)
     }
 
     @Test fun mainOnboardingUsesAvailableColorsAndKeepsAvatarChoice() = runTest {
@@ -77,7 +77,7 @@ class CreateGameViewModelTest {
         assertEquals(PlayerAvatar.Female, manualPlayer.avatar)
         assertEquals(PlayerColor.Sky, manualPlayer.color)
         repo.users.value = occupied
-        account.updateUserProfile("account", "")
+        account.updateUserId("account")
         assertTrue(repo.users.value.none { it.kind == UserKind.MainUser })
         vm.onAction(OnboardingAction.UpdateName("Олег"))
         vm.onAction(OnboardingAction.SaveUser)

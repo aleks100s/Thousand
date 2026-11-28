@@ -3,14 +3,6 @@ import FirebaseAuth
 import Foundation
 
 extension IOSMultiplayerRepository {
-    func currentPlayer() -> ComposeApp.User {
-        let currentUser = Auth.auth().currentUser
-        return accountService.playerForAccount(
-            id: currentUser?.uid ?? UUID().uuidString,
-            name: currentUser?.displayName ?? "Без имени"
-        )
-    }
-
     func dictionary(from user: ComposeApp.User) -> [String: Any] {
         swiftDictionary(from: FirebaseUserMapper.shared.dictionary(from: user))
     }

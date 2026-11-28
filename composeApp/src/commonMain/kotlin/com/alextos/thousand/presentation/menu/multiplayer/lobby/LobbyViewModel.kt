@@ -64,7 +64,7 @@ class LobbyViewModel(
                                 players = lobby.players,
                                 hostId = lobby.host,
                                 error = null,
-                                isHost = lobby.host == accountService.userProfile.value?.id
+                                isHost = lobby.host == accountService.userId.value
                             )
                         }
                     }

@@ -43,7 +43,7 @@ class OnboardingViewModel(
             saveUserUseCase(
                 name = name,
                 kind = UserKind.MainUser,
-                id = accountService.userProfile.value?.id,
+                id = accountService.userId.value,
                 avatar = state.value.avatar,
             )
 

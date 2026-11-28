@@ -29,6 +29,8 @@ import com.alextos.thousand.domain.usecase.game.crud.UpdateGameUseCase
 import com.alextos.thousand.domain.usecase.game.server.GameAction
 import com.alextos.thousand.domain.usecase.game.server.GameState
 import com.alextos.thousand.domain.usecase.game.server.GameStatus
+import com.alextos.thousand.domain.usecase.user.GetAllUsersUseCase
+import com.alextos.thousand.domain.models.UserKind
 import com.alextos.thousand.presentation.menu.multiplayer.MultiplayerRoute
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
@@ -38,6 +40,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -55,6 +58,7 @@ class MultiplayerGameViewModel(
     private val updateGame: UpdateGameUseCase,
     private val finishRemoteGame: FinishRemoteGameUseCase,
     private val achievementService: AchievementService,
+    private val getAllUsersUseCase: GetAllUsersUseCase,
 ) : ViewModel(), ShakeDeviceObserverDelegate, GamePresenceObserverDelegate {
     private val gameId = savedStateHandle.toRoute<MultiplayerRoute.MultiplayerGame>().gameId
 
@@ -95,7 +99,7 @@ class MultiplayerGameViewModel(
     }
 
     override fun deviceDidShake() {
-        val isCurrentUser = accountService.userProfile.value?.id == remoteGame?.currentPlayer()?.user?.id
+        val isCurrentUser = accountService.userId.value == remoteGame?.currentPlayer()?.user?.id
         if (isCurrentUser) {
             rollDice()
         }
@@ -172,7 +176,7 @@ class MultiplayerGameViewModel(
         val gameState = mapToGameState(actualGame)
         _state.update {
             it.copy(
-                isHost = actualGame.host == accountService.userProfile.value?.id,
+                isHost = actualGame.host == accountService.userId.value,
                 gameCode = actualGame.id.toString(),
                 gameState = gameState,
                 gameResultSheet = actualGame.finishedGameResultSheet(),
@@ -182,7 +186,7 @@ class MultiplayerGameViewModel(
 
     private fun mapToGameState(game: RemoteGame): GameState {
         val currentPlayer = game.currentPlayer()
-        val isCurrentUser = accountService.userProfile.value?.id == currentPlayer?.user?.id
+        val isCurrentUser = accountService.userId.value == currentPlayer?.user?.id
         return GameState(
             isLoading = false,
             game = Game(
@@ -225,7 +229,7 @@ class MultiplayerGameViewModel(
         }
 
         val winner = players.firstOrNull { it.isWinner } ?: return null
-        val currentUserId = accountService.userProfile.value?.id
+        val currentUserId = accountService.userId.value
         return MultiplayerGameResultSheetUi(
             winnerName = winner.user.name,
             isCurrentUser = winner.user.id == currentUserId,
@@ -434,14 +438,15 @@ class MultiplayerGameViewModel(
         }
 
         val remoteGame = remoteGame ?: return
-        val userProfile = accountService.userProfile.value
-        val userReaction = UserReaction(
-            authorId = userProfile?.id.orEmpty(),
-            author = userProfile?.name.orEmpty(),
-            reaction = reaction,
-        )
-
+        val currentUserId = accountService.userId.value ?: return
         viewModelScope.launch {
+            val currentPlayer = getAllUsersUseCase().first()
+                .firstOrNull { it.kind == UserKind.MainUser && it.id == currentUserId } ?: return@launch
+            val userReaction = UserReaction(
+                authorId = currentUserId,
+                author = currentPlayer.name,
+                reaction = reaction,
+            )
             _state.update {
                 it.copy(isReactionButtonEnabled = false)
             }
@@ -507,7 +512,7 @@ class MultiplayerGameViewModel(
     }
 
     private suspend fun checkAchievements(check: suspend (String) -> Unit) {
-        val accountId = accountService.userProfile.value?.id ?: return
+        val accountId = accountService.userId.value ?: return
         try {
             check(accountId)
         } catch (e: CancellationException) {

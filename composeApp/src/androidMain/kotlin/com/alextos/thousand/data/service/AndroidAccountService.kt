@@ -11,7 +11,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 class AndroidAccountService : MutableNativeAccountService() {
     init {
         Firebase.auth.addAuthStateListener { auth ->
-            if (auth.currentUser?.isAnonymous != true) clearUserProfile()
+            if (auth.currentUser?.isAnonymous != true) clearUserId()
         }
     }
 
@@ -19,11 +19,11 @@ class AndroidAccountService : MutableNativeAccountService() {
         val auth = Firebase.auth
         val currentUser = auth.currentUser
         if (currentUser?.isAnonymous == true) {
-            updateUserProfile(currentUser.uid, "")
+            updateUserId(currentUser.uid)
             return
         }
 
-        clearUserProfile()
+        clearUserId()
         if (currentUser != null) auth.signOut()
 
         suspendCancellableCoroutine { continuation ->
@@ -31,17 +31,17 @@ class AndroidAccountService : MutableNativeAccountService() {
                 if (task.isSuccessful) {
                     val user = task.result?.user ?: auth.currentUser
                     if (user != null && user.isAnonymous) {
-                        updateUserProfile(user.uid, "")
+                        updateUserId(user.uid)
                         if (continuation.isActive) continuation.resume(Unit)
                     } else {
                         val error = IllegalStateException("Firebase anonymous user is missing after sign-in.")
-                        clearUserProfile()
+                        clearUserId()
                         FirebaseCrashlytics.getInstance().recordException(error)
                         if (continuation.isActive) continuation.resumeWithException(error)
                     }
                 } else {
                     val error = task.exception ?: IllegalStateException("Firebase anonymous sign-in failed.")
-                    clearUserProfile()
+                    clearUserId()
                     FirebaseCrashlytics.getInstance().recordException(error)
                     if (continuation.isActive) continuation.resumeWithException(error)
                 }

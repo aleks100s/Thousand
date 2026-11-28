@@ -23,7 +23,7 @@ class ThousandApplication : Application() {
             shakeDeviceObserver = shakeDeviceObserver,
             gamePresenceObserver = gamePresenceObserver,
             nativeAccountService = accountService,
-            multiplayerRepository = AndroidMultiplayerRepository(accountService),
+            multiplayerRepository = AndroidMultiplayerRepository(),
         ) {
             androidLogger()
             androidContext(this@ThousandApplication)

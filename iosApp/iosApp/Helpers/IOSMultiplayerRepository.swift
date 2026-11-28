@@ -11,23 +11,16 @@ import FirebaseDatabase
 import Foundation
 
 final class IOSMultiplayerRepository: MultiplayerRepository {
-    let accountService: IOSAccountService
-
-    init(accountService: IOSAccountService) {
-        self.accountService = accountService
-    }
-
-    func createLobby(gameSettings: GameSettings) async throws -> String {
+    func createLobby(gameSettings: GameSettings, player: ComposeApp.User) async throws -> String {
         let gameID = LobbyCode.shared.generate()
         let currentUser = Auth.auth().currentUser
         let host = currentUser?.uid ?? ""
-        let hostPlayer = currentPlayer()
         let key = UUID().uuidString
         let lobby = Lobby(
             id: gameID,
             key: key,
             settings: gameSettings,
-            players: [hostPlayer],
+            players: [player],
             host: host,
             game: ""
         )
@@ -39,7 +32,7 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
         return key
     }
 
-    func joinLobby(id: String) async throws -> String {
+    func joinLobby(id: String, player: ComposeApp.User) async throws -> String {
         guard let currentUser = Auth.auth().currentUser else {
             return ""
         }
@@ -71,7 +64,7 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
                     return
                 }
 
-                lobby.players.append(self.currentPlayer())
+                lobby.players.append(player)
                 
                 continuation.resume(returning: (key, lobby))
             }, withCancel: { error in

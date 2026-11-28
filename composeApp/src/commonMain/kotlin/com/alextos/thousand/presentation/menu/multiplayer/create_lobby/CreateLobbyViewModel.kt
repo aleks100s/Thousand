@@ -3,6 +3,9 @@ package com.alextos.thousand.presentation.menu.multiplayer.create_lobby
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alextos.thousand.domain.repository.MultiplayerRepository
+import com.alextos.thousand.domain.models.UserKind
+import com.alextos.thousand.domain.usecase.user.GetAllUsersUseCase
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -13,7 +16,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class CreateLobbyViewModel(
-    private val repository: MultiplayerRepository
+    private val repository: MultiplayerRepository,
+    private val getAllUsersUseCase: GetAllUsersUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow(CreateLobbyState())
     val state: StateFlow<CreateLobbyState> = _state.asStateFlow()
@@ -39,7 +43,7 @@ class CreateLobbyViewModel(
             it.copy(isLoading = true)
         }
         viewModelScope.launch {
-            val lobbyId = repository.createLobby(state.value.gameSettings)
+            val lobbyId = repository.createLobby(state.value.gameSettings, getAllUsersUseCase().first().first { it.kind == UserKind.MainUser })
             _events.emit(CreateLobbyEvent.OpenLobby(lobbyId = lobbyId))
         }
     }

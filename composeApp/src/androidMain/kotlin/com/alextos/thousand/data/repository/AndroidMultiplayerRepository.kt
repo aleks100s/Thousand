@@ -37,7 +37,7 @@ import kotlin.collections.plus
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-class AndroidMultiplayerRepository(private val accountService: com.alextos.thousand.domain.service.NativeAccountService) : MultiplayerRepository {
+class AndroidMultiplayerRepository : MultiplayerRepository {
     companion object {
         private const val LOBBIES_NODE = "lobbies"
         private const val GAMES_NODE = "games"
@@ -45,12 +45,12 @@ class AndroidMultiplayerRepository(private val accountService: com.alextos.thous
     }
 
     @OptIn(ExperimentalUuidApi::class)
-    override suspend fun createLobby(gameSettings: GameSettings): String {
+    override suspend fun createLobby(gameSettings: GameSettings, player: User): String {
         val lobbyID = LobbyCode.generate()
         val currentUser = Firebase.auth.currentUser
         val host = currentUser?.uid ?: ""
         val players = listOf(
-            accountService.playerForAccount(currentUser?.uid.orEmpty(), currentUser?.displayName ?: "Без имени")
+            player
         )
         val key = Uuid.random().toString()
         val lobby = Lobby(
@@ -79,7 +79,7 @@ class AndroidMultiplayerRepository(private val accountService: com.alextos.thous
         }
     }
 
-    override suspend fun joinLobby(id: String): String {
+    override suspend fun joinLobby(id: String, player: User): String {
         val currentUser = Firebase.auth.currentUser ?: return ""
 
         val lobbies = FirebaseDatabase.getInstance().reference
@@ -103,7 +103,7 @@ class AndroidMultiplayerRepository(private val accountService: com.alextos.thous
                         return
                     }
 
-                    val currentPlayer = accountService.playerForAccount(currentUser.uid, currentUser.displayName ?: "Без имени")
+                    val currentPlayer = player
                     if (lobby.players.any { it.id == currentPlayer.id }) {
                         continuation.resume(key)
                         return

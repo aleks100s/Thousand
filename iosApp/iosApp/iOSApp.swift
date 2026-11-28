@@ -13,7 +13,7 @@ struct iOSApp: App {
     init() {
         let accountService = IOSAccountService()
         self.accountService = accountService
-        self.multiplayerRepository = IOSMultiplayerRepository(accountService: accountService)
+        self.multiplayerRepository = IOSMultiplayerRepository()
         KoinKt.doInitKoin(
             shakeDeviceObserver: observer,
             gamePresenceObserver: gamePresenceObserver,

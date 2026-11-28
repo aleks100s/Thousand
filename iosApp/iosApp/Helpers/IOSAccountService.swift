@@ -17,7 +17,7 @@ final class IOSAccountService: MutableNativeAccountService {
         FirebaseApp.configure()
         Auth.auth().addStateDidChangeListener { [weak self] auth, _ in
             if auth.currentUser?.isAnonymous != true {
-                self?.clearUserProfile()
+                self?.clearUserId()
             }
         }
     }
@@ -25,12 +25,12 @@ final class IOSAccountService: MutableNativeAccountService {
     override func signInAnonymouslyPlatform(completionHandler: @escaping ((any Error)?) -> Void) {
         let auth = Auth.auth()
         if let currentUser = auth.currentUser, currentUser.isAnonymous {
-            updateUserProfile(id: currentUser.uid, name: "")
+            updateUserId(id: currentUser.uid)
             completionHandler(nil)
             return
         }
 
-        clearUserProfile()
+        clearUserId()
         if auth.currentUser != nil {
             do {
                 try auth.signOut()
@@ -43,14 +43,14 @@ final class IOSAccountService: MutableNativeAccountService {
 
         auth.signInAnonymously { [weak self] result, error in
             if let error {
-                self?.clearUserProfile()
+                self?.clearUserId()
                 Crashlytics.crashlytics().record(error: error)
                 completionHandler(error)
                 return
             }
 
             guard let user = result?.user, user.isAnonymous else {
-                self?.clearUserProfile()
+                self?.clearUserId()
                 let error = NSError(
                     domain: "IOSAccountService",
                     code: 1,
@@ -61,7 +61,7 @@ final class IOSAccountService: MutableNativeAccountService {
                 return
             }
 
-            self?.updateUserProfile(id: user.uid, name: "")
+            self?.updateUserId(id: user.uid)
             completionHandler(nil)
         }
     }

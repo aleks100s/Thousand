@@ -4,6 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alextos.thousand.domain.models.LobbyCode
+import com.alextos.thousand.domain.models.UserKind
+import com.alextos.thousand.domain.usecase.user.GetAllUsersUseCase
 import com.alextos.thousand.domain.repository.MultiplayerRepository
 import com.alextos.thousand.domain.service.NativeAccountService
 import kotlinx.coroutines.Job
@@ -18,7 +20,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -27,6 +28,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 class MultiplayerViewModel(
     private val nativeAccountService: NativeAccountService,
     private val multiplayerRepository: MultiplayerRepository,
+    private val getAllUsersUseCase: GetAllUsersUseCase,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _state = MutableStateFlow(MultiplayerState())
@@ -38,7 +40,7 @@ class MultiplayerViewModel(
     private var joinJob: Job? = null
 
     init {
-        observeUserProfile()
+        observeAuthorization()
         connect()
     }
 
@@ -57,14 +59,15 @@ class MultiplayerViewModel(
 
     private fun connect() {
         if (connectionJob?.isActive == true || state.value.isAuthorized) return
-        if (!nativeAccountService.userProfile.value?.name.isNullOrBlank()) return
 
         _state.update { it.copy(isConnecting = true, connectionError = null) }
         connectionJob = viewModelScope.launch {
             try {
                 withTimeoutOrNull(15_000) {
                     nativeAccountService.signInAnonymously()
-                    nativeAccountService.userProfile.first { !it?.name.isNullOrBlank() }
+                    combine(nativeAccountService.userId, getAllUsersUseCase()) { userId, users ->
+                        users.firstOrNull { it.kind == UserKind.MainUser && it.id == userId }
+                    }.first { it != null }
                 } ?: error("Подключение заняло слишком много времени")
             } catch (_: Exception) {
                 currentCoroutineContext().ensureActive()
@@ -78,10 +81,11 @@ class MultiplayerViewModel(
         }
     }
 
-    private fun observeUserProfile() {
+    private fun observeAuthorization() {
         viewModelScope.launch {
-            nativeAccountService.userProfile
-                .map { profile -> profile?.takeIf { it.name.isNotBlank() }?.id }
+            combine(nativeAccountService.userId, getAllUsersUseCase()) { userId, users ->
+                users.firstOrNull { it.kind == UserKind.MainUser && it.id == userId }?.id
+            }
                 .distinctUntilChanged()
                 .collectLatest { userId ->
                     if (userId == null) {
@@ -179,7 +183,10 @@ class MultiplayerViewModel(
         joinJob = viewModelScope.launch {
             _state.update { it.copy(isJoiningLobby = true, lobbyError = null) }
             try {
-                val key = withTimeoutOrNull(10_000) { multiplayerRepository.joinLobby(lobbyId) }
+                val key = withTimeoutOrNull(10_000) { multiplayerRepository.joinLobby(
+                        lobbyId,
+                        getAllUsersUseCase().first().first { it.kind == UserKind.MainUser && it.id == nativeAccountService.userId.value },
+                    ) }
                     ?: error("Не удалось подключиться вовремя. Попробуйте ещё раз.")
                 check(key.isNotBlank()) { "Не удалось подключиться к лобби" }
                 _state.update { it.copy(isJoinLobbySheetVisible = false, lobbyId = "") }

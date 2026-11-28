@@ -41,16 +41,6 @@ class PlayerAppearancePersistenceTest {
         assertEquals(PlayerAvatar.Neutral, malformed.avatar)
     }
 
-    @Test fun accountRefreshPreservesAppearanceAndDoesNotLeakItAcrossAccounts() {
-        val account = MutableNativeAccountService()
-        account.updateUserProfile("one", "Маша")
-        account.updateLocalAppearance(User("one", "Маша", UserKind.MainUser, PlayerColor.Gold, PlayerAvatar.Female))
-        account.updateUserProfile("one", "Мария")
-        assertEquals(PlayerAvatar.Female, account.playerForAccount("one", "Мария").avatar)
-        account.updateUserProfile("two", "Олег")
-        assertEquals(PlayerAvatar.Neutral, account.playerForAccount("two", "Олег").avatar)
-    }
-
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test fun profileDeletionWaitsForInFlightSignInAndClearsLocalDataAfterAccountDeletion() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
@@ -60,7 +50,7 @@ class PlayerAppearancePersistenceTest {
             val account = object : MutableNativeAccountService() {
                 override suspend fun signInAnonymouslyPlatform() {
                     signInGate.await()
-                    updateUserProfile("uid", "")
+                    updateUserId("uid")
                 }
 
                 override suspend fun deleteAccountPlatform() {
@@ -74,7 +64,7 @@ class PlayerAppearancePersistenceTest {
                 account.deleteAccount(
                     deleteOwnedOnlineData = { events += "clean up $it" },
                     clearLocalData = {
-                        assertNull(account.userProfile.value)
+                        assertNull(account.userId.value)
                         assertFailsWith<IllegalStateException> { account.signInAnonymously() }
                         events += "clear local data"
                     },
