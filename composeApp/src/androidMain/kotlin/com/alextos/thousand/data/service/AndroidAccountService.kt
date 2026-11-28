@@ -1,5 +1,6 @@
 package com.alextos.thousand.data.service
 
+import android.util.Log
 import com.alextos.thousand.domain.service.MutableNativeAccountService
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -36,13 +37,13 @@ class AndroidAccountService : MutableNativeAccountService() {
                     } else {
                         val error = IllegalStateException("Firebase anonymous user is missing after sign-in.")
                         clearUserId()
-                        FirebaseCrashlytics.getInstance().recordException(error)
+                        reportFailure("signInAnonymously", error)
                         if (continuation.isActive) continuation.resumeWithException(error)
                     }
                 } else {
                     val error = task.exception ?: IllegalStateException("Firebase anonymous sign-in failed.")
                     clearUserId()
-                    FirebaseCrashlytics.getInstance().recordException(error)
+                    reportFailure("signInAnonymously", error)
                     if (continuation.isActive) continuation.resumeWithException(error)
                 }
             }
@@ -60,10 +61,15 @@ class AndroidAccountService : MutableNativeAccountService() {
                     if (continuation.isActive) continuation.resume(Unit)
                 } else {
                     val error = task.exception ?: IllegalStateException("Firebase account deletion failed.")
-                    FirebaseCrashlytics.getInstance().recordException(error)
+                    reportFailure("deleteAccount", error)
                     if (continuation.isActive) continuation.resumeWithException(error)
                 }
             }
         }
+    }
+
+    private fun reportFailure(operation: String, error: Exception) {
+        Log.e("ThousandFirebase", "Auth.$operation failed", error)
+        FirebaseCrashlytics.getInstance().recordException(error)
     }
 }

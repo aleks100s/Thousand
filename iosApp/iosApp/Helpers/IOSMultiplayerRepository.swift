@@ -11,6 +11,17 @@ import FirebaseDatabase
 import Foundation
 
 final class IOSMultiplayerRepository: MultiplayerRepository {
+    private func databaseOperation<T>(_ operation: String, _ perform: () async throws -> T) async throws -> T {
+        do {
+            return try await perform()
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            logFirebaseError("Database.\(operation)", error)
+            throw error
+        }
+    }
+
     func createLobby(gameSettings: GameSettings, player: ComposeApp.User) async throws -> String {
         let gameID = LobbyCode.shared.generate()
         let currentUser = Auth.auth().currentUser
@@ -25,10 +36,12 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
             game: ""
         )
 
-        try await Database.database().reference()
-            .child(FirebasePath.lobbies)
-            .child(key)
-            .setValue(dictionary(from: lobby))
+        try await databaseOperation("createLobby") {
+            try await Database.database().reference()
+                .child(FirebasePath.lobbies)
+                .child(key)
+                .setValue(dictionary(from: lobby))
+        }
         return key
     }
 
@@ -53,6 +66,7 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
                         code: 1,
                         userInfo: [NSLocalizedDescriptionKey: "Лобби не найдено"]
                     )
+                    logFirebaseError("Database.joinLobby", error)
                     continuation.resume(throwing: error)
                     return
                 }
@@ -68,13 +82,16 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
                 
                 continuation.resume(returning: (key, lobby))
             }, withCancel: { error in
+                logFirebaseError("Database.joinLobby.find", error)
                 continuation.resume(throwing: error)
             })
         }
         
         if let update = lobby.update {
             try Task.checkCancellation()
-            try await lobbies.child(lobby.key).setValue(dictionary(from: update))
+            try await databaseOperation("joinLobby.write") {
+                try await lobbies.child(lobby.key).setValue(dictionary(from: update))
+            }
         }
         return lobby.key
     }
@@ -89,12 +106,14 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
                 return
             }
             guard let self, let lobby = self.lobby(from: snapshot.firebaseDictionary, key: snapshot.key) else {
+                NSLog("[ThousandFirebase] Database.connectToLobby failed: invalid lobby data")
                 bridge.closeWithError(message: "Failed to connect")
                 return
             }
 
             bridge.emit(lobby: lobby)
         }, withCancel: { error in
+            logFirebaseError("Database.connectToLobby", error)
             bridge.closeWithError(message: error.localizedDescription)
         })
 
@@ -138,6 +157,7 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
                 return TransactionResult.success(withValue: data)
             }, andCompletionBlock: { error, _, _ in
                 if let error {
+                    logFirebaseError("Database.disconnectFromLobby", error)
                     continuation.resume(throwing: error)
                 } else {
                     continuation.resume()
@@ -172,6 +192,7 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
 
             bridge.emit(lobbies: lobbies)
         }, withCancel: { error in
+            logFirebaseError("Database.userLobbies", error)
             bridge.closeWithError(message: error.localizedDescription)
         })
 
@@ -183,14 +204,18 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
             .child(FirebasePath.lobbies)
             .child(key)
 
-        let snapshot = try await lobbyReference.getData()
+        let snapshot = try await databaseOperation("startGame.readLobby") {
+            try await lobbyReference.getData()
+        }
         let data = snapshot.value as? [String: [String: Any]]
         guard let lobby = lobby(from: data?[key] ?? [:], key: key) else {
-            throw NSError(
+            let error = NSError(
                 domain: "IOSMultiplayerRepository",
                 code: 1,
                 userInfo: [NSLocalizedDescriptionKey: "Failed to start game."]
             )
+            logFirebaseError("Database.startGame.readLobby", error)
+            throw error
         }
 
         let gameID = UUID().uuidString
@@ -222,13 +247,18 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
             achievementTurn: nil
         ).startAchievementRound()
 
-        try await Database.database().reference()
-            .child(FirebasePath.games)
-            .child(gameID)
-            .setValue(dictionary(from: game))
-
-        try await lobbyReference.child(FirebasePath.game).setValue(gameID)
-        try await lobbyReference.removeValue()
+        try await databaseOperation("startGame.writeGame") {
+            try await Database.database().reference()
+                .child(FirebasePath.games)
+                .child(gameID)
+                .setValue(dictionary(from: game))
+        }
+        try await databaseOperation("startGame.linkLobby") {
+            try await lobbyReference.child(FirebasePath.game).setValue(gameID)
+        }
+        try await databaseOperation("startGame.removeLobby") {
+            try await lobbyReference.removeValue()
+        }
     }
     
     func userGames() -> any Kotlinx_coroutines_coreFlow {
@@ -257,6 +287,7 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
 
             bridge.emit(games: games)
         }, withCancel: { error in
+            logFirebaseError("Database.userGames", error)
             bridge.closeWithError(message: error.localizedDescription)
         })
 
@@ -275,12 +306,14 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
 
         reference.observe(.value, with: { [weak self] snapshot in
             guard let self, let game = self.game(from: snapshot.firebaseDictionary, key: snapshot.key) else {
+                NSLog("[ThousandFirebase] Database.observeGame failed: missing or invalid game data")
                 bridge.closeWithError(message: "Failed to fetch game")
                 return
             }
 
             bridge.emit(game: game)
         }, withCancel: { error in
+            logFirebaseError("Database.observeGame", error)
             bridge.closeWithError(message: error.localizedDescription)
         })
 
@@ -288,18 +321,22 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
     }
     
     func updateGame(game: RemoteGame) async throws {
-        try await Database.database().reference()
-            .child(FirebasePath.games)
-            .child(game.key)
-            .updateChildValues(updateDictionary(from: game))
+        try await databaseOperation("updateGame") {
+            try await Database.database().reference()
+                .child(FirebasePath.games)
+                .child(game.key)
+                .updateChildValues(updateDictionary(from: game))
+        }
     }
 
     func sendReaction(gameKey: String, reaction: UserReaction) async throws {
-        try await Database.database().reference()
-            .child(FirebasePath.games)
-            .child(gameKey)
-            .child(FirebaseGameKey.reaction)
-            .setValue(swiftDictionary(from: FirebaseGameMapper.shared.reactionDictionary(from: reaction)))
+        try await databaseOperation("sendReaction") {
+            try await Database.database().reference()
+                .child(FirebasePath.games)
+                .child(gameKey)
+                .child(FirebaseGameKey.reaction)
+                .setValue(swiftDictionary(from: FirebaseGameMapper.shared.reactionDictionary(from: reaction)))
+        }
     }
 
     func updatePlayerOnlineStatus(gameKey: String, isOnline: Bool) async throws {
@@ -307,18 +344,22 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
             return
         }
         
-        try await Database.database().reference()
-            .child(FirebasePath.games)
-            .child(gameKey)
-            .child(FirebaseGameKey.onlinePlayerIds)
-            .child(user.uid)
-            .setValue(isOnline)
+        try await databaseOperation("updatePlayerOnlineStatus") {
+            try await Database.database().reference()
+                .child(FirebasePath.games)
+                .child(gameKey)
+                .child(FirebaseGameKey.onlinePlayerIds)
+                .child(user.uid)
+                .setValue(isOnline)
+        }
     }
     
     func saveGameResult(game: RemoteGame) async throws -> FinishedGameSaveResult? {
         let reference = Database.database().reference()
         let gameReference = reference.child(FirebasePath.games).child(game.key)
-        let snapshot = try await gameReference.getData()
+        let snapshot = try await databaseOperation("saveGameResult.read") {
+            try await gameReference.getData()
+        }
         let previousPlayerIndex = snapshot.childSnapshot(forPath: "currentPlayerIndex").value as? Int ?? -1
         guard game.isFinished() else {
             return nil
@@ -327,6 +368,7 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
         if previousPlayerIndex < 0 {
             guard let savedGame = self.game(from: snapshot.value, key: game.key),
                   savedGame.isFinished() else {
+                NSLog("[ThousandFirebase] Database.saveGameResult.read failed: finished game is missing")
                 return nil
             }
             return FinishedGameSaveResult(game: savedGame, newlyFinished: false)
@@ -335,9 +377,13 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
         var updates = updateDictionary(from: game)
         updates[FirebaseGameKey.finishedAt] = ServerValue.timestamp()
         do {
-            try await gameReference.updateChildValues(updates)
+            try await databaseOperation("saveGameResult.write") {
+                try await gameReference.updateChildValues(updates)
+            }
         } catch {
-            let latest = try await gameReference.getData()
+            let latest = try await databaseOperation("saveGameResult.readAfterWriteFailure") {
+                try await gameReference.getData()
+            }
             guard let savedGame = self.game(from: latest.value, key: game.key),
                   savedGame.isFinished(),
                   savedGame.finishedAt != nil else {
@@ -346,19 +392,24 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
             return FinishedGameSaveResult(game: savedGame, newlyFinished: false)
         }
 
-        let confirmed = try await gameReference.getData()
+        let confirmed = try await databaseOperation("saveGameResult.confirm") {
+            try await gameReference.getData()
+        }
         guard let savedGame = self.game(from: confirmed.value, key: game.key),
               savedGame.isFinished() else {
+            NSLog("[ThousandFirebase] Database.saveGameResult.confirm failed: finished game is missing")
             return nil
         }
         return FinishedGameSaveResult(game: savedGame, newlyFinished: true)
     }
 
     func deleteGame(key: String) async throws {
-        try await Database.database().reference()
-            .child(FirebasePath.games)
-            .child(key)
-            .removeValue()
+        try await databaseOperation("deleteGame") {
+            try await Database.database().reference()
+                .child(FirebasePath.games)
+                .child(key)
+                .removeValue()
+        }
     }
 
 }

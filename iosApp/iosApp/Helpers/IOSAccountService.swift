@@ -35,7 +35,7 @@ final class IOSAccountService: MutableNativeAccountService {
             do {
                 try auth.signOut()
             } catch {
-                Crashlytics.crashlytics().record(error: error)
+                Self.reportFailure("signOut", error)
                 completionHandler(error)
                 return
             }
@@ -44,7 +44,7 @@ final class IOSAccountService: MutableNativeAccountService {
         auth.signInAnonymously { [weak self] result, error in
             if let error {
                 self?.clearUserId()
-                Crashlytics.crashlytics().record(error: error)
+                Self.reportFailure("signInAnonymously", error)
                 completionHandler(error)
                 return
             }
@@ -56,7 +56,7 @@ final class IOSAccountService: MutableNativeAccountService {
                     code: 1,
                     userInfo: [NSLocalizedDescriptionKey: "Firebase anonymous user is missing after sign-in."]
                 )
-                Crashlytics.crashlytics().record(error: error)
+                Self.reportFailure("signInAnonymously", error)
                 completionHandler(error)
                 return
             }
@@ -79,9 +79,20 @@ final class IOSAccountService: MutableNativeAccountService {
 
         user.delete { error in
             if let error {
-                Crashlytics.crashlytics().record(error: error)
+                Self.reportFailure("deleteAccount", error)
             }
             completionHandler(error)
         }
     }
+
+    private static func reportFailure(_ operation: String, _ error: Error) {
+        logFirebaseError("Auth.\(operation)", error)
+        Crashlytics.crashlytics().record(error: error)
+    }
+}
+
+func logFirebaseError(_ operation: String, _ error: Error) {
+    let failure = error as NSError
+    NSLog("[ThousandFirebase] %@ failed (%@ %ld): %@",
+          operation, failure.domain, failure.code, failure.localizedDescription)
 }

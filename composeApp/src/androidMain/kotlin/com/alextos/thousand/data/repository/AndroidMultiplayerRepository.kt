@@ -1,5 +1,6 @@
 package com.alextos.thousand.data.repository
 
+import android.util.Log
 import com.alextos.thousand.data.mappers.firebase.FirebaseGameMapper
 import com.alextos.thousand.data.repository.mappers.toDatabaseMap
 import com.alextos.thousand.data.repository.mappers.toDatabaseUpdateMap
@@ -44,6 +45,11 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
         private const val ONLINE_PLAYER_IDS_NODE = "onlinePlayerIds"
     }
 
+    private fun logFailure(operation: String, error: Exception): Exception {
+        Log.e("ThousandFirebase", "Database.$operation failed", error)
+        return error
+    }
+
     @OptIn(ExperimentalUuidApi::class)
     override suspend fun createLobby(gameSettings: GameSettings, player: User): String {
         val lobbyID = LobbyCode.generate()
@@ -72,7 +78,7 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
                         }
                     } else {
                         continuation.cancel(
-                            task.exception ?: IllegalStateException("Failed to create lobby.")
+                            logFailure("createLobby", task.exception ?: IllegalStateException("Failed to create lobby.")),
                         )
                     }
                 }
@@ -94,12 +100,14 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
                     if (!continuation.isActive) return
                     val child = snapshot.children.firstOrNull()
                     val lobby = child?.toLobby() ?: run {
-                        continuation.resumeWithException(IllegalStateException("Лобби не найдено"))
+                        continuation.resumeWithException(logFailure("joinLobby", IllegalStateException("Лобби не найдено")))
                         return
                     }
 
                     val key = child.key ?: run {
-                        continuation.resumeWithException(IllegalStateException("Не удалось подключиться к лобби"))
+                        continuation.resumeWithException(
+                            logFailure("joinLobby", IllegalStateException("Не удалось подключиться к лобби")),
+                        )
                         return
                     }
 
@@ -112,19 +120,20 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
                     lobby.players += currentPlayer
                     lobbies.child(key).setValue(lobby.toDatabaseMap())
                         .addOnCompleteListener { task ->
-                            if (!continuation.isActive) return@addOnCompleteListener
                             if (task.isSuccessful) {
-                                continuation.resume(key)
+                                if (continuation.isActive) continuation.resume(key)
                             } else {
-                                continuation.resumeWithException(
+                                val error = logFailure(
+                                    "joinLobby.write",
                                     task.exception ?: IllegalStateException("Не удалось подключиться к лобби"),
                                 )
+                                if (continuation.isActive) continuation.resumeWithException(error)
                             }
                         }
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    continuation.resumeWithException(error.toException())
+                    continuation.resumeWithException(logFailure("joinLobby.find", error.toException()))
                 }
 
             }
@@ -146,7 +155,7 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
                         return
                     }
                     val lobby = snapshot.toLobby() ?: run {
-                        close(IllegalStateException("Failed to connect to lobby."))
+                        close(logFailure("connectToLobby", IllegalStateException("Failed to connect to lobby.")))
                         return
                     }
 
@@ -154,7 +163,7 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    close(error.toException())
+                    close(logFailure("connectToLobby", error.toException()))
                 }
             }
 
@@ -197,11 +206,11 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
                 }
 
                 override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
-                    if (!continuation.isActive) return
                     if (error == null) {
-                        continuation.resume(Unit)
+                        if (continuation.isActive) continuation.resume(Unit)
                     } else {
-                        continuation.resumeWithException(error.toException())
+                        val failure = logFailure("disconnectFromLobby", error.toException())
+                        if (continuation.isActive) continuation.resumeWithException(failure)
                     }
                 }
             }, false)
@@ -221,7 +230,7 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
                 .addListenerForSingleValueEvent(object: ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
                         val lobby = snapshot.toLobby() ?: run {
-                            continuation.cancel(IllegalStateException("Failed to start game."))
+                            continuation.cancel(logFailure("startGame.readLobby", IllegalStateException("Failed to start game.")))
                             return
                         }
 
@@ -229,7 +238,7 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
                     }
 
                     override fun onCancelled(error: DatabaseError) {
-                        continuation.cancel(error.toException())
+                        continuation.cancel(logFailure("startGame.readLobby", error.toException()))
                     }
                 })
         }
@@ -270,15 +279,15 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
                                     continuation.resume(Unit)
                                 }
                                 .addOnFailureListener {
-                                    continuation.cancel(it)
+                                    continuation.cancel(logFailure("startGame.removeLobby", it))
                                 }
                         }
                         .addOnFailureListener {
-                            continuation.cancel(it)
+                            continuation.cancel(logFailure("startGame.linkLobby", it))
                         }
                 }
                 .addOnFailureListener {
-                    continuation.cancel(it)
+                    continuation.cancel(logFailure("startGame.writeGame", it))
                 }
         }
     }
@@ -294,7 +303,7 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
             val listener = object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val game = snapshot.toGame() ?: run {
-                        close(IllegalStateException("Failed to fetch game"))
+                        close(logFailure("observeGame", IllegalStateException("Failed to fetch game")))
                         return
                     }
 
@@ -302,7 +311,7 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    close(error.toException())
+                    close(logFailure("observeGame", error.toException()))
                 }
             }
 
@@ -328,7 +337,7 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
                     continuation.resume(Unit)
                 }
                 .addOnFailureListener {
-                    continuation.cancel(it)
+                    continuation.cancel(logFailure("updateGame", it))
                 }
         }
     }
@@ -341,7 +350,7 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
                 .child("reaction")
                 .setValue(FirebaseGameMapper.reactionDictionary(reaction))
                 .addOnSuccessListener { continuation.resume(Unit) }
-                .addOnFailureListener { continuation.cancel(it) }
+                .addOnFailureListener { continuation.cancel(logFailure("sendReaction", it)) }
         }
     }
 
@@ -361,7 +370,7 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
                     continuation.resume(Unit)
                 }
                 .addOnFailureListener {
-                    continuation.cancel(it)
+                    continuation.cancel(logFailure("updatePlayerOnlineStatus", it))
                 }
         }
     }
@@ -377,12 +386,14 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
                     .addOnSuccessListener { snapshot ->
                         val savedGame = FirebaseGameMapper.game(snapshot.value, game.key)
                         if (savedGame == null || !savedGame.isFinished()) {
-                            continuation.resumeWithException(IllegalStateException("Итог онлайн-игры не сохранён."))
+                            continuation.resumeWithException(
+                                logFailure("saveGameResult.confirm", IllegalStateException("Итог онлайн-игры не сохранён.")),
+                            )
                         } else {
                             continuation.resume(FinishedGameSaveResult(savedGame, newlyFinished))
                         }
                     }
-                    .addOnFailureListener { continuation.resumeWithException(it) }
+                    .addOnFailureListener { continuation.resumeWithException(logFailure("saveGameResult.confirm", it)) }
             }
 
             gameReference.get()
@@ -399,20 +410,23 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
 
                     gameReference.updateChildren(updates)
                         .addOnSuccessListener { readSavedResult(newlyFinished = true) }
-                        .addOnFailureListener {
+                        .addOnFailureListener { error ->
+                            logFailure("saveGameResult.write", error)
                             gameReference.get()
                                 .addOnSuccessListener { latest ->
                                     val savedGame = FirebaseGameMapper.game(latest.value, game.key)
                                     if (savedGame?.isFinished() == true && savedGame.finishedAt != null) {
                                         continuation.resume(FinishedGameSaveResult(savedGame, newlyFinished = false))
                                     } else {
-                                        continuation.resumeWithException(it)
+                                        continuation.resumeWithException(error)
                                     }
                                 }
-                                .addOnFailureListener { continuation.resumeWithException(it) }
+                                .addOnFailureListener {
+                                    continuation.resumeWithException(logFailure("saveGameResult.readAfterWriteFailure", it))
+                                }
                         }
                 }
-                .addOnFailureListener { continuation.resumeWithException(it) }
+                .addOnFailureListener { continuation.resumeWithException(logFailure("saveGameResult.read", it)) }
         }
 
     override suspend fun deleteGame(key: String) {
@@ -425,7 +439,7 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
                     continuation.resume(Unit)
                 }
                 .addOnFailureListener {
-                    continuation.cancel(it)
+                    continuation.cancel(logFailure("deleteGame", it))
                 }
         }
 
@@ -451,7 +465,7 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    close(error.toException())
+                    close(logFailure("userLobbies", error.toException()))
                 }
             }
 
@@ -483,7 +497,7 @@ class AndroidMultiplayerRepository : MultiplayerRepository {
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    close(error.toException())
+                    close(logFailure("userGames", error.toException()))
                 }
             }
 
