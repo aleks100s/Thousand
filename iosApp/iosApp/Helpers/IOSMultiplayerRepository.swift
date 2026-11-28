@@ -11,13 +11,14 @@ import FirebaseDatabase
 import Foundation
 
 final class IOSMultiplayerRepository: MultiplayerRepository {
+    @discardableResult
     private func databaseOperation<T>(_ operation: String, _ perform: () async throws -> T) async throws -> T {
         do {
             return try await perform()
-        } catch is CancellationError {
-            throw CancellationError()
         } catch {
-            logFirebaseError("Database.\(operation)", error)
+            if !(error is CancellationError) {
+                logFirebaseError("Database.\(operation)", error)
+            }
             throw error
         }
     }

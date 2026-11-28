@@ -45,6 +45,7 @@ import thousand.composeapp.generated.resources.achievements_title
 import thousand.composeapp.generated.resources.achievement_hidden
 import thousand.composeapp.generated.resources.achievement_hidden_condition
 import thousand.composeapp.generated.resources.achievement_unlocked_at
+import thousand.composeapp.generated.resources.achievement_locked
 import thousand.composeapp.generated.resources.lock_24px
 
 @Composable
@@ -116,7 +117,9 @@ internal fun AchievementCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Image(
-                painter = painterResource(achievement.id.image.resource),
+                painter = painterResource(
+                    if (unlockedAt == null) Res.drawable.achievement_locked else achievement.id.image.resource,
+                ),
                 contentDescription = null,
                 modifier = Modifier.size(72.dp).clip(RoundedCornerShape(12.dp)),
             )
