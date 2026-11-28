@@ -27,7 +27,6 @@ import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,7 +40,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -65,7 +63,6 @@ fun MultiplayerScreen(
     openCreateLobby: () -> Unit,
     openLobby: (String) -> Unit,
     openGame: (String) -> Unit,
-    openPlayerProfile: () -> Unit,
 ) {
     val viewModel: MultiplayerViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -87,17 +84,6 @@ fun MultiplayerScreen(
         constrainListWidth = true,
         title = "Мультиплеер",
         goBack = goBack,
-        actions = { actionColor ->
-            {
-                state.username?.let {
-                    TextButton(onClick = {
-                        openPlayerProfile()
-                    }) {
-                        Text("Профиль", color = actionColor)
-                    }
-                }
-            }
-        }
     ) { modifier ->
         LazyColumn(
             modifier = modifier
@@ -205,13 +191,6 @@ fun MultiplayerScreen(
         }
     }
 
-    if (state.isLoginSheetVisible) {
-        LoginSheet(
-            state = state,
-            onAction = viewModel::onAction,
-        )
-    }
-
     if (state.isJoinLobbySheetVisible && !state.isJoiningLobby) {
         JoinLobbySheet(
             state = state,
@@ -219,7 +198,7 @@ fun MultiplayerScreen(
         )
     }
 
-    if (state.isJoiningLobby) {
+    if (state.isConnecting || state.isJoiningLobby) {
         Dialog(
             onDismissRequest = {},
             properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
@@ -232,7 +211,7 @@ fun MultiplayerScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                    Text("Подключение к лобби…")
+                    Text(if (state.isJoiningLobby) "Подключение к лобби…" else "Подключение к мультиплееру…")
                 }
             }
         }
@@ -350,14 +329,15 @@ private fun MultiplayerActions(
                 Text("Создать игру")
             }
         }
-    } else {
-        AppButton(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = {
-                onAction(MultiplayerAction.ShowLoginSheet)
-            },
-        ) {
-            Text("Авторизоваться")
+    } else if (state.connectionError != null) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(state.connectionError, color = MaterialTheme.colorScheme.error)
+            AppButton(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = { onAction(MultiplayerAction.RetryConnection) },
+            ) {
+                Text("Повторить")
+            }
         }
     }
 }
@@ -427,121 +407,6 @@ private fun JoinLobbySheet(
                 },
             ) {
                 Text("Подключиться")
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun LoginSheet(
-    state: MultiplayerState,
-    onAction: (MultiplayerAction) -> Unit,
-) {
-    var email by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
-    val canSubmit = email.trim().isNotBlank() && password.isNotBlank()
-    val buttonsEnabled = state.isLoginInProgress.not() && state.isSignUpInProgress.not() && canSubmit
-
-    ModalBottomSheet(
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        onDismissRequest = {
-            onAction(MultiplayerAction.HideLoginSheet)
-        },
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Text(
-                text = "Вход в мультиплеер",
-                style = MaterialTheme.typography.titleMedium,
-            )
-
-            OutlinedTextField(
-                colors = appTextFieldColors(),
-                shape = AppShapes.Row,
-                value = email,
-                onValueChange = { value ->
-                    email = value
-                },
-                modifier = Modifier.fillMaxWidth(),
-                label = {
-                    Text("Email")
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            )
-
-            OutlinedTextField(
-                colors = appTextFieldColors(),
-                shape = AppShapes.Row,
-                value = password,
-                onValueChange = { value ->
-                    password = value
-                },
-                modifier = Modifier.fillMaxWidth(),
-                label = {
-                    Text("Пароль")
-                },
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            )
-
-            if (state.loginError != null) {
-                Text(text = state.loginError, color = MaterialTheme.colorScheme.error)
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                AppButton(style = AppButtonStyle.Secondary,
-                    modifier = Modifier.weight(1f),
-                    enabled = buttonsEnabled,
-                    onClick = {
-                        onAction(
-                            MultiplayerAction.SignUp(
-                                email = email,
-                                password = password,
-                            )
-                        )
-                    },
-                ) {
-                    if (state.isSignUpInProgress) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp,
-                        )
-                    } else {
-                        Text("Регистрация")
-                    }
-                }
-
-                AppButton(
-                    modifier = Modifier.weight(1f),
-                    enabled = buttonsEnabled,
-                    onClick = {
-                        onAction(
-                            MultiplayerAction.LogIn(
-                                email = email,
-                                password = password,
-                            )
-                        )
-                    },
-                ) {
-                    if (state.isLoginInProgress) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp,
-                        )
-                    } else {
-                        Text("Вход")
-                    }
-                }
             }
         }
     }

@@ -1,7 +1,6 @@
 package com.alextos.thousand.presentation.menu.multiplayer.multiplayer_game
 
 import com.alextos.thousand.domain.models.Player
-import com.alextos.thousand.domain.models.RemoteUserInfo
 import com.alextos.thousand.domain.usecase.game.server.GameState
 
 data class MultiplayerGameState(
@@ -11,7 +10,6 @@ data class MultiplayerGameState(
     val gameState: GameState = GameState(),
     val isNotificationEnabled: Boolean = true,
     val isReactionButtonEnabled: Boolean = true,
-    val usersInfo: Map<String, RemoteUserInfo> = emptyMap(),
     val gameResultSheet: MultiplayerGameResultSheetUi? = null,
 )
 

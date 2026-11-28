@@ -18,4 +18,6 @@ interface StorageService {
     suspend fun setNotificationEnabled(isEnabled: Boolean)
 
     suspend fun setFirstLaunch(isFirstLaunch: Boolean)
+
+    suspend fun clear()
 }

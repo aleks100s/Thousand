@@ -184,6 +184,8 @@ class TutorialRollUseCaseTest {
 
         override suspend fun replaceUser(previous: User, new: User) = Unit
 
+        override suspend fun clearLocalData() = error("Unused")
+
         override suspend fun deleteUser(userId: String) = Unit
 
         override suspend fun createGame(game: Game): Game = game

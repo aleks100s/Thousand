@@ -8,9 +8,6 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 object FirebaseUserMapper {
-    fun appearanceDictionary(from: User): Map<String, Any> =
-        mapOf("color" to from.color.name, "avatar" to from.avatar.name)
-
     fun dictionary(from: User): Map<String, Any> =
         from.toFirebaseMap()
 

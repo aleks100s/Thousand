@@ -1,32 +1,31 @@
 package com.alextos.thousand.presentation.menu.multiplayer
 
-import com.alextos.thousand.domain.models.LobbyCode
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.receiveAsFlow
 import androidx.lifecycle.viewModelScope
+import com.alextos.thousand.domain.models.LobbyCode
 import com.alextos.thousand.domain.repository.MultiplayerRepository
 import com.alextos.thousand.domain.service.NativeAccountService
-import com.alextos.thousand.domain.usecase.LogInUseCase
-import com.alextos.thousand.domain.usecase.SignUpUseCase
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
 class MultiplayerViewModel(
     private val nativeAccountService: NativeAccountService,
-    private val logInUseCase: LogInUseCase,
-    private val signUpUseCase: SignUpUseCase,
     private val multiplayerRepository: MultiplayerRepository,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -35,65 +34,76 @@ class MultiplayerViewModel(
 
     private val _events = Channel<MultiplayerEvent>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
+    private var connectionJob: Job? = null
     private var joinJob: Job? = null
 
     init {
         observeUserProfile()
+        connect()
     }
 
     fun onAction(action: MultiplayerAction) {
         when (action) {
             is MultiplayerAction.OpenInvitation -> openInvitation(action.code, action.id)
-            MultiplayerAction.ShowLoginSheet -> showLoginSheet()
-            MultiplayerAction.HideLoginSheet -> hideLoginSheet()
             MultiplayerAction.ShowJoinLobbySheet -> showJoinLobbySheet()
             MultiplayerAction.HideJoinLobbySheet -> hideJoinLobbySheet()
             is MultiplayerAction.UpdateLobbyId -> updateLobbyId(action.value)
-            is MultiplayerAction.LogIn -> logIn(
-                email = action.email,
-                password = action.password,
-                createAccount = false,
-            )
-            is MultiplayerAction.SignUp -> logIn(
-                email = action.email,
-                password = action.password,
-                createAccount = true,
-            )
+            MultiplayerAction.RetryConnection -> connect()
             MultiplayerAction.JoinLobby -> joinLobby()
             is MultiplayerAction.DeleteGame -> deleteGame(action.key)
             is MultiplayerAction.DisconnectFromLobby -> disconnectFromLobby(action.key)
         }
     }
 
+    private fun connect() {
+        if (connectionJob?.isActive == true || state.value.isAuthorized) return
+        if (!nativeAccountService.userProfile.value?.name.isNullOrBlank()) return
+
+        _state.update { it.copy(isConnecting = true, connectionError = null) }
+        connectionJob = viewModelScope.launch {
+            try {
+                withTimeoutOrNull(15_000) {
+                    nativeAccountService.signInAnonymously()
+                    nativeAccountService.userProfile.first { !it?.name.isNullOrBlank() }
+                } ?: error("Подключение заняло слишком много времени")
+            } catch (_: Exception) {
+                currentCoroutineContext().ensureActive()
+                _state.update {
+                    if (it.isAuthorized) it
+                    else it.copy(connectionError = "Не удалось подключиться к мультиплееру. Попробуйте ещё раз.")
+                }
+            } finally {
+                _state.update { it.copy(isConnecting = false) }
+            }
+        }
+    }
+
     private fun observeUserProfile() {
         viewModelScope.launch {
-            nativeAccountService.userProfile.collectLatest { userProfile ->
-                val isAuthorized = userProfile != null
-                _state.update {
-                    it.copy(
-                        isAuthorized = isAuthorized,
-                        currentUserId = userProfile?.id,
-                        username = userProfile?.name,
-                        isLoginSheetVisible = if (isAuthorized) false else (savedStateHandle.get<String>("pendingLobby") != null || it.isLoginSheetVisible),
-                        isLoginInProgress = if (isAuthorized) false else it.isLoginInProgress,
-                    )
-                }
-
-                if (isAuthorized.not()) {
-                    joinJob?.cancel()
-                    _state.update {
-                        it.copy(
-                            lobbies = emptyList(),
-                            activeGames = emptyList(),
-                            finishedGames = emptyList(),
-                        )
+            nativeAccountService.userProfile
+                .map { profile -> profile?.takeIf { it.name.isNotBlank() }?.id }
+                .distinctUntilChanged()
+                .collectLatest { userId ->
+                    if (userId == null) {
+                        joinJob?.cancel()
+                        val wasAuthorized = state.value.isAuthorized
+                        _state.update {
+                            it.copy(
+                                isAuthorized = false,
+                                lobbies = emptyList(),
+                                activeGames = emptyList(),
+                                finishedGames = emptyList(),
+                            )
+                        }
+                        if (wasAuthorized) {
+                            _state.update { it.copy(connectionError = "Подключение потеряно. Попробуйте ещё раз.") }
+                        }
+                    } else {
+                        _state.update { it.copy(isAuthorized = true, isConnecting = false, connectionError = null) }
+                        joinPendingInvitation()
+                        observeLobbies()
                     }
-                    return@collectLatest
                 }
-
-                joinPendingInvitation()
-                observeLobbies()
-            }
         }
     }
 
@@ -128,21 +138,6 @@ class MultiplayerViewModel(
             }
     }
 
-    private fun showLoginSheet() {
-        _state.update {
-            it.copy(isLoginSheetVisible = true, loginError = null)
-        }
-    }
-
-    private fun hideLoginSheet() {
-        _state.update {
-            it.copy(
-                isLoginSheetVisible = false,
-                isLoginInProgress = false,
-            )
-        }
-    }
-
     private fun showJoinLobbySheet() {
         _state.update {
             it.copy(isJoinLobbySheetVisible = true, lobbyError = null)
@@ -159,7 +154,6 @@ class MultiplayerViewModel(
         _state.update {
             it.copy(
                 lobbyId = value,
-                canJoinLobby = value.trim().isNotBlank(),
                 lobbyError = null
             )
         }
@@ -170,7 +164,7 @@ class MultiplayerViewModel(
         savedStateHandle["handledInvitation"] = id
         savedStateHandle["pendingLobby"] = code
         updateLobbyId(code)
-        if (state.value.isAuthorized) joinPendingInvitation() else showLoginSheet()
+        if (state.value.isAuthorized) joinPendingInvitation()
     }
 
     private fun joinPendingInvitation() {
@@ -219,47 +213,6 @@ class MultiplayerViewModel(
             try {
                 multiplayerRepository.disconnectFromLobby(key)
             } catch (_: Exception) {}
-        }
-    }
-
-    private fun logIn(
-        email: String,
-        password: String,
-        createAccount: Boolean,
-    ) {
-        val trimmedEmail = email.trim()
-        if (trimmedEmail.isBlank() || password.isBlank() || state.value.isLoginInProgress) return
-
-        viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    isLoginInProgress = createAccount.not(),
-                    isSignUpInProgress = createAccount,
-                    loginError = null,
-                )
-            }
-
-            try {
-                if (createAccount) {
-                    signUpUseCase(
-                        email = trimmedEmail,
-                        password = password,
-                    )
-                } else {
-                    logInUseCase(
-                        email = trimmedEmail,
-                        password = password,
-                    )
-                }
-            } catch (e: Exception) {
-                _state.update {
-                    it.copy(loginError = e.message)
-                }
-            } finally {
-                _state.update {
-                    it.copy(isLoginInProgress = false, isSignUpInProgress = false)
-                }
-            }
         }
     }
 }

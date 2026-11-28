@@ -6,7 +6,6 @@ import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.RemoteGame
 import com.alextos.thousand.domain.models.FinishedGameSaveResult
 import com.alextos.thousand.domain.models.UserReaction
-import com.alextos.thousand.domain.models.RemoteUserInfo
 import kotlinx.coroutines.flow.Flow
 
 class LobbyNotFoundException : IllegalStateException("Лобби больше недоступно.")
@@ -22,10 +21,7 @@ interface MultiplayerRepository {
     suspend fun sendReaction(gameKey: String, reaction: UserReaction)
     suspend fun updatePlayerOnlineStatus(gameKey: String, isOnline: Boolean)
     suspend fun saveGameResult(game: RemoteGame): FinishedGameSaveResult?
-    suspend fun saveGameStatistics(game: RemoteGame, userInfo: Map<String, RemoteUserInfo>)
     suspend fun deleteGame(key: String)
-    suspend fun userInfo(userId: String): RemoteUserInfo?
-    fun observeUserInfo(userId: String): Flow<RemoteUserInfo?>
     fun userLobbies(): Flow<List<Lobby>>
     fun userGames(): Flow<List<RemoteGame>>
 }

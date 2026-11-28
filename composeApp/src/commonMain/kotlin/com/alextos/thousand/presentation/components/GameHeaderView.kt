@@ -7,7 +7,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -59,7 +58,6 @@ fun GameHeaderView(
     isOnlineGame: Boolean = false,
     onlinePlayerIds: Set<String> = emptySet(),
     reactionsByAuthorId: Map<String, UserReaction> = emptyMap(),
-    onPlayerClick: ((Player) -> Unit)? = null,
 ) {
     val shouldScroll = game.players.size > 2
 
@@ -89,7 +87,6 @@ fun GameHeaderView(
                     isOnlineGame = isOnlineGame,
                     isOnline = player.user.id in onlinePlayerIds,
                     reaction = reactionsByAuthorId[player.user.id],
-                    onClick = onPlayerClick,
                 )
             }
 
@@ -113,7 +110,6 @@ fun GameHeaderView(
                     isOnlineGame = isOnlineGame,
                     isOnline = it.user.id in onlinePlayerIds,
                     reaction = reactionsByAuthorId[it.user.id],
-                    onClick = onPlayerClick,
                 )
             }
         }
@@ -128,7 +124,6 @@ private fun PlayerView(
     isOnlineGame: Boolean,
     isOnline: Boolean,
     reaction: UserReaction?,
-    onClick: ((Player) -> Unit)?,
 ) {
     val scale by animateFloatAsState(
         targetValue = if (isActive) 1.2f else 1f,
@@ -164,20 +159,10 @@ private fun PlayerView(
     }
 
     Box(
-        modifier = Modifier
-            .then(
-                if (onClick != null) {
-                    Modifier.clickable {
-                        onClick(player)
-                    }
-                } else {
-                    Modifier
-                }
-            )
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
+        modifier = Modifier.graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+        }
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,

@@ -14,6 +14,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface GameDao {
+    @Query("DELETE FROM games")
+    suspend fun deleteAll()
+
     @Transaction
     @Query("SELECT * FROM games")
     fun getAllGames(): Flow<List<GameWithRelations>>

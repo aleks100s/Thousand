@@ -92,7 +92,7 @@ private fun AchievementsContent(
 }
 
 @Composable
-private fun AchievementCard(
+internal fun AchievementCard(
     achievement: AchievementDefinition,
     unlockedAt: Instant?,
 ) {
@@ -167,6 +167,24 @@ private fun AchievementCard(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+internal fun AchievementList(unlocked: Map<AchievementId, Instant>) {
+    val achievements = remember(unlocked) {
+        AchievementCatalog.all.sortedBy { achievement ->
+            when {
+                achievement.id in unlocked -> 0
+                achievement.visibility == AchievementVisibility.Public -> 1
+                else -> 2
+            }
+        }
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        achievements.forEach { achievement ->
+            AchievementCard(achievement, unlocked[achievement.id])
         }
     }
 }

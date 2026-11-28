@@ -4,7 +4,6 @@ import com.alextos.thousand.presentation.components.AppButtonStyle
 import com.alextos.thousand.presentation.components.AppButton
 import androidx.compose.material3.Button as DangerButton
 import com.alextos.thousand.presentation.components.AppBottomSheet as ModalBottomSheet
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,12 +34,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alextos.thousand.common.Screen
 import com.alextos.thousand.presentation.components.gameNavigationTitle
-import com.alextos.thousand.domain.models.RemoteUserInfo
 import com.alextos.thousand.presentation.components.GameMessageBubble
 import com.alextos.thousand.presentation.components.GameView
 import com.alextos.thousand.presentation.menu.play_game.components.GameSettingsSheet
 import com.alextos.thousand.presentation.menu.game_rules.GameRulesContent
-import com.alextos.thousand.presentation.menu.multiplayer.player_profile.PlayerProfileView
 import com.alextos.thousand.presentation.menu.achievements.AchievementCapsuleInResultDialog
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -62,7 +59,6 @@ fun MultiplayerGameScreen(
     var isSettingsSheetVisible by remember { mutableStateOf(false) }
     var isMenuExpanded by remember { mutableStateOf(false) }
     var isReactionMenuExpanded by remember { mutableStateOf(false) }
-    var selectedUserInfo by remember { mutableStateOf<RemoteUserInfo?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     fun leaveGame() {
@@ -257,9 +253,6 @@ fun MultiplayerGameScreen(
                 viewModel.onAction(MultiplayerGameAction.SendGameAction(action))
             },
             onFinishGame = {},
-            onPlayerClick = { player ->
-                selectedUserInfo = state.usersInfo[player.user.id]
-            },
             messages = messages,
             onMessageDismiss = { messages.remove(it) },
         )
@@ -389,23 +382,6 @@ fun MultiplayerGameScreen(
         }
     }
 
-    selectedUserInfo?.let { userInfo ->
-        ModalBottomSheet(
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
-            onDismissRequest = {
-                selectedUserInfo = null
-            },
-        ) {
-            PlayerProfileView(
-                username = userInfo.name,
-                user = state.gameState.game?.players?.firstOrNull { it.user.id == userInfo.id }?.user,
-                modifier = Modifier.heightIn(max = 560.dp),
-                gameCount = userInfo.gameCount,
-                winCount = userInfo.winCount,
-                rating = userInfo.rating,
-            )
-        }
-    }
 }
 
 private val MultiplayerGameReactions = listOf("😆", "😡", "😢", "😮", "👋", "😑", "👍", "👎", "🔥")

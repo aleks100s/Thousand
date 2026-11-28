@@ -24,7 +24,6 @@ import com.alextos.thousand.presentation.components.AppBottomSheet as ModalBotto
 import com.alextos.thousand.presentation.components.appPanel
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import thousand.composeapp.generated.resources.*
 
@@ -35,7 +34,7 @@ fun MenuScreen(
     openMultiplayer: () -> Unit,
     openRules: () -> Unit,
     openTutorial: () -> Unit,
-    openAchievements: () -> Unit,
+    openPlayerProfile: () -> Unit,
 ) {
     val viewModel: MenuViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -46,7 +45,7 @@ fun MenuScreen(
         when (tileAction) {
             MenuTileAction.Tutorial -> openTutorial()
             MenuTileAction.Rules -> openRules()
-            MenuTileAction.Achievements -> openAchievements()
+            MenuTileAction.PlayerProfile -> openPlayerProfile()
             MenuTileAction.Multiplayer -> openMultiplayer()
             MenuTileAction.LocalGame -> openLocalGame(state.hasLocalGames)
         }
@@ -61,7 +60,7 @@ fun MenuScreen(
                 isLandscape = landscape,
             ) { action ->
                 when (action) {
-                    MenuTileAction.Tutorial, MenuTileAction.Rules, MenuTileAction.Achievements -> openTile(action)
+                    MenuTileAction.Tutorial, MenuTileAction.Rules, MenuTileAction.PlayerProfile -> openTile(action)
                     MenuTileAction.Multiplayer, MenuTileAction.LocalGame -> {
                         if (state.isFirstLaunch) pendingFirstLaunchDestination = action
                         else openTile(action)
@@ -193,12 +192,7 @@ private fun MenuSectionCard(modifier: Modifier, tile: MenuTile, onClick: () -> U
             verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically),
         ) {
             Icon(painterResource(tile.action.icon()), null, Modifier.size(44.dp), tint = AppColors.Highlight)
-            val title = if (tile.action == MenuTileAction.Achievements) {
-                stringResource(Res.string.achievements_title)
-            } else {
-                tile.title
-            }
-            Text(title, color = AppColors.TextPrimary, textAlign = TextAlign.Center,
+            Text(tile.title, color = AppColors.TextPrimary, textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
     }
@@ -208,7 +202,7 @@ private fun MenuTileAction.icon(): DrawableResource = when (this) {
     MenuTileAction.LocalGame -> Res.drawable.mobile_24px
     MenuTileAction.Multiplayer -> Res.drawable.language_24px
     MenuTileAction.Rules -> Res.drawable.rules_description
-    MenuTileAction.Achievements -> Res.drawable.statistics_emoji_events
+    MenuTileAction.PlayerProfile -> Res.drawable.person_24px
     MenuTileAction.Tutorial -> Res.drawable.book_2_24px
 }
 

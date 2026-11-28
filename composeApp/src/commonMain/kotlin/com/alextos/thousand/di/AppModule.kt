@@ -25,8 +25,6 @@ import com.alextos.thousand.domain.service.NativeAccountService
 import com.alextos.thousand.domain.service.ShakeDeviceObserver
 import com.alextos.thousand.domain.service.StorageService
 import com.alextos.thousand.domain.usecase.DeletePlayerProfileUseCase
-import com.alextos.thousand.domain.usecase.LogInUseCase
-import com.alextos.thousand.domain.usecase.SignUpUseCase
 import com.alextos.thousand.domain.usecase.game.ApplyDiceRollRestrictionsUseCase
 import com.alextos.thousand.domain.usecase.game.CalculateDiceRollScoreUseCase
 import com.alextos.thousand.domain.usecase.game.DetermineAvailableButtonsUseCase
@@ -151,7 +149,7 @@ fun appModule(
     factory { FinishRemoteGameUseCase(get()) }
     factory { DeleteGameUseCase(get()) }
     factory { DeleteUserUseCase(get()) }
-    factory { UpdateUserUseCase(get(), get()) }
+    factory { UpdateUserUseCase(get()) }
     single { shakeDeviceObserver }
     single { gamePresenceObserver }
     factory { LocalGameServer(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
@@ -159,8 +157,6 @@ fun appModule(
     factory { MakeBotDecisionUseCase() }
     factory { MakeBotReplyUseCase() }
     factory { DetermineAvailableButtonsUseCase() }
-    factory { LogInUseCase(get()) }
-    factory { SignUpUseCase(get(), get()) }
-    factory { DeletePlayerProfileUseCase(get(), get()) }
+    factory { DeletePlayerProfileUseCase(get(), get(), get(), get()) }
     factory { ReplaceMainUserUseCase(get()) }
 }

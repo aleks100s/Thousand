@@ -40,6 +40,10 @@ class StorageServiceImpl(
         keyValueStorage.saveBoolean(KEY_IS_FIRST_LAUNCH, isFirstLaunch)
     }
 
+    override suspend fun clear() {
+        keyValueStorage.clear()
+    }
+
     private companion object {
         const val KEY_IS_MANUAL_INPUT_ENABLED = "is_manual_input_enabled"
         const val KEY_IS_SHAKE_ENABLED = "is_shake_enabled"

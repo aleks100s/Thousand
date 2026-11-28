@@ -3,11 +3,8 @@ package com.alextos.thousand.presentation.menu.multiplayer
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.alextos.thousand.domain.models.*
-import com.alextos.thousand.domain.repository.GameRepository
 import com.alextos.thousand.domain.repository.MultiplayerRepository
 import com.alextos.thousand.domain.service.MutableNativeAccountService
-import com.alextos.thousand.domain.usecase.LogInUseCase
-import com.alextos.thousand.domain.usecase.SignUpUseCase
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -83,7 +80,7 @@ class MultiplayerInvitationTest {
     }
 
     @Test
-    fun invitationWaitsForLoginThenOpensResolvedLobbyOnlyOnce() = runTest {
+    fun invitationWaitsForAnonymousConnectionThenOpensResolvedLobbyOnlyOnce() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
         val account = MutableNativeAccountService()
         val repository = FakeMultiplayerRepository()
@@ -92,7 +89,7 @@ class MultiplayerInvitationTest {
             runCurrent()
             vm.onAction(MultiplayerAction.OpenInvitation("1234", 1))
             runCurrent()
-            assertTrue(vm.state.value.isLoginSheetVisible)
+            assertTrue(vm.state.value.isConnecting)
             assertTrue(repository.joined.isEmpty())
             account.updateUserProfile("user", "Игрок")
             runCurrent()
@@ -105,7 +102,7 @@ class MultiplayerInvitationTest {
     }
 
     @Test
-    fun pendingInvitationSurvivesViewModelRecreationBeforeLogin() = runTest {
+    fun pendingInvitationSurvivesViewModelRecreationBeforeAnonymousConnection() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
         val account = MutableNativeAccountService()
         val repository = FakeMultiplayerRepository()
@@ -113,7 +110,7 @@ class MultiplayerInvitationTest {
         val vm = viewModel(account, repository, handle)
         try {
             runCurrent()
-            assertTrue(vm.state.value.isLoginSheetVisible)
+            assertTrue(vm.state.value.isConnecting)
             account.updateUserProfile("user", "Игрок")
             runCurrent()
             assertEquals(listOf("5678"), repository.joined)
@@ -143,7 +140,7 @@ class MultiplayerInvitationTest {
     }
 
     private fun viewModel(account: MutableNativeAccountService, repository: MultiplayerRepository, handle: SavedStateHandle = SavedStateHandle()) =
-        MultiplayerViewModel(account, LogInUseCase(account), SignUpUseCase(account, UnusedGameRepository()), repository, handle)
+        MultiplayerViewModel(account, repository, handle)
 }
 
 private class FakeMultiplayerRepository : MultiplayerRepository {
@@ -166,26 +163,6 @@ private class FakeMultiplayerRepository : MultiplayerRepository {
     override suspend fun sendReaction(gameKey: String, reaction: UserReaction) = Unit
     override suspend fun updateGame(game: RemoteGame) = Unit
     override suspend fun updatePlayerOnlineStatus(gameKey: String, isOnline: Boolean) = Unit
-    override suspend fun saveGameResult(game: RemoteGame): com.alextos.thousand.domain.models.FinishedGameSaveResult? = null
-    override suspend fun saveGameStatistics(game: RemoteGame, userInfo: Map<String, RemoteUserInfo>) = Unit
+    override suspend fun saveGameResult(game: RemoteGame): FinishedGameSaveResult? = null
     override suspend fun deleteGame(key: String) = Unit
-    override suspend fun userInfo(userId: String): RemoteUserInfo? = null
-    override fun observeUserInfo(userId: String): Flow<RemoteUserInfo?> = flowOf(null)
-}
-
-private class UnusedGameRepository : GameRepository {
-    override fun getAllGames(): Flow<List<Game>> = error("Unused")
-    override fun getAllUsers(): Flow<List<User>> = error("Unused")
-    override suspend fun getMainUser(): User? = null
-    override suspend fun saveUser(user: User) = Unit
-    override suspend fun replaceUser(previous: User, new: User) = Unit
-    override suspend fun deleteUser(userId: String) = Unit
-    override suspend fun createGame(game: Game): Game = error("Unused")
-    override suspend fun saveGame(game: Game) = Unit
-    override suspend fun getGame(id: Long): Game? = null
-    override suspend fun getAllTurns(gameID: Long): List<Turn> = emptyList()
-    override fun getAllTurns(): Flow<List<Turn>> = flowOf(emptyList())
-    override fun getTurnEffectCount(userId: String, effect: Effect): Flow<Int> = flowOf(0)
-    override suspend fun saveTurn(turn: Turn, game: Game): Turn = error("Unused")
-    override suspend fun deleteGame(gameId: Long) = Unit
 }

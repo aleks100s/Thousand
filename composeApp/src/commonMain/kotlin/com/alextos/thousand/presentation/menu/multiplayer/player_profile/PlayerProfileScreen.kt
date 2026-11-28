@@ -1,8 +1,9 @@
 package com.alextos.thousand.presentation.menu.multiplayer.player_profile
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import com.alextos.thousand.presentation.components.AppAlertDialog as AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -16,7 +17,6 @@ import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,14 +39,6 @@ fun PlayerProfileScreen(
     val viewModel: PlayerProfileViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
     var isMenuExpanded by remember { mutableStateOf(false) }
-
-    LaunchedEffect(viewModel) {
-        viewModel.events.collect { event ->
-            when (event) {
-                PlayerProfileEvent.GoBack -> goBack()
-            }
-        }
-    }
 
     Screen(
         modifier = Modifier,
@@ -75,22 +67,10 @@ fun PlayerProfileScreen(
                 ) {
                     DropdownMenuItem(
                         text = {
-                            Text("Выйти")
-                        },
-                        onClick = {
-                            isMenuExpanded = false
-                            viewModel.onAction(PlayerProfileAction.ShowLogoutDialog)
-                        },
-                    )
-
-                    DropdownMenuItem(
-                        text = {
                             Text("Удалить аккаунт")
                         },
                         enabled = state.isDeleteInProgress.not(),
-                        colors = MenuDefaults.itemColors(
-                            textColor = MaterialTheme.colorScheme.error,
-                        ),
+                        colors = MenuDefaults.itemColors(textColor = MaterialTheme.colorScheme.error),
                         onClick = {
                             isMenuExpanded = false
                             viewModel.onAction(PlayerProfileAction.ShowDeleteAccountDialog)
@@ -105,11 +85,7 @@ fun PlayerProfileScreen(
                 .fillMaxSize(),
         ) {
             PlayerProfileView(
-                username = state.username,
                 user = state.user,
-                gameCount = state.userInfo?.gameCount ?: 0,
-                winCount = state.userInfo?.winCount ?: 0,
-                rating = state.userInfo?.rating ?: 0,
             )
 
             if (state.isDeleteInProgress) {
@@ -123,19 +99,10 @@ fun PlayerProfileScreen(
         }
     }
 
-    if (state.isLogoutDialogVisible) {
-        LogoutDialog(
-            onSignOut = {
-                viewModel.onAction(PlayerProfileAction.SignOut)
-            },
-            onDismiss = {
-                viewModel.onAction(PlayerProfileAction.HideLogoutDialog)
-            },
-        )
-    }
-
     if (state.isDeleteAccountDialogVisible) {
         DeleteAccountDialog(
+            error = state.deleteError,
+            isDeleting = state.isDeleteInProgress,
             onDeleteAccount = {
                 viewModel.onAction(PlayerProfileAction.DeleteAccount)
             },
@@ -147,36 +114,9 @@ fun PlayerProfileScreen(
 }
 
 @Composable
-private fun LogoutDialog(
-    onSignOut: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        text = {
-            Text("Вы действительно хотите выйти из аккаунта?")
-        },
-        confirmButton = {
-            Button(
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error,
-                    contentColor = MaterialTheme.colorScheme.onError,
-                ),
-                onClick = onSignOut,
-            ) {
-                Text("Выйти")
-            }
-        },
-        dismissButton = {
-            OutlinedButton(onClick = onDismiss) {
-                Text("Отмена")
-            }
-        },
-    )
-}
-
-@Composable
 private fun DeleteAccountDialog(
+    error: String?,
+    isDeleting: Boolean,
     onDeleteAccount: () -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -186,7 +126,10 @@ private fun DeleteAccountDialog(
             Text("Удалить аккаунт?")
         },
         text = {
-            Text("Будут удалены профиль игрока, а также все игры и лобби, где вы являетесь хостом. Это действие нельзя отменить.")
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Будут удалены аккаунт и все локальные данные приложения, включая игры, настройки и достижения. После удаления приложение запустится заново с онбординга. Это действие нельзя отменить.")
+                error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            }
         },
         confirmButton = {
             Button(
@@ -195,12 +138,13 @@ private fun DeleteAccountDialog(
                     contentColor = MaterialTheme.colorScheme.onError,
                 ),
                 onClick = onDeleteAccount,
+                enabled = !isDeleting,
             ) {
                 Text("Удалить")
             }
         },
         dismissButton = {
-            OutlinedButton(onClick = onDismiss) {
+            OutlinedButton(onClick = onDismiss, enabled = !isDeleting) {
                 Text("Отмена")
             }
         },

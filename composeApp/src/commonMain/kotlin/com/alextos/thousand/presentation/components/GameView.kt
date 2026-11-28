@@ -27,7 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.usecase.game.TutorialNextAction
 import com.alextos.thousand.domain.usecase.game.server.GameAction
 import com.alextos.thousand.domain.usecase.game.server.GameState
@@ -62,7 +61,6 @@ fun GameView(
     state: GameState,
     onAction: (GameAction) -> Unit,
     onFinishGame: () -> Unit,
-    onPlayerClick: ((Player) -> Unit)? = null,
     messages: List<GameMessageBubble> = emptyList(),
     onMessageDismiss: (GameMessageBubble) -> Unit = {},
 ) {
@@ -74,7 +72,7 @@ fun GameView(
         }
     } else {
         Box(modifier = modifier.fillMaxSize()) {
-            GameField(state, isAnimated, isManualInputEnabled, onAction, onFinishGame, onPlayerClick, messages, onMessageDismiss)
+            GameField(state, isAnimated, isManualInputEnabled, onAction, onFinishGame, messages, onMessageDismiss)
         }
     }
 }
@@ -87,7 +85,6 @@ private fun GameField(
     isManualInputEnabled: Boolean,
     onAction: (GameAction) -> Unit,
     onFinishGame: () -> Unit,
-    onPlayerClick: ((Player) -> Unit)?,
     messages: List<GameMessageBubble>,
     onMessageDismiss: (GameMessageBubble) -> Unit,
 ) {
@@ -127,7 +124,7 @@ private fun GameField(
     val sceneConfiguration = DiceSceneConfiguration(
         presentation.request, "#$color", bounds, presentation.active,
         isOpponentTurn = if (state.isOnlineGame) state.isOpponentTurn else state.currentPlayer?.isMain() == false,
-        header = DiceSceneHeader.from(state, onPlayerClick != null),
+        header = DiceSceneHeader.from(state, false),
         isTutorial = state.isTutorial,
         gameFinished = state.game?.isFinished() == true,
         messages = messages,
@@ -149,7 +146,7 @@ private fun GameField(
             },
             onSceneEvent = { event ->
                 when (event) {
-                    is DiceSceneEvent.PlayerSelected -> state.game?.players?.find { it.user.id == event.playerId }?.let { onPlayerClick?.invoke(it) }
+                    is DiceSceneEvent.PlayerSelected -> Unit
                     is DiceSceneEvent.HeaderAnimation -> headerAnimating = event.running
                     is DiceSceneEvent.MessageDismissed -> messages.find { it.id.toString() == event.messageId }?.let(onMessageDismiss)
                     else -> Unit

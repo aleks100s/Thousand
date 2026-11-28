@@ -67,6 +67,15 @@ class GameRepositoryImpl(
         userDao.delete(userId)
     }
 
+    override suspend fun clearLocalData() {
+        database.useWriterConnection { transactor ->
+            transactor.immediateTransaction {
+                gameDao.deleteAll()
+                userDao.deleteAll()
+            }
+        }
+    }
+
     override suspend fun createGame(game: Game): Game {
         val gameId = database.useWriterConnection { transactor ->
             transactor.immediateTransaction {

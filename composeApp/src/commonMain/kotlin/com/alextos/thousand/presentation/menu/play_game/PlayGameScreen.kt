@@ -138,7 +138,6 @@ fun PlayGameScreen(
                 onFinishGame = {
                     viewModel.onAction(PlayGameAction.FinishGame)
                 },
-                onPlayerClick = null,
                 messages = messages,
                 onMessageDismiss = { messages.remove(it) },
             )

@@ -9,203 +9,79 @@ import ComposeApp
 import FirebaseAuth
 import FirebaseCore
 import FirebaseCrashlytics
-import FirebaseCrashlyticsSwift
-import FirebaseDatabase
+import Foundation
 
 final class IOSAccountService: MutableNativeAccountService {
-    private var savedAppearance: String?
-    private var pendingAppearance: String?
-
     override init() {
         super.init()
         FirebaseApp.configure()
-        observeFirebaseAuthorizationState()
-    }
-    
-    override func updateLocalAppearance(user: ComposeApp.User) {
-        super.updateLocalAppearance(user: user)
-        guard Auth.auth().currentUser?.uid == user.id else { return }
-        let key = "\(user.id):\(user.color.name):\(user.avatar.name)"
-        guard key != pendingAppearance, pendingAppearance != nil || key != savedAppearance else { return }
-        pendingAppearance = key
-        Database.database().reference().child(FirebasePath.users).child(user.id)
-            .updateChildValues(FirebaseUserMapper.shared.appearanceDictionary(from: user)) { [weak self] error, _ in
-                guard let self else { return }
-                if let error {
-                    if self.pendingAppearance == key { self.pendingAppearance = nil }
-                    Crashlytics.crashlytics().record(error: error)
-                } else if self.pendingAppearance == key {
-                    self.savedAppearance = key
-                    self.pendingAppearance = nil
-                }
+        Auth.auth().addStateDidChangeListener { [weak self] auth, _ in
+            if auth.currentUser?.isAnonymous != true {
+                self?.clearUserProfile()
             }
+        }
     }
 
-    override func logIn(
-        email: String,
-        password: String,
-        completionHandler: @escaping ((any Error)?) -> Void
-    ) {
-        Auth.auth().signIn(withEmail: email, password: password) { [weak self] result, error in
-            if let error {
-                self?.handleAuthenticationError(error: error)
-                completionHandler(error)
-                return
-            }
-            
-            guard (result?.user) != nil else {
-                self?.handleAuthenticationError(error: nil)
-                completionHandler(nil)
-                return
-            }
-            
-            completionHandler(nil)
-        }
-    }
-    
-    override func signUp(
-        email: String,
-        password: String,
-        name: String,
-        completionHandler: @escaping ((any Error)?) -> Void
-    ) {
-        Auth.auth().createUser(withEmail: email, password: password) { [weak self] result, error in
-            if let error {
-                self?.handleAuthenticationError(error: error)
-                completionHandler(error)
-                return
-            }
-            
-            guard (result?.user) != nil else {
-                self?.handleAuthenticationError(error: nil)
-                completionHandler(nil)
-                return
-            }
-            
-            self?.updateFirebaseUser(name: name)
-            completionHandler(nil)
-        }
-    }
-    
-    override func updateUserName(name: String) {
-        updateFirebaseUser(name: name)
-    }
-    
-    override func deleteAccount(completionHandler: @escaping ((any Error)?) -> Void) {
-        let userId = Auth.auth().currentUser?.uid ?? ""
-        guard !userId.isEmpty else {
+    override func signInAnonymouslyPlatform(completionHandler: @escaping ((any Error)?) -> Void) {
+        let auth = Auth.auth()
+        if let currentUser = auth.currentUser, currentUser.isAnonymous {
+            updateUserProfile(id: currentUser.uid, name: "")
             completionHandler(nil)
             return
         }
 
-        Database.database().reference()
-            .child(FirebasePath.users)
-            .child(userId)
-            .removeValue { error, _ in
-                if let error {
-                    Crashlytics.crashlytics().record(error: error)
-                } else {
-                    self.signOut()
-                }
+        clearUserProfile()
+        if auth.currentUser != nil {
+            do {
+                try auth.signOut()
+            } catch {
+                Crashlytics.crashlytics().record(error: error)
                 completionHandler(error)
-            }
-    }
-    
-    override func signOut() {
-        do {
-            try Auth.auth().signOut()
-            clearUserProfile()
-        } catch {
-            Crashlytics.crashlytics().record(error: error)
-        }
-    }
-}
-
-// MARK: - Firebase user observation
-
-extension IOSAccountService {
-    private func observeFirebaseAuthorizationState() {
-        Task {
-            for try await user in Auth.auth().authStateChanges {
-                savedAppearance = nil
-                pendingAppearance = nil
-                if let user {
-                    updateRemoteUserInfo(user: user)
-                } else {
-                    clearUserProfile()
-                }
+                return
             }
         }
+
+        auth.signInAnonymously { [weak self] result, error in
+            if let error {
+                self?.clearUserProfile()
+                Crashlytics.crashlytics().record(error: error)
+                completionHandler(error)
+                return
+            }
+
+            guard let user = result?.user, user.isAnonymous else {
+                self?.clearUserProfile()
+                let error = NSError(
+                    domain: "IOSAccountService",
+                    code: 1,
+                    userInfo: [NSLocalizedDescriptionKey: "Firebase anonymous user is missing after sign-in."]
+                )
+                Crashlytics.crashlytics().record(error: error)
+                completionHandler(error)
+                return
+            }
+
+            self?.updateUserProfile(id: user.uid, name: "")
+            completionHandler(nil)
+        }
     }
-    
-    private func updateFirebaseUser(name: String) {
-        guard let user = Auth.auth().currentUser else {
+
+    override func currentAnonymousUserId() -> String? {
+        guard let user = Auth.auth().currentUser, user.isAnonymous else { return nil }
+        return user.uid
+    }
+
+    override func deleteAccountPlatform(completionHandler: @escaping ((any Error)?) -> Void) {
+        guard let user = Auth.auth().currentUser, user.isAnonymous else {
+            completionHandler(nil)
             return
         }
 
-        let changeRequest = user.createProfileChangeRequest()
-        changeRequest.displayName = name
-        changeRequest.commitChanges { error in
+        user.delete { error in
             if let error {
                 Crashlytics.crashlytics().record(error: error)
-            } else {
-                self.updateRemoteUserInfo(user: user)
             }
-        }
-    }
-    
-    private func updateRemoteUserInfo(user: FirebaseAuth.User) {
-        let userReference = Database.database().reference()
-            .child(FirebasePath.users)
-            .child(user.uid)
-
-        userReference.getData { error, snapshot in
-            guard let snapshot else {
-                if let error {
-                    Crashlytics.crashlytics().record(error: error)
-                }
-                return
-            }
-
-            var values: [AnyHashable: Any] = [
-                FirebaseUserKey.name: user.displayName ?? user.email ?? user.uid,
-                FirebaseUserKey.platform: FirebasePlatform.ios
-            ]
-
-            if !snapshot.exists() {
-                values[FirebaseUserKey.gameCount] = 0
-                values[FirebaseUserKey.winCount] = 0
-                values[FirebaseUserKey.rating] = 0
-            } else {
-                if !snapshot.hasChild(FirebaseUserKey.gameCount) {
-                    values[FirebaseUserKey.gameCount] = 0
-                }
-                if !snapshot.hasChild(FirebaseUserKey.winCount) {
-                    values[FirebaseUserKey.winCount] = 0
-                }
-                if !snapshot.hasChild(FirebaseUserKey.rating) {
-                    values[FirebaseUserKey.rating] = 0
-                }
-            }
-
-            userReference.updateChildValues(values) { error, _ in
-                if let error {
-                    Crashlytics.crashlytics().record(error: error)
-                } else {
-                    self.updateUserProfile(id: user.uid, name: user.displayName ?? user.email ?? user.uid)
-                }
-            }
-        }
-    }
-}
-
-// MARK: - Helpers
-
-extension IOSAccountService {
-    private func handleAuthenticationError(error: Error?) {
-        clearUserProfile()
-        if let error {
-            Crashlytics.crashlytics().record(error: error)
+            completionHandler(error)
         }
     }
 }

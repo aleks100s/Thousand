@@ -99,7 +99,6 @@ fun TutorialGameScreen(
                 onFinishGame = {
                     onFinish()
                 },
-                onPlayerClick = null,
             )
         }
     }

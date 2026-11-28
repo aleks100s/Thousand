@@ -9,7 +9,6 @@ import com.alextos.thousand.application.invites.LobbyInvitations
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.alextos.thousand.common.horizontalTransition
-import com.alextos.thousand.presentation.menu.achievements.AchievementsScreen
 import com.alextos.thousand.presentation.menu.create_game.CreateGameScreen
 import com.alextos.thousand.presentation.menu.game_score.GameScoreScreen
 import com.alextos.thousand.presentation.menu.play_game.PlayGameScreen
@@ -18,6 +17,7 @@ import com.alextos.thousand.presentation.menu.game_rules.GameRulesScreen
 import com.alextos.thousand.presentation.menu.statistics.StatisticsRoot
 import com.alextos.thousand.presentation.menu.tutorial_game.TutorialGameScreen
 import com.alextos.thousand.presentation.menu.multiplayer.MultiplayerRoot
+import com.alextos.thousand.presentation.menu.multiplayer.player_profile.PlayerProfileScreen
 
 @Composable
 fun MenuRoot() {
@@ -52,8 +52,8 @@ fun MenuRoot() {
                 openRules = {
                     navController.navigate(MenuRoute.Rules)
                 },
-                openAchievements = {
-                    navController.navigate(MenuRoute.Achievements)
+                openPlayerProfile = {
+                    navController.navigate(MenuRoute.PlayerProfile)
                 },
                 openTutorial = {
                     navController.navigate(MenuRoute.TutorialGame)
@@ -65,9 +65,9 @@ fun MenuRoot() {
                 onGoBack = navController::popBackStack,
             )
         }
-        horizontalTransition<MenuRoute.Achievements> {
-            AchievementsScreen(
-                onGoBack = navController::popBackStack,
+        horizontalTransition<MenuRoute.PlayerProfile> {
+            PlayerProfileScreen(
+                goBack = navController::popBackStack,
             )
         }
         horizontalTransition<MenuRoute.TutorialGame> {

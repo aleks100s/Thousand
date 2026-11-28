@@ -29,10 +29,10 @@ data class MenuState(
             action = MenuTileAction.Rules,
         ),
         MenuTile(
-            title = "Достижения",
-            description = "Игровые достижения",
+            title = "Профиль",
+            description = "Ваш профиль и достижения",
             size = MenuTileSize.Default,
-            action = MenuTileAction.Achievements,
+            action = MenuTileAction.PlayerProfile,
         ),
     ),
 )
@@ -52,7 +52,7 @@ enum class MenuTileSize {
 enum class MenuTileAction {
     Tutorial,
     Rules,
-    Achievements,
+    PlayerProfile,
     Multiplayer,
     LocalGame,
 }

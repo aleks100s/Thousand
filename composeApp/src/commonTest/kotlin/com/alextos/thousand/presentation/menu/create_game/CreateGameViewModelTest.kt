@@ -1,12 +1,15 @@
 package com.alextos.thousand.presentation.menu.create_game
 
 import androidx.lifecycle.ViewModelStore
+import com.alextos.thousand.application.AppViewModel
 import com.alextos.thousand.domain.models.*
 import com.alextos.thousand.domain.repository.GameRepository
 import com.alextos.thousand.domain.service.MutableNativeAccountService
 import com.alextos.thousand.domain.service.StorageService
 import com.alextos.thousand.domain.usecase.game.crud.CreateGameUseCase
 import com.alextos.thousand.domain.usecase.user.*
+import com.alextos.thousand.presentation.onboarding.OnboardingAction
+import com.alextos.thousand.presentation.onboarding.OnboardingViewModel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -29,7 +32,7 @@ class CreateGameViewModelTest {
 
     private fun viewModel(repo: PlayersRepository): CreateGameViewModel = CreateGameViewModel(
         GetAllUsersUseCase(repo), SaveUserUseCase(repo), CreateGameUseCase(repo), GenerateBotNameUseCase(), PlayersStorage(),
-        UpdateUserUseCase(repo, MutableNativeAccountService()), DeleteUserUseCase(repo),
+        UpdateUserUseCase(repo), DeleteUserUseCase(repo),
     ).also { vm ->
         stores += ViewModelStore().also { it.put("create-game", vm) }
         vm.onAction(CreateGameAction.Initialize)
@@ -51,11 +54,11 @@ class CreateGameViewModelTest {
         val saved = main.copy(avatar = PlayerAvatar.Female)
         val repo = PlayersRepository(listOf(saved))
         val account = MutableNativeAccountService()
-        val vm = com.alextos.thousand.application.AppViewModel(
-            GetAllUsersUseCase(repo), account, UpdateUserUseCase(repo, account), ReplaceMainUserUseCase(repo),
+        val vm = AppViewModel(
+            GetAllUsersUseCase(repo), account, ReplaceMainUserUseCase(repo),
         )
         stores += ViewModelStore().also { it.put("app", vm) }
-        account.updateUserProfile(saved.id, saved.name)
+        account.updateUserProfile(saved.id, "")
         assertEquals(saved.avatar, account.playerForAccount(saved.id, saved.name).avatar)
         assertEquals(saved.color, account.playerForAccount(saved.id, saved.name).color)
     }
@@ -65,19 +68,24 @@ class CreateGameViewModelTest {
             .map { User(id = it.name, name = it.name, color = it) }
         val repo = PlayersRepository(occupied)
         val account = MutableNativeAccountService()
-        val vm = com.alextos.thousand.presentation.onboarding.OnboardingViewModel(SaveUserUseCase(repo), account)
+        val vm = OnboardingViewModel(SaveUserUseCase(repo), account)
         stores += ViewModelStore().also { it.put("onboarding", vm) }
-        vm.onAction(com.alextos.thousand.presentation.onboarding.OnboardingAction.UpdateName("Маша"))
-        vm.onAction(com.alextos.thousand.presentation.onboarding.OnboardingAction.SelectAvatar(PlayerAvatar.Female))
-        vm.onAction(com.alextos.thousand.presentation.onboarding.OnboardingAction.SaveUser)
+        vm.onAction(OnboardingAction.UpdateName("Маша"))
+        vm.onAction(OnboardingAction.SelectAvatar(PlayerAvatar.Female))
+        vm.onAction(OnboardingAction.SaveUser)
         val manualPlayer = repo.users.value.single { it.kind == UserKind.MainUser }
         assertEquals(PlayerAvatar.Female, manualPlayer.avatar)
         assertEquals(PlayerColor.Sky, manualPlayer.color)
         repo.users.value = occupied
-        account.updateUserProfile("account", "Автоматическое имя")
-        val automaticPlayer = repo.users.value.single { it.kind == UserKind.MainUser }
-        assertEquals(PlayerAvatar.Neutral, automaticPlayer.avatar)
-        assertEquals(PlayerColor.Sky, automaticPlayer.color)
+        account.updateUserProfile("account", "")
+        assertTrue(repo.users.value.none { it.kind == UserKind.MainUser })
+        vm.onAction(OnboardingAction.UpdateName("Олег"))
+        vm.onAction(OnboardingAction.SaveUser)
+        val anonymousPlayer = repo.users.value.single { it.kind == UserKind.MainUser }
+        assertEquals("account", anonymousPlayer.id)
+        assertEquals("Олег", anonymousPlayer.name)
+        assertEquals(PlayerAvatar.Neutral, anonymousPlayer.avatar)
+        assertEquals(PlayerColor.Sky, anonymousPlayer.color)
     }
 
     @Test fun editingDoesNotChangeSelectionOrAdvanceAndCanFinishWithoutPlayers() = runTest {
@@ -246,6 +254,7 @@ private class PlayersStorage : StorageService {
     override val isShakeEnabled = MutableStateFlow(true)
     override val isNotificationEnabled = MutableStateFlow(true)
     override val isFirstLaunch = MutableStateFlow(false)
+    override suspend fun clear() = error("Unused")
     override suspend fun setManualInputEnabled(isEnabled: Boolean) { isManualInputEnabled.value = isEnabled }
     override suspend fun setShakeEnabled(isEnabled: Boolean) { isShakeEnabled.value = isEnabled }
     override suspend fun setNotificationEnabled(isEnabled: Boolean) { isNotificationEnabled.value = isEnabled }
@@ -265,6 +274,7 @@ private class PlayersRepository(initial: List<User>) : GameRepository {
         users.value = users.value.filterNot { it.id == user.id } + user
     }
     override suspend fun deleteUser(userId: String) { users.value = users.value.filterNot { it.id == userId } }
+    override suspend fun clearLocalData() = error("Unused")
     override suspend fun getMainUser(): User? = users.value.firstOrNull { it.kind == UserKind.MainUser }
     override suspend fun replaceUser(previous: User, new: User) = error("Unused")
     override suspend fun createGame(game: Game): Game { created = game; return game }

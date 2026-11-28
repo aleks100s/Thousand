@@ -9,7 +9,6 @@ import com.alextos.thousand.domain.models.DiceRoll
 import com.alextos.thousand.domain.models.Die
 import com.alextos.thousand.domain.models.Game
 import com.alextos.thousand.domain.models.RemoteGame
-import com.alextos.thousand.domain.models.RemoteUserInfo
 import com.alextos.thousand.domain.models.RollAbility
 import com.alextos.thousand.domain.models.Turn
 import com.alextos.thousand.domain.models.UserReaction
@@ -33,17 +32,13 @@ import com.alextos.thousand.domain.usecase.game.server.GameStatus
 import com.alextos.thousand.presentation.menu.multiplayer.MultiplayerRoute
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
 
 class MultiplayerGameViewModel(
@@ -72,8 +67,6 @@ class MultiplayerGameViewModel(
     private var rollBlocked = false
     private var remoteGame: RemoteGame? = null
     private var pendingGameFinish: RemoteGame? = null
-    private var needToRequestUserInfo = true
-    private var usersInfoJob: Job? = null
     private var isUserAwayFromGame = false
     private val shownReactionIds = mutableSetOf<String>()
 
@@ -176,7 +169,6 @@ class MultiplayerGameViewModel(
         }
         remoteGame = game
         val actualGame = remoteGame ?: game
-        loadMissingUsersInfo(game)
         val gameState = mapToGameState(actualGame)
         _state.update {
             it.copy(
@@ -240,43 +232,6 @@ class MultiplayerGameViewModel(
         )
     }
 
-    private fun loadMissingUsersInfo(game: RemoteGame) {
-        if (needToRequestUserInfo.not()) {
-            return
-        }
-
-        val userIds = game.players
-            .map { player -> player.user.id }
-            .filter { userId -> userId.isNotBlank() }
-            .distinct()
-
-        if (userIds.isEmpty()) {
-            return
-        }
-
-        needToRequestUserInfo = false
-        usersInfoJob?.cancel()
-        usersInfoJob = viewModelScope.launch {
-            userIds
-                .map { userId ->
-                    multiplayerRepository
-                        .observeUserInfo(userId)
-                        .map { userInfo -> userInfo.toUserInfoMap(userId) }
-                }
-                .zip()
-                .catch { error ->
-                    _state.update {
-                        it.copy(error = error.message)
-                    }
-                }
-                .collect { usersInfo ->
-                    _state.update {
-                        it.copy(usersInfo = usersInfo)
-                    }
-                }
-        }
-    }
-
     private fun deleteGame() {
         viewModelScope.launch {
             try {
@@ -306,8 +261,7 @@ class MultiplayerGameViewModel(
             rollBlocked = false
             _state.update {
                 it.copy(
-                    gameResultSheet = null,
-                    usersInfo = emptyMap()
+                    gameResultSheet = null
                 )
             }
             val resetGame = remoteGame.copy(
@@ -518,7 +472,7 @@ class MultiplayerGameViewModel(
     private suspend fun finishRemote(game: RemoteGame) {
         pendingGameFinish = game
         try {
-            finishRemoteGame(game, state.value.usersInfo) { savedResult ->
+            finishRemoteGame(game) { savedResult ->
                 checkAchievements { accountId ->
                     achievementService.onOnlineGameFinished(savedResult.game, accountId)
                 }
@@ -563,15 +517,5 @@ class MultiplayerGameViewModel(
         }
     }
 }
-
-private fun RemoteUserInfo?.toUserInfoMap(userId: String): Map<String, RemoteUserInfo> =
-    if (this == null) emptyMap() else mapOf(userId to this)
-
-private fun List<Flow<Map<String, RemoteUserInfo>>>.zip(): Flow<Map<String, RemoteUserInfo>> =
-    reduce { accumulatedFlow, nextFlow ->
-        accumulatedFlow.zip(nextFlow) { accumulated, next ->
-            accumulated + next
-        }
-    }
 
 private const val REACTION_COOLDOWN_MILLIS = 10_000L

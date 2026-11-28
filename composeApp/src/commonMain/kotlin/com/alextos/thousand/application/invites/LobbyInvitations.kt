@@ -38,4 +38,8 @@ object LobbyInvitations {
     fun consume(id: Long) {
         if (_pending.value?.id == id) _pending.value = null
     }
+
+    fun clear() {
+        _pending.value = null
+    }
 }

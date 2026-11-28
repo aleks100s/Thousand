@@ -5,16 +5,11 @@ import com.alextos.thousand.domain.models.RemoteGame
 
 data class MultiplayerState(
     val isAuthorized: Boolean = false,
-    val isLoginSheetVisible: Boolean = false,
+    val isConnecting: Boolean = false,
+    val connectionError: String? = null,
     val isJoinLobbySheetVisible: Boolean = false,
     val isJoiningLobby: Boolean = false,
     val lobbyId: String = "",
-    val currentUserId: String? = null,
-    val username: String? = null,
-    val isLoginInProgress: Boolean = false,
-    val isSignUpInProgress: Boolean = false,
-    val canJoinLobby: Boolean = false,
-    val loginError: String? = null,
     val lobbyError: String? = null,
     val lobbies: List<Lobby> = emptyList(),
     val activeGames: List<RemoteGame> = emptyList(),

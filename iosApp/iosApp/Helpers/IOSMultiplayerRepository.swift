@@ -361,13 +361,6 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
         return FinishedGameSaveResult(game: savedGame, newlyFinished: true)
     }
 
-    func saveGameStatistics(game: RemoteGame, userInfo: [String: RemoteUserInfo]) async throws {
-        let updates = finishedGameStatisticsUpdates(for: game, userInfo: userInfo)
-        if !updates.isEmpty {
-            try await Database.database().reference().updateChildValues(updates)
-        }
-    }
-    
     func deleteGame(key: String) async throws {
         try await Database.database().reference()
             .child(FirebasePath.games)
@@ -375,39 +368,4 @@ final class IOSMultiplayerRepository: MultiplayerRepository {
             .removeValue()
     }
 
-    func userInfo(userId: String) async throws -> RemoteUserInfo? {
-        guard !userId.isEmpty else {
-            return nil
-        }
-
-        let snapshot = try await Database.database().reference()
-            .child(FirebasePath.users)
-            .child(userId)
-            .getData()
-
-        return remoteUserInfo(from: snapshot.firebaseDictionary, userId: userId)
-    }
-
-    func observeUserInfo(userId: String) -> any Kotlinx_coroutines_coreFlow {
-        let bridge = RemoteUserInfoFlowBridge()
-        guard !userId.isEmpty else {
-            return bridge.flow
-        }
-
-        let reference = Database.database().reference()
-            .child(FirebasePath.users)
-            .child(userId)
-
-        reference.observe(.value, with: { [weak self] snapshot in
-            guard let self else {
-                return
-            }
-
-            bridge.emit(userInfo: self.remoteUserInfo(from: snapshot.firebaseDictionary, userId: userId))
-        }, withCancel: { error in
-            bridge.closeWithError(message: error.localizedDescription)
-        })
-
-        return bridge.flow
-    }
 }

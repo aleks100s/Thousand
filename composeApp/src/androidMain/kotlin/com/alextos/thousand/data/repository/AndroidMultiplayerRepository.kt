@@ -3,10 +3,8 @@ package com.alextos.thousand.data.repository
 import com.alextos.thousand.data.mappers.firebase.FirebaseGameMapper
 import com.alextos.thousand.data.repository.mappers.toDatabaseMap
 import com.alextos.thousand.data.repository.mappers.toDatabaseUpdateMap
-import com.alextos.thousand.data.repository.mappers.toFinishedGameStatisticsUpdates
 import com.alextos.thousand.data.repository.mappers.toGame
 import com.alextos.thousand.data.repository.mappers.toLobby
-import com.alextos.thousand.data.repository.mappers.toRemoteUserInfo
 import com.alextos.thousand.domain.models.GameButton
 import com.alextos.thousand.domain.repository.LobbyNotFoundException
 import com.alextos.thousand.domain.repository.MultiplayerRepository
@@ -16,7 +14,6 @@ import com.alextos.thousand.domain.models.Player
 import com.alextos.thousand.domain.models.RemoteGame
 import com.alextos.thousand.domain.models.FinishedGameSaveResult
 import com.alextos.thousand.domain.models.UserReaction
-import com.alextos.thousand.domain.models.RemoteUserInfo
 import com.alextos.thousand.domain.models.RollAbility
 import com.alextos.thousand.domain.models.User
 import com.google.firebase.Firebase
@@ -42,7 +39,6 @@ import kotlin.uuid.Uuid
 
 class AndroidMultiplayerRepository(private val accountService: com.alextos.thousand.domain.service.NativeAccountService) : MultiplayerRepository {
     companion object {
-        private const val USERS_NODE = "users"
         private const val LOBBIES_NODE = "lobbies"
         private const val GAMES_NODE = "games"
         private const val ONLINE_PLAYER_IDS_NODE = "onlinePlayerIds"
@@ -419,19 +415,6 @@ class AndroidMultiplayerRepository(private val accountService: com.alextos.thous
                 .addOnFailureListener { continuation.resumeWithException(it) }
         }
 
-    override suspend fun saveGameStatistics(game: RemoteGame, userInfo: Map<String, RemoteUserInfo>) {
-        suspendCancellableCoroutine { continuation ->
-            val updates = game.toFinishedGameStatisticsUpdates(userInfo)
-            if (updates.isEmpty()) {
-                continuation.resume(Unit)
-            } else {
-                FirebaseDatabase.getInstance().reference.updateChildren(updates)
-                    .addOnSuccessListener { continuation.resume(Unit) }
-                    .addOnFailureListener { continuation.resumeWithException(it) }
-            }
-        }
-    }
-
     override suspend fun deleteGame(key: String) {
         suspendCancellableCoroutine { continuation ->
             FirebaseDatabase.getInstance().reference
@@ -446,51 +429,6 @@ class AndroidMultiplayerRepository(private val accountService: com.alextos.thous
                 }
         }
 
-    }
-
-    override suspend fun userInfo(userId: String): RemoteUserInfo? {
-        if (userId.isBlank()) return null
-
-        return suspendCancellableCoroutine { continuation ->
-            FirebaseDatabase.getInstance().reference
-                .child(USERS_NODE)
-                .child(userId)
-                .get()
-                .addOnSuccessListener { snapshot ->
-                    if (continuation.isActive) {
-                        continuation.resume(snapshot.toRemoteUserInfo(userId))
-                    }
-                }
-                .addOnFailureListener { error ->
-                    continuation.cancel(error)
-                }
-        }
-    }
-
-    override fun observeUserInfo(userId: String): Flow<RemoteUserInfo?> {
-        if (userId.isBlank()) return emptyFlow()
-
-        return callbackFlow {
-            val reference = FirebaseDatabase.getInstance().reference
-                .child(USERS_NODE)
-                .child(userId)
-
-            val listener = object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    trySend(snapshot.toRemoteUserInfo(userId))
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                    close(error.toException())
-                }
-            }
-
-            reference.addValueEventListener(listener)
-
-            awaitClose {
-                reference.removeEventListener(listener)
-            }
-        }
     }
 
     override fun userLobbies(): Flow<List<Lobby>> {

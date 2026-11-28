@@ -7,9 +7,6 @@ sealed interface MultiplayerRoute {
     data object Multiplayer : MultiplayerRoute
 
     @Serializable
-    data object PlayerProfile : MultiplayerRoute
-
-    @Serializable
     data object CreateLobby : MultiplayerRoute
 
     @Serializable

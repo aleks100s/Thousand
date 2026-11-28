@@ -6,6 +6,15 @@ import com.alextos.thousand.data.mappers.room.toEntity
 import com.alextos.thousand.data.models.UserEntity
 import com.alextos.thousand.domain.models.*
 import com.alextos.thousand.domain.service.MutableNativeAccountService
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import kotlin.test.*
 
 class PlayerAppearancePersistenceTest {
@@ -20,18 +29,6 @@ class PlayerAppearancePersistenceTest {
                 assertEquals(color, lobbyUser.color)
             }
         }
-    }
-
-    @Test fun profileAppearancePatchPreservesOtherBackendFields() {
-        val player = User("id", "Маша", color = PlayerColor.Sage, avatar = PlayerAvatar.Female)
-        val patch = FirebaseUserMapper.appearanceDictionary(player)
-        assertEquals(mapOf("color" to "Sage", "avatar" to "Female"), patch)
-        val previous = mapOf<String, Any>("name" to "Маша", "gameCount" to 12, "winCount" to 7)
-        val updated = previous + patch
-        assertEquals(12, updated["gameCount"])
-        assertEquals(7, updated["winCount"])
-        assertEquals(player.color, FirebaseUserMapper.user(updated).color)
-        assertEquals(player.avatar, FirebaseUserMapper.user(updated).avatar)
     }
 
     @Test fun legacyAndUnknownAppearanceUseStableSafeDefaults() {
@@ -52,5 +49,46 @@ class PlayerAppearancePersistenceTest {
         assertEquals(PlayerAvatar.Female, account.playerForAccount("one", "Мария").avatar)
         account.updateUserProfile("two", "Олег")
         assertEquals(PlayerAvatar.Neutral, account.playerForAccount("two", "Олег").avatar)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test fun profileDeletionWaitsForInFlightSignInAndClearsLocalDataAfterAccountDeletion() = runTest {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        try {
+            val signInGate = CompletableDeferred<Unit>()
+            val events = mutableListOf<String>()
+            val account = object : MutableNativeAccountService() {
+                override suspend fun signInAnonymouslyPlatform() {
+                    signInGate.await()
+                    updateUserProfile("uid", "")
+                }
+
+                override suspend fun deleteAccountPlatform() {
+                    events += "delete account"
+                }
+            }
+            val signIn = async { account.signInAnonymously() }
+            runCurrent()
+
+            val deletion = async {
+                account.deleteAccount(
+                    deleteOwnedOnlineData = { events += "clean up $it" },
+                    clearLocalData = {
+                        assertNull(account.userProfile.value)
+                        assertFailsWith<IllegalStateException> { account.signInAnonymously() }
+                        events += "clear local data"
+                    },
+                )
+            }
+            runCurrent()
+            assertTrue(events.isEmpty())
+
+            signInGate.complete(Unit)
+            signIn.await()
+            deletion.await()
+            assertEquals(listOf("clean up uid", "delete account", "clear local data"), events)
+        } finally {
+            Dispatchers.resetMain()
+        }
     }
 }

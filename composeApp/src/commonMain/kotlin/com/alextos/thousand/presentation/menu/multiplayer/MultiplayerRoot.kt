@@ -7,7 +7,6 @@ import com.alextos.thousand.common.horizontalTransition
 import com.alextos.thousand.presentation.menu.multiplayer.create_lobby.CreateLobbyScreen
 import com.alextos.thousand.presentation.menu.multiplayer.lobby.LobbyScreen
 import com.alextos.thousand.presentation.menu.multiplayer.multiplayer_game.MultiplayerGameScreen
-import com.alextos.thousand.presentation.menu.multiplayer.player_profile.PlayerProfileScreen
 
 @Composable
 fun MultiplayerRoot(
@@ -42,16 +41,6 @@ fun MultiplayerRoot(
                             gameId
                         )
                     )
-                },
-                openPlayerProfile = {
-                    navController.navigate(MultiplayerRoute.PlayerProfile)
-                },
-            )
-        }
-        horizontalTransition<MultiplayerRoute.PlayerProfile> {
-            PlayerProfileScreen(
-                goBack = {
-                    navController.popBackStack()
                 },
             )
         }
